@@ -44,6 +44,8 @@ class Game(models.Model):
                                     help_text=_("The end time of the game"))
     canceled = models.BooleanField(verbose_name=_("canceled"), default=False, blank=True,
                                    help_text=_("A game is canceled in the case of a no-show (time slot + grace period"))
+    initialized = models.BooleanField(verbose_name=_("initialized"), default=False, blank=True,
+                                      help_text=_("A game is initialized when the team is ready to play"))
 
 
 class Player(models.Model):
