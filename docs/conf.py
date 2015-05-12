@@ -41,7 +41,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Gestion'air Web controller'
+project = u'Gestion\'air Web controller'
 copyright = u"2015, Your Name"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -165,7 +165,7 @@ html_static_path = ['_static']
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'paleo-2015-gestionair-controldoc'
+htmlhelp_basename = 'gestionaircontroldoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -185,8 +185,8 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
     ('index',
-     'paleo-2015-gestionair-control.tex',
-     u'Gestion'air Web controller Documentation',
+     'gestionaircontrol.tex',
+     u'Gestion\'air Web controller Documentation',
      u"Your Name", 'manual'),
 ]
 
@@ -216,7 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'paleo-2015-gestionair-control', u'Gestion'air Web controller Documentation',
+    ('index', 'gestionaircontrol', u'Gestion\'air Web controller Documentation',
      [u"Your Name"], 1)
 ]
 
@@ -230,8 +230,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'paleo-2015-gestionair-control', u'Gestion'air Web controller Documentation',
-     u"Your Name", 'Gestion'air Web controller',
+    ('index', 'gestionaircontrol', u'Gestion\'air Web controller Documentation',
+     u"Your Name", 'Gestion\'air Web controller',
      'A short description of the project.', 'Miscellaneous'),
 ]
 

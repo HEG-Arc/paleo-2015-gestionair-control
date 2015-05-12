@@ -13,7 +13,7 @@ from __future__ import absolute_import, unicode_literals
 import environ
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
-APPS_DIR = ROOT_DIR.path('paleo-2015-gestionair-control')
+APPS_DIR = ROOT_DIR.path('gestionaircontrol')
 
 env = environ.Env()
 
@@ -43,7 +43,9 @@ THIRD_PARTY_APPS = (
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
-    'paleo-2015-gestionair-control.users',  # custom users app
+    'gestionaircontrol.users',  # custom users app
+    'gestionaircontrol.scheduler',
+    'gestionaircontrol.callcenter',
     # Your stuff: custom apps go here
 )
 
@@ -65,7 +67,7 @@ MIDDLEWARE_CLASSES = (
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
 MIGRATION_MODULES = {
-    'sites': 'paleo-2015-gestionair-control.contrib.sites.migrations'
+    'sites': 'gestionaircontrol.contrib.sites.migrations'
 }
 
 # DEBUG
@@ -102,7 +104,7 @@ MANAGERS = ADMINS
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
     # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
-    'default': env.db("DATABASE_URL", default="postgres://localhost/paleo-2015-gestionair-control"),
+    'default': env.db("DATABASE_URL", default="postgres://gestionaircontrol:toto@localhost/gestionaircontrol"),
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
