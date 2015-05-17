@@ -6,7 +6,7 @@ import time
 # Create your views here.
 
 def home(request):
-    """ Exemple de page HTML, non valide pour que l'exemple soit concis """
+    """ Accueil du Call Center """
     text = """<h1>Bienvenue sur le Call Center !</h1>
               <p>Application pour le Paléo !</p>"""
     return HttpResponse(text)
