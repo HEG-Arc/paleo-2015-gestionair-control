@@ -251,3 +251,8 @@ LOGGING = {
 }
 
 # Your common stuff: Below this line define 3rd party library settings
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+# Game duration in seconds
+GAME_DURATION = 10

@@ -32,4 +32,6 @@ django-autoslug==1.7.2
 # Time zones support
 pytz==2015.2
 
+# Cache backend
+django-redis==4.0.0
 # Your custom requirements go here
