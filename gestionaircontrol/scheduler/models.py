@@ -32,16 +32,20 @@ from django.utils.translation import ugettext_lazy as _
 from gestionaircontrol.callcenter.models import Game
 
 
-class Slot(models.Model):
+class Booking(models.Model):
     # Foreign keys
-    timeslot = models.ForeignKey('Timeslot', verbose_name=_('timeslot'), related_name=_('slots'),
-                                 help_text=_("The timeslot of the slot"))
+    timeslot = models.ForeignKey('Timeslot', verbose_name=_('time slot'), related_name=_('bookings'),
+                                 help_text=_("The time slot of the booking"))
     game = models.OneToOneField(Game, verbose_name=_('game'), related_name=_('slot'), null=True, blank=True,
-                                help_text=_("The game registered in this slot"))
+                                help_text=_("The game registered in this time slot"))
+    booking_position = models.IntegerField(verbose_name=_("booking position"), null=True, blank=True,
+                                           help_text=_("The position of the game in the time slot"))
 
 
 class Timeslot(models.Model):
     start_time = models.DateTimeField(verbose_name=_("start time"), primary_key=True,
                                       help_text=_("The start time of the timeslot"))
-    end_time = models.DateTimeField(verbose_name=_("end time"),
-                                    help_text=_("The end time of the timeslot"))
+    duration = models.IntegerField(verbose_name=_("time slot duration"), default=1200,
+                                   help_text=_("The duration of the time slot in seconds"))
+    booking_capacity = models.IntegerField(verbose_name=_("booking capacity"), default=5,
+                                           help_text=_("The number of bookings available in this time slot"))
