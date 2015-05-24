@@ -6,19 +6,19 @@
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
     <script>
-        var ResInterval = window.setInterval('jqxhr()', 1000); // 1 second
-
+        // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
         var jqxhr = function() {
             $.ajax({
                 url: "http://localhost:8000/scheduler/countdown/json/",
                 dataType: 'json'
             })
-                    .done(function (data) {
+                .done(function (data) {
                 $('#current_game').text(data.current_game);
                 $('#time_left').text(data.time_left);
                 $('#start_time').text(data.start_time);
             });
         };
+        setInterval('jqxhr()', 1000); // 1 second
     </script>
 </head>
 <body>
