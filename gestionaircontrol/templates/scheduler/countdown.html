@@ -9,7 +9,7 @@
         // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
         var jqxhr = function() {
             $.ajax({
-                url: "http://localhost:8000/scheduler/countdown/json/",
+                url: "/scheduler/countdown/json/",
                 dataType: 'json'
             })
                 .done(function (data) {
