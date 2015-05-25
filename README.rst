@@ -18,6 +18,15 @@ Redis
 
 Pyglet
 
+! On Ubuntu, you need the latest version of AVlib in order to play audio files with pyglet.
+
+Download from: http://avbin.github.io/AVbin/Download.html
+
+'''
+$ chmod +x install-avbin-linux-x86-64-v10
+sudo ./install-avbin-linux-x86-64-v10
+'''
+
 ## U-HID library
 
 PyUSB

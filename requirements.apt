@@ -25,3 +25,7 @@ libssl-dev
 
 ##django-extensions
 graphviz-dev
+
+##pyglet dependencies
+libavbin-dev
+libavbin0

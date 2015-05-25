@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+      <h1>Gestion'air Controller</h1>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+        <a class="btn btn-default" href="{% url 'scheduler:start' %}">Start</a>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}

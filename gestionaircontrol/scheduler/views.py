@@ -24,6 +24,8 @@
 import datetime
 import collections
 import json
+import pyglet
+import os
 
 # Core Django imports
 from django.shortcuts import render
@@ -32,10 +34,12 @@ from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 # Third-party app imports
 
 # paleo2015 imports
+from gestionaircontrol.callcenter.tasks import play_call
 
 
 def get_game_status(game_start_time):
@@ -56,6 +60,7 @@ def get_demo_status():
     return demo_status
 
 
+@login_required()
 def start(request):
     # Is it already working?
     game_start_time = cache.get('game_start_time')
@@ -80,6 +85,7 @@ def start(request):
     return JsonResponse(result)
 
 
+@login_required()
 def stop(request):
     game = cache.get_many(['game_start_time', 'current_game'])
     game_start_time = game.get('game_start_time')
@@ -100,6 +106,7 @@ def stop(request):
     return JsonResponse(result)
 
 
+@login_required()
 def demo(request):
     # Is it already working?
     demo_status = cache.get('demo_status')
@@ -118,6 +125,17 @@ def demo(request):
         message = "Demo started"
 
     result = {'success': success, 'message': message, }
+    return JsonResponse(result)
+
+
+@login_required()
+def call(request):
+    # TODO: Do something here....
+    # For tests only...
+    play_call.apply_async()
+    success = True
+    message = "Call was started"
+    result = {'success': success, 'message': message}
     return JsonResponse(result)
 
 
