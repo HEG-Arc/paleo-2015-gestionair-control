@@ -23,6 +23,7 @@
 # Stdlib imports
 import datetime
 import collections
+import json
 
 # Core Django imports
 from django.shortcuts import render
@@ -37,58 +38,103 @@ from django.conf import settings
 # paleo2015 imports
 
 
+def get_game_status(game_start_time):
+    if game_start_time:
+        if datetime.datetime.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
+            current_status = "RUNNING"
+        else:
+            current_status = "FINISHED"
+    else:
+        current_status = "FINISHED"
+    return current_status
+
+
+def get_demo_status():
+    demo_status = cache.get('demo_status')
+    if not demo_status:
+        demo_status = "FINISHED"
+    return demo_status
+
+
 def start(request):
     # Is it already working?
-    start_time = cache.get('start_time')
-    if start_time:
-        if datetime.datetime.now() < start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
-            # The game is not yet finished
-            pass
-        else:
-            # We can start a new counter
-            start_time = datetime.datetime.now()
-            # We store the value in Redis
-            cache.set_many({'start_time': start_time, 'current_game': 999})
-            # We initialize the new simulation
-    else:
+    game_start_time = cache.get('game_start_time')
+    current_status = get_game_status(game_start_time)
+
+    if current_status == "RUNNING":
+        success = False
+        message = "Game is already running"
+    elif current_status == "FINISHED":
         # We can start a new counter
         start_time = datetime.datetime.now()
         # We store the value in Redis
-        cache.set_many({'start_time': start_time, 'current_game': 999})
+        cache.set_many({'game_start_time': start_time, 'current_game': 999})
         # We initialize the new simulation
-    game = cache.get_many(['start_time', 'current_game'])
-    return HttpResponse("Game %s started at: %s." % (game['current_game'], game['start_time']),
-                        content_type="text/plain")
+        # TODO: Start the simulation
+        success = True
+        message = "Game started"
 
-
-def status(request):
-    game = cache.get_many(['start_time', 'current_game'])
-    if game.get('start_time'):
-        if datetime.datetime.now() < game['start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION):
-            current_status = "RUNNING"
-        else:
-            current_status = "PAUSED"
-    else:
-        current_status = "PAUSED"
-    return HttpResponse("Current status: %s (Game %s started at: %s)." % (current_status, game.get('current_game'), game.get('start_time')),
-                        content_type="text/plain")
+    game = cache.get_many(['game_start_time', 'current_game'])
+    result = {'success': success, 'message': message, 'game': game['current_game'],
+              'game_start_time': game['game_start_time'].isoformat()}
+    return JsonResponse(result)
 
 
 def stop(request):
-    game = cache.get_many(['start_time', 'current_game'])
-    cache.delete_many(['start_time', 'current_game'])
-    return HttpResponse("Game %s was stopped." % game['current_game'],
-                        content_type="text/plain")
+    game = cache.get_many(['game_start_time', 'current_game'])
+    game_start_time = game.get('game_start_time')
+    current_status = get_game_status(game_start_time)
+
+    if current_status == "RUNNING":
+        # Game is running, we stop it
+        cache.delete_many(['game_start_time', 'current_game'])
+        success = True
+        message = "Game was stopped"
+    elif current_status == "FINISHED":
+        # Game is paused, no need to stop it
+        success = False
+        message = "Game is already finished"
+
+    cache.delete_many(['game_start_time', 'current_game'])
+    result = {'success': success, 'message': message}
+    return JsonResponse(result)
+
+
+def demo(request):
+    # Is it already working?
+    demo_status = cache.get('demo_status')
+    if not demo_status:
+        demo_status = "FINISHED"
+
+    if demo_status == "RUNNING":
+        success = False
+        message = "Demo is already running"
+    elif demo_status == "FINISHED":
+        # We can start a new demo
+        # TODO: Start the demo ;-)
+        # We store the value in Redis (expiration is only for tests!)
+        cache.set('demo_status', 'RUNNING', 8)
+        success = True
+        message = "Demo started"
+
+    result = {'success': success, 'message': message, }
+    return JsonResponse(result)
 
 
 def countdown(request):
-    game = cache.get_many(['start_time', 'current_game'])
-    if game.get('start_time'):
-        if datetime.datetime.now() < game['start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION):
-            time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (datetime.datetime.now() - game.get('start_time'))
-            game['time_left'] = time_left.seconds
-        else:
-            game['time_left'] = "GAME OVER!"
-    else:
+    game = cache.get_many(['game_start_time', 'current_game'])
+    game_start_time = game.get('game_start_time')
+    current_status = get_game_status(game_start_time)
+    if current_status == "RUNNING":
+        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (datetime.datetime.now() - game.get('game_start_time'))
+        game['time_left'] = time_left.seconds
+    elif current_status == "FINISHED":
         game['time_left'] = "GAME OVER!"
     return JsonResponse(game)
+
+
+def status(request):
+    status = cache.get_many(['game_start_time', 'current_game'])
+    status['game'] = get_game_status(status.get('game_start_time'))
+    status['demo'] = get_demo_status()
+    return JsonResponse(status)

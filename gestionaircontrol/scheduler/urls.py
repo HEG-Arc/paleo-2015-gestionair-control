@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^start/', views.start, name='start'),
     url(r'^status/', views.status, name='status'),
     url(r'^stop/', views.stop, name='stop'),
+    url(r'^demo/', views.demo, name='demo'),
     url(r'^countdown/json/', views.countdown, name='countdown-json'),
     url(r'^countdown/$', TemplateView.as_view(template_name='scheduler/countdown.html'), name="countdown"),
 
