@@ -1,48 +1,67 @@
-from django.shortcuts import render
+__author__ = 'benoit.vuille'
 from django.http import HttpResponse
 import _thread
 import time
+from threading import Thread
+from datetime import datetime
+from django.shortcuts import render
 
-# Create your views here.
+
 
 def home(request):
     """ Accueil du Call Center """
     text = """<h1>Bienvenue sur le Call Center !</h1>
               <p>Application pour le Paléo !</p>"""
+
+
+
     return HttpResponse(text)
 
-def start(request):
+
+def beat():
     """ Déclenche le timer """
-    _thread.start()
+    timer = 240
+    while timer > 0:
+        print(timer)
+        timer = timer-1
+        time.sleep()
 
-def beat(request):
-    """ Affiche le timer """
-    time = 240
-    while time > 0:
-         print (time)
-         time = time-1
-         time.sleep(1)
 
-def stop(request):
-    """ Déclenche le timer """
-    _thread.stop()
-
-def countdown(request):
-    """ Déclenche le timer """
-
-def print(request):
+def print_test(request):
     return HttpResponse(beat())
 
 
-class Worker(Thread):
+class TimeThread(Thread):
+
+    def __init__(self):
+        Thread.__init__(self)
+        self.seconds = 0
+
     def run(self):
-        for x in range(240,0):
-            print(x)
+        cpt = 240
+        while cpt > 0:
+            self.seconds = cpt
+            cpt -= 1
+
             time.sleep(1)
 
+    def get_seconds(self):
+        return self.seconds
 
-def start():
-    Worker().start()
+
+def start(request):
+
+    print("Lancement thread")
+    mon_thread = TimeThread()
+    mon_thread.start()
+
+    print("Affichage du temps")
+    while True:
+        sleep()
+        print(mon_thread.get_seconds())
+
+    text = """test"""
+    return HttpResponse(text)
 
 
 def sleep():
@@ -52,10 +71,11 @@ def sleep():
 def date1(request):
     return render(request, 'date.html', {'date': datetime.now()})
 
-def son(beat):
-    if beat == 240:
-        introson.start()
-    if beat == 225:
-        simulson.start()
-    if beat == 15:
-        finalson.start()
+
+#def son(beat):
+ #   if beat == 240:
+  #      introson.start()
+   # if beat == 225:
+    #    simulson.start()
+    #if beat == 15:
+     #   finalson.start()
