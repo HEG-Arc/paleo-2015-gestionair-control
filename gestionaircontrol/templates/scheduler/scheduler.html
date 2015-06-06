@@ -1,14 +1,82 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+<script>
+$(document).ready(function(){
+    $("#demo").click(function(){
+        $.ajax({
+            url: "/scheduler/demo/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#demo_status').text(data.success);
+        });
+    });
+    $("#call").click(function(){
+        $.ajax({
+            url: "/scheduler/call/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#call_status').text(data.success);
+        });
+    });
+    $("#start").click(function(){
+        $.ajax({
+            url: "/scheduler/start/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#start_status').text(data.success);
+            $("#start").toggleClass('btn-default btn-warning');
+        });
+    });
+    $("#stop").click(function(){
+        $.ajax({
+            url: "/scheduler/stop/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#stop_status').text(data.success);
+        });
+    });
+});
+var jqxhr = function() {
+    $.ajax({
+        url: "/scheduler/status/",
+        dataType: 'json'
+    })
+        .done(function (data) {
+        $('#demo_status').text(data.demo);
+
+        $('#start_status').text(data.game);
+        if (data.game == 'FINISHED') {
+            if ($("#start").hasClass( "btn-warning" )) {
+                $("#start").toggleClass('btn-warning btn-default');
+            }
+            $('#stop_status').text("STOPPED");
+        }
+    });
+};
+setInterval('jqxhr()', 1000); // 1 second
+</script>
+
 <div class="container-fluid">
   <div class="row">
       <h1>Gestion'air Controller</h1>
   </div>
   <div class="row">
     <div class="col-md-12">
-        <a class="btn btn-default" href="{% url 'scheduler:start' %}">Start</a>
-
+        <button class="btn btn-default" id="demo">Demo</button>
+        <div id="demo_status">???</div>
+        <button class="btn btn-default" id="call">Call</button>
+        <div id="call_status">???</div>
+        <button class="btn btn-default" id="start">Start</button>
+        <div id="start_status">???</div>
+        <button class="btn btn-default" id="stop">Stop</button>
+        <div id="stop_status">???</div>
     </div>
   </div>
 </div>
