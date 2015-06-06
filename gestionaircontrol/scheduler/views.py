@@ -40,7 +40,7 @@ from django.contrib.auth.decorators import login_required
 
 # paleo2015 imports
 from gestionaircontrol.callcenter.tasks import play_call
-
+from .messaging import send_amqp_message
 
 def get_game_status(game_start_time):
     if game_start_time:
@@ -78,6 +78,8 @@ def start(request):
         # TODO: Start the simulation
         success = True
         message = "Game started"
+        send_amqp_message("Simulation started", "simulator.start")
+
 
     game = cache.get_many(['game_start_time', 'current_game'])
     result = {'success': success, 'message': message, 'game': game['current_game'],
