@@ -29,3 +29,6 @@ graphviz-dev
 ##pyglet dependencies
 libavbin-dev
 libavbin0
+
+##messaging queue
+rabbitmq-server

@@ -34,4 +34,6 @@ pytz==2015.2
 
 # Cache backend
 django-redis==4.0.0
-# Your custom requirements go here
+
+# RabbitMQ
+kombu==3.0.26
