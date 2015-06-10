@@ -29,3 +29,7 @@ PyUSB
 - http://www.pycall.org/
 - https://github.com/asterisk/ari-py
 - https://wiki.asterisk.org/wiki/pages/viewpage.action?pageId=29395573#AsteriskRESTInterface(ARI)-WhatisaWebSocket?
+
+## Install dependencies
+
+   apt-get install $(grep -vE "^\s*#" requirements.apt  | tr "\n" " ")
