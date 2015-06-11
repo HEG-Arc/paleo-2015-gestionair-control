@@ -25,6 +25,7 @@ import time
 import os
 import pyglet
 import pygame
+import subprocess
 from pycall import CallFile, Call, Application, Context
 
 # Core Django imports
@@ -75,9 +76,10 @@ def create_call_file(phone, type):
         context = None
 
     if context:
-        c = Call('SIP/%s' % phone, wait_time=wait, retry_time=0, max_retries=1)
+        c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
         x = Context(context, str(extension), '1')
         cf = CallFile(c, x)
         cf.spool()
+        subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
     else:
         pass
