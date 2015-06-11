@@ -174,6 +174,8 @@ class Phone(models.Model):
     usage = models.IntegerField(verbose_name=_("phone usage"),
                                 choices=PHONE_USAGE, default=TEST,
                                 help_text=_("The main use of this phone"))
+    dmx_channel = models.IntegerField(verbose_name=_("DMX channel"), default=1,
+                                      help_text=_("The DMX channel of the LED strip decoder"))
 
     class Meta:
         verbose_name = _("phone")
