@@ -85,6 +85,14 @@ class Question(models.Model):
     department = models.ForeignKey('Department', verbose_name=_('department'), related_name=_('questions'),
                                    help_text=_("The department concerned by the question (aka right answer)"))
 
+    class Meta:
+        verbose_name = _("question")
+        verbose_name_plural = _("questions")
+        ordering = ['number']
+
+    def __unicode__(self):
+        return str(self.number)
+
 
 class Translation(models.Model):
     text = models.TextField(verbose_name=_("translated question"), null=True, blank=True,
@@ -97,6 +105,14 @@ class Translation(models.Model):
     language = models.ForeignKey('Language', verbose_name=_('language'), related_name=_('questions'),
                                  help_text=_("The language of the translation"))
 
+    class Meta:
+        verbose_name = _("translation")
+        verbose_name_plural = _("translations")
+        ordering = ['question', 'language']
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.question, self.language.code)
+
 
 class Language(models.Model):
     # TODO: Should we translate the names of the languages in DE and EN?
@@ -106,6 +122,14 @@ class Language(models.Model):
                                 help_text=_("The french name of the language"))
     flag = models.ImageField(verbose_name=_("flag file"), upload_to='flags',
                              help_text=_("The flag file of the language"))
+
+    class Meta:
+        verbose_name = _("language")
+        verbose_name_plural = _("languages")
+        ordering = ['language']
+
+    def __unicode__(self):
+        return self.language
 
 
 class Department(models.Model):
@@ -119,8 +143,26 @@ class Department(models.Model):
     audio_file = models.FileField(verbose_name=_("audio file"), upload_to='departments', blank=True, null=True,
                                   help_text=_("The MP3 file of the department's description"))
 
+    class Meta:
+        verbose_name = _("department")
+        verbose_name_plural = _("departments")
+        ordering = ['number']
+
+    def __unicode__(self):
+        return self.name
+
 
 class Phone(models.Model):
+    CENTER = 10
+    PUBLIC = 11
+    DEMO = 12
+    TEST = 60
+    PHONE_USAGE = (
+        (CENTER, _('Call Center Phone')),
+        (PUBLIC, _('Public Phone')),
+        (DEMO, _('Demo Phone')),
+        (TEST, _('Test Phone')),
+    )
     number = models.IntegerField(verbose_name=_("phone number"), primary_key=True,
                                  help_text=_("The call number of the phone"))
     position_x = models.FloatField(verbose_name=_("x position"), null=True, blank=True,
@@ -129,6 +171,17 @@ class Phone(models.Model):
                                    help_text=_("The position on the vertical axis"))
     orientation = models.IntegerField(verbose_name=_("orientation"), default=0, blank=True,
                                       help_text=_("The orientation of the phone in degrees"))
+    usage = models.IntegerField(verbose_name=_("phone usage"),
+                                choices=PHONE_USAGE, default=TEST,
+                                help_text=_("The main use of this phone"))
+
+    class Meta:
+        verbose_name = _("phone")
+        verbose_name_plural = _("phones")
+        ordering = ['number']
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.number, self.get_usage_display())
 
 
 class Phonelog(models.Model):
