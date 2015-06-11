@@ -25,3 +25,7 @@ libssl-dev
 
 ##django-extensions
 graphviz-dev
+
+##cache/messaging
+redis-server
+rabbitmq-server
