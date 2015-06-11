@@ -76,7 +76,7 @@ def create_call_file(phone, type):
 
     if context:
         c = Call('SIP/%s' % phone, wait_time=wait, retry_time=0, max_retries=1)
-        x = Context(context, extension, '1')
+        x = Context(context, str(extension), '1')
         cf = CallFile(c, x)
         cf.spool()
     else:
