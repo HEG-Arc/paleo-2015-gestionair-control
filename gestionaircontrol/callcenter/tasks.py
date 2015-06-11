@@ -58,14 +58,25 @@ def sound_control(sound):
 
 
 @app.task
-def create_call_file(phone, context):
-    asterisk_context = {'demo': 'paleo-call'}
-    if context in asterisk_context:
-        c = Call('SIP/%s' % phone)
-        c.wait_time = 30
-        c.retry_time = 60
-        c.max_retries = 2
-        x = Context(asterisk_context[context])
+def create_call_file(phone, type):
+    if type == 'public':
+        wait = 20
+        extension = 2003
+        context = 'paleo-public'
+    elif type == 'demo':
+        wait = 10
+        extension = 2001
+        context = 'paleo-call'
+    elif type == 'call':
+        wait = 5
+        extension = 2001
+        context = 'paleo-call'
+    else:
+        context = None
+
+    if context:
+        c = Call('SIP/%s' % phone, wait_time=wait, retry_time=0, max_retries=1)
+        x = Context(context, extension, '1')
         cf = CallFile(c, x)
         cf.spool()
     else:
