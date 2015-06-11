@@ -39,7 +39,7 @@ from django.contrib.auth.decorators import login_required
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import play_call
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file
 from .messaging import send_amqp_message
 
 def get_game_status(game_start_time):
@@ -79,7 +79,6 @@ def start(request):
         success = True
         message = "Game started"
         send_amqp_message("Simulation started", "simulator.start")
-
 
     game = cache.get_many(['game_start_time', 'current_game'])
     result = {'success': success, 'message': message, 'game': game['current_game'],
@@ -121,6 +120,7 @@ def demo(request):
     elif demo_status == "FINISHED":
         # We can start a new demo
         # TODO: Start the demo ;-)
+        create_call_file.apply_async(args=['6001', 'demo'])
         # We store the value in Redis (expiration is only for tests!)
         cache.set('demo_status', 'RUNNING', 8)
         success = True
@@ -134,7 +134,7 @@ def demo(request):
 def call(request):
     # TODO: Do something here....
     # For tests only...
-    play_call.apply_async()
+    sound_control.apply_async(args=['call'])
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}

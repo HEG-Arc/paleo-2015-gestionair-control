@@ -38,3 +38,9 @@ PyUSB
 - http://www.pycall.org/
 - https://github.com/asterisk/ari-py
 - https://wiki.asterisk.org/wiki/pages/viewpage.action?pageId=29395573#AsteriskRESTInterface(ARI)-WhatisaWebSocket?
+
+
+Pygame
+
+- http://stackoverflow.com/questions/17869101/unable-to-install-pygame-using-pip
+- http://www.pygame.org/wiki/CompileUbuntu

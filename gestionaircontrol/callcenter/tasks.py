@@ -24,6 +24,8 @@
 import time
 import os
 import pyglet
+import pygame
+from pycall import CallFile, Call, Application, Context
 
 # Core Django imports
 from django.conf import settings
@@ -32,13 +34,39 @@ from django.conf import settings
 
 # paleo-2015-gestionair-control imports
 from config.celery import app
+from gestionaircontrol.scheduler.messaging import send_amqp_message
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
 
 @app.task
 def play_call():
-    call = pyglet.media.load(funky, streaming=False)
-    player = call.play()
+    send_amqp_message("{'play': 'funky'}", "player.start")
+    # call = pyglet.media.load(funky, streaming=False)
+    # player = call.play()
+    pygame.mixer.init()
+    pygame.mixer.music.load(funky)
+    pygame.mixer.music.play(0)
     time.sleep(10)
-    player.pause()
+    pygame.mixer.music.stop()
+
+
+@app.task
+def sound_control(sound):
+    if sound == 'call':
+        play_call.apply_async()
+
+
+@app.task
+def create_call_file(phone, context):
+    asterisk_context = {'demo': 'paleo-call'}
+    if context in asterisk_context:
+        c = Call('SIP/%s' % phone)
+        c.wait_time = 30
+        c.retry_time = 60
+        c.max_retries = 2
+        x = Context(asterisk_context[context])
+        cf = CallFile(c, x)
+        cf.spool()
+    else:
+        pass
