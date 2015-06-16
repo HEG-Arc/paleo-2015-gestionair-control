@@ -1,6 +1,7 @@
+# -*- coding: UTF-8 -*-
+
 __author__ = 'benoit.vuille'
 from django.http import HttpResponse
-import _thread
 import time
 from threading import Thread
 from datetime import datetime
@@ -10,16 +11,15 @@ from django.shortcuts import render
 
 def home(request):
     """ Accueil du Call Center """
-    text = """<h1>Bienvenue sur le Call Center !</h1>
+    text = """<h1>Bienvenue sur le Call Center</h1>
               <p>Application pour le Paléo !</p>"""
-
 
 
     return HttpResponse(text)
 
 
 def beat():
-    """ Déclenche le timer """
+    """ Declenche le timer """
     timer = 240
     while timer > 0:
         print(timer)
