@@ -107,17 +107,29 @@ MANAGERS = ADMINS
  #   'default': env.db("DATABASE_URL", default="sqllite3///paleo.db"),
 #}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+#SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',
+try:
+    from .settings_base import *
+    USING_APP_ENGINE = True
+except ImportError:
+    USING_APP_ENGINE = False
+
+    DEBUG = True
+    TEMPLATE_DEBUG = DEBUG
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', '
+            'NAME': os.path.join(BASE_DIR, 'db-development.sqlite3'),
+            'USER': '',                      # Not used with sqlite3.
+            'PASSWORD': '',                  # Not used with sqlite3.
+            'HOST': '',                      # Set to empty string for localhost. Not used with
+            'PORT': '',                      # Set to empty string for default. Not used with sq
+        }
     }
-}
+
+    SITE_ID = 1
 
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 

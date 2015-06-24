@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+from gestionaircontrol.callcenter.models import Game
 
 __author__ = 'benoit.vuille'
 from django.http import HttpResponse
@@ -70,6 +71,23 @@ def sleep():
 
 def date1(request):
     return render(request, 'date.html', {'date': datetime.now()})
+
+
+def index(request):
+    return render(request, 'web/index.html')
+
+
+def addGroup(request):
+    return render(request, 'web/ajouterGroupe.html')
+
+def listGroup(request):
+    #games = Game.find(limit=10)
+    games = Game()
+
+    print (games.team)
+    return render(request, 'web/listeGroupe.html', {
+        'games': games,
+    })
 
 
 #def son(beat):

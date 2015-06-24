@@ -5,6 +5,18 @@
     <title>Gestion'air</title>
 </head>
 <body>
+<h2>List of the groups</h2>
 
+{% for game in games %}
+  <div class="product box">
+    <div class="wrapper">
+
+      {{ game.team }}
+
+    </div>
+  </div>
+{% empty %}
+  <em class="note">There are no games in your store.</em>
+{% endfor %}
 </body>
 </html>
