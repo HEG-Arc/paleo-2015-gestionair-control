@@ -45,7 +45,9 @@ class Booking(models.Model):
 class Timeslot(models.Model):
     start_time = models.DateTimeField(verbose_name=_("start time"), primary_key=True,
                                       help_text=_("The start time of the timeslot"))
-    duration = models.IntegerField(verbose_name=_("time slot duration"), default=1200,
-                                   help_text=_("The duration of the time slot in seconds"))
+    duration = models.IntegerField(verbose_name=_("time slot duration"), default=20,
+                                   help_text=_("The duration of the time slot in minutes"))
     booking_capacity = models.IntegerField(verbose_name=_("booking capacity"), default=5,
-                                           help_text=_("The number of bookings available in this time slot"))
+                                           help_text=_("The number of bookings bookable in this time slot"))
+    booking_availability = models.IntegerField(verbose_name=_("booking availability"), default=3,
+                                               help_text=_("The number of bookings available in this time slot"))

@@ -35,12 +35,18 @@ from django.template.context import RequestContext
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView, FormView
+from django.utils.decorators import method_decorator
+from django.core.urlresolvers import reverse
 
 # Third-party app imports
 
 # paleo2015 imports
 from gestionaircontrol.callcenter.tasks import sound_control, create_call_file
 from .messaging import send_amqp_message
+from .models import Timeslot, Booking
+from .forms import TimeslotCreationForm
+
 
 def get_game_status(game_start_time):
     if game_start_time:
@@ -158,3 +164,38 @@ def status(request):
     status['game'] = get_game_status(status.get('game_start_time'))
     status['demo'] = get_demo_status()
     return JsonResponse(status)
+
+
+class TimeslotListView(ListView):
+
+    model = Timeslot
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(TimeslotListView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(TimeslotListView, self).get_context_data(**kwargs)
+        context['full'] = self.kwargs['full']
+        return context
+
+    def get_queryset(self):
+        if self.kwargs['full']:
+            time_slots = Timeslot.objects.all()
+        else:
+            time_slots = Timeslot.objects.filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
+        return time_slots
+
+
+class TimeslotCreateView(FormView):
+    template_name = 'scheduler/timeslot_creation_form.html'
+    form_class = TimeslotCreationForm
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        form.create_timeslots()
+        return super(TimeslotCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('scheduler:timeslots-list')
