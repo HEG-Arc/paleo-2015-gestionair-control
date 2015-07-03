@@ -41,6 +41,7 @@ urlpatterns = [
     url(r'^countdown/$', TemplateView.as_view(template_name='scheduler/countdown.html'), name="countdown"),
     url(r'^scheduler/$', TemplateView.as_view(template_name='scheduler/scheduler.html'), name="scheduler"),
     url(r'^timeslots/create/$', views.TimeslotCreateView.as_view(), name="timeslots-create"),
-    url(r'^timeslots/all/$', views.TimeslotListView.as_view(), {'full': True}, name="timeslots-full-list"),
-    url(r'^timeslots/$', views.TimeslotListView.as_view(), {'full': False}, name="timeslots-list"),
+    url(r'^timeslots/all/$', views.TimeslotListView.as_view(), {'filter': 'all'}, name="timeslots-full-list"),
+    url(r'^timeslots/free/$', views.TimeslotListView.as_view(), {'filter': 'free'}, name="timeslots-free-list"),
+    url(r'^timeslots/$', views.TimeslotListView.as_view(), {'filter': 'current'}, name="timeslots-list"),
 ]

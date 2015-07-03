@@ -51,3 +51,13 @@ class Timeslot(models.Model):
                                            help_text=_("The number of bookings bookable in this time slot"))
     booking_availability = models.IntegerField(verbose_name=_("booking availability"), default=3,
                                                help_text=_("The number of bookings available in this time slot"))
+
+    def _nb_bookings(self):
+        nb_bookings = self.bookings.all().count()
+        return nb_bookings
+    nb_bookings = property(_nb_bookings)
+
+    def _free_slots(self):
+        free_slots = self.booking_availability - self.nb_bookings
+        return free_slots
+    free_slots = property(_free_slots)

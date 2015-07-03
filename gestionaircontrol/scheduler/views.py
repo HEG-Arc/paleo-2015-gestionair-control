@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, FormView
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
+from django.db.models import F, Count
 
 # Third-party app imports
 
@@ -176,14 +177,16 @@ class TimeslotListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(TimeslotListView, self).get_context_data(**kwargs)
-        context['full'] = self.kwargs['full']
+        context['filter'] = self.kwargs['filter']
         return context
 
     def get_queryset(self):
-        if self.kwargs['full']:
-            time_slots = Timeslot.objects.all()
+        if self.kwargs['filter'] == 'all':
+            time_slots = Timeslot.objects.prefetch_related('bookings').all()
+        elif self.kwargs['filter'] == 'free':
+            time_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
         else:
-            time_slots = Timeslot.objects.filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
+            time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
         return time_slots
 
 
