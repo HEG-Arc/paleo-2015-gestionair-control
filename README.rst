@@ -18,6 +18,15 @@ Redis
 
 Pyglet
 
+! On Ubuntu, you need the latest version of AVlib in order to play audio files with pyglet.
+
+Download from: http://avbin.github.io/AVbin/Download.html
+
+'''
+$ chmod +x install-avbin-linux-x86-64-v10
+sudo ./install-avbin-linux-x86-64-v10
+'''
+
 ## U-HID library
 
 PyUSB
@@ -30,6 +39,8 @@ PyUSB
 - https://github.com/asterisk/ari-py
 - https://wiki.asterisk.org/wiki/pages/viewpage.action?pageId=29395573#AsteriskRESTInterface(ARI)-WhatisaWebSocket?
 
-## Install dependencies
 
-   apt-get install $(grep -vE "^\s*#" requirements.apt  | tr "\n" " ")
+Pygame
+
+- http://stackoverflow.com/questions/17869101/unable-to-install-pygame-using-pip
+- http://www.pygame.org/wiki/CompileUbuntu

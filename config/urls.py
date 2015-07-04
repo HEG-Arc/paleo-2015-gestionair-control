@@ -19,13 +19,7 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
 
     # Your stuff: custom urls includes go here
-    url(r'^accueil$', 'gestionaircontrol.callcenter.views.home'),
-    url(r'^start$', 'gestionaircontrol.callcenter.views.start'),
-    url(r'^index$', 'gestionaircontrol.callcenter.views.index'),
-    url(r'^addGroup$', 'gestionaircontrol.callcenter.views.addGroup'),
-    url(r'^listGroup$', 'gestionaircontrol.callcenter.views.listGroup'),
-    #url(r'^beat$', 'gestionaircontrol.callcenter.views.beat'),
-    #url(r'^stop$', 'gestionaircontrol.callcenter.views.stop')
+    url(r'^scheduler/', include("gestionaircontrol.scheduler.urls", namespace="scheduler")),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

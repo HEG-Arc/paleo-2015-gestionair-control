@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Timeslots</h2>
+    <table class="table">
+        <tr>
+            <th>Start time</th>
+            <th>Duration</th>
+            <th>Capacity</th>
+            <th>Availability</th>
+            <th>Bookings</th>
+            <th>Free slots</th>
+            <th></th>
+        </tr>
+        {% for timeslot in object_list %}
+            <tr>
+                <td>{{ timeslot.start_time|date:"Y-m-d H:i" }}</td>
+                <td>{{ timeslot.duration }}</td>
+                <td>{{ timeslot.booking_capacity }}</td>
+                <td>{{ timeslot.booking_availability }}</td>
+                <td>{{ timeslot.nb_bookings }}</td>
+                <td>{{ timeslot.free_slots }}</td>
+                <td><a class="btn btn-primary" href="{% url 'scheduler:timeslot-detail-view' timeslot.start_time|date:"Y-m-d H:i" %}"><i class="fa fa-trash-o"></i>View</a></td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">There are no available timeslots! You can <a href="{% url 'scheduler:timeslots-create' %}">create new ones</a>.</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <hr>
+    {% if filter == "all" %}
+        Switch to the <a href="{% url 'scheduler:timeslots-list' %}">current timeslots list</a> or the <a href="{% url 'scheduler:timeslots-free-list' %}">free timeslots list</a>.
+    {% elif filter == "free" %}
+        Switch to the <a href="{% url 'scheduler:timeslots-list' %}">current timeslots list</a> or the <a href="{% url 'scheduler:timeslots-full-list' %}">full timeslots list</a>.
+    {% else %}
+        Switch to the <a href="{% url 'scheduler:timeslots-free-list' %}">free timeslots list</a> or the <a href="{% url 'scheduler:timeslots-full-list' %}">full timeslots list</a>.
+    {% endif %}
+{% endblock %}

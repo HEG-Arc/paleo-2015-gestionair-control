@@ -26,6 +26,9 @@ libssl-dev
 ##django-extensions
 graphviz-dev
 
-##cache/messaging
-redis-server
+##pyglet dependencies
+libavbin-dev
+libavbin0
+
+##messaging queue
 rabbitmq-server

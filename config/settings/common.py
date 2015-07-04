@@ -39,6 +39,7 @@ THIRD_PARTY_APPS = (
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+    'bootstrap3_datetime',
 )
 
 # Apps specific for this project go here.
@@ -276,3 +277,8 @@ LOGGING = {
 }
 
 # Your common stuff: Below this line define 3rd party library settings
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+# Game duration in seconds
+GAME_DURATION = 10

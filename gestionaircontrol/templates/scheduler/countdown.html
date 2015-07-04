@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script>
+        // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
+        var jqxhr = function() {
+            $.ajax({
+                url: "/scheduler/countdown/json/",
+                dataType: 'json'
+            })
+                .done(function (data) {
+                $('#current_game').text(data.current_game);
+                $('#time_left').text(data.time_left);
+                $('#start_time').text(data.start_time);
+            });
+        };
+        setInterval('jqxhr()', 1000); // 1 second
+    </script>
+</head>
+<body>
+<h1>Gestion'air</h1>
+<h2>Current game</h2>
+<div id="current_game">111</div>
+<h2>Time left</h2>
+<div id="time_left">99</div>
+<h2>Start time</h2>
+<div id="start_time">2015-01-01</div>
+</body>
+</html>
