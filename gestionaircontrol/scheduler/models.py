@@ -42,12 +42,20 @@ class Booking(models.Model):
                                            help_text=_("The position of the game in the time slot"))
 
     def save(self, *args, **kwargs):
-        max_position = Booking.objects.filter(timeslot=self.timeslot).order_by('-booking_position')[0]
-        if max_position:
+        try:
+            max_position = Booking.objects.filter(timeslot=self.timeslot).order_by('-booking_position')[0]
             self.booking_position = max_position.booking_position + 1
-        else:
+        except IndexError:
             self.booking_position = 1
         super(Booking, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = _('booking')
+        verbose_name_plural = _('bookings')
+        ordering = ['timeslot', 'booking_position']
+
+    def __unicode__(self):
+        return "%s [%s] %s" % (self.timeslot.__unicode__(), self.booking_position, self.game.team)
 
 
 class Timeslot(models.Model):
@@ -69,3 +77,11 @@ class Timeslot(models.Model):
         free_slots = self.booking_availability - self.nb_bookings
         return free_slots
     free_slots = property(_free_slots)
+
+    class Meta:
+        verbose_name = _('timeslot')
+        verbose_name_plural = _('timeslots')
+        ordering = ['start_time']
+
+    def __unicode__(self):
+        return self.start_time.strftime("%Y-%m-%d %H:%M")
