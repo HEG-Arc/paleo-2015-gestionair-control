@@ -31,10 +31,20 @@ from django.utils.translation import ugettext_lazy as _
 # paleo2015 imports
 
 
-# TODO: Should we internationalize the models?
+def int_to_cust(i):
+    chrs = '123456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+    l = len(chrs)
+    result = ''
+    while i:
+        result = chrs[i % l] + result
+        i = i // l
+    if not result:
+        result = chrs[0]
+    return result
+
 
 class Game(models.Model):
-    code = models.CharField(verbose_name=_("code"), max_length=15, unique=True, primary_key=True,
+    code = models.CharField(verbose_name=_("code"), max_length=5, unique=True, primary_key=True, blank=True,
                             help_text=_("The identification code of the game"))
     team = models.CharField(verbose_name=_("team"), max_length=100,
                             help_text=_("The name of the team (this field is not unique!)"))
@@ -46,6 +56,13 @@ class Game(models.Model):
                                    help_text=_("A game is canceled in the case of a no-show (time slot + grace period"))
     initialized = models.BooleanField(verbose_name=_("initialized"), default=False, blank=True,
                                       help_text=_("A game is initialized when the team is ready to play"))
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            total_games = Game.objects.count()
+            code = int_to_cust(total_games)
+            self.code = code
+        super(Game, self).save(*args, **kwargs)
 
 
 class Player(models.Model):
