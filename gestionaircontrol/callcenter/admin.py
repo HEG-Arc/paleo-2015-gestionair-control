@@ -28,7 +28,7 @@ from django.contrib import admin
 # Third-party app imports
 
 # paleo-2015-gestionair-control imports
-from .models import Question, Translation, Language, Department, Phone
+from .models import Question, Translation, Language, Department, Phone, Game
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -51,8 +51,12 @@ class PhoneAdmin(admin.ModelAdmin):
     pass
 
 
+class GameAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Translation, TranslationAdmin)
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Phone, PhoneAdmin)
+admin.site.register(Game, GameAdmin)

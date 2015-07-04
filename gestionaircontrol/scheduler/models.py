@@ -38,8 +38,16 @@ class Booking(models.Model):
                                  help_text=_("The time slot of the booking"))
     game = models.OneToOneField(Game, verbose_name=_('game'), related_name=_('slot'), null=True, blank=True,
                                 help_text=_("The game registered in this time slot"))
-    booking_position = models.IntegerField(verbose_name=_("booking position"), null=True, blank=True,
+    booking_position = models.IntegerField(verbose_name=_("booking position"), default=0,
                                            help_text=_("The position of the game in the time slot"))
+
+    def save(self, *args, **kwargs):
+        max_position = Booking.objects.filter(timeslot=self.timeslot).order_by('-booking_position')[0]
+        if max_position:
+            self.booking_position = max_position.booking_position + 1
+        else:
+            self.booking_position = 1
+        super(Booking, self).save(*args, **kwargs)
 
 
 class Timeslot(models.Model):

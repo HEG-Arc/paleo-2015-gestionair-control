@@ -28,14 +28,14 @@ import pyglet
 import os
 
 # Core Django imports
-from django.shortcuts import render
 from django.core.cache import cache
-from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, FormView
+from django.views.generic.detail import DetailView
+from django.shortcuts import render_to_response, get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse
 from django.db.models import F, Count
@@ -188,6 +188,19 @@ class TimeslotListView(ListView):
         else:
             time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
         return time_slots
+
+
+class TimeslotDetailView(DetailView):
+
+    model = Timeslot
+
+    def get_context_data(self, **kwargs):
+        context = super(TimeslotDetailView, self).get_context_data(**kwargs)
+        return context
+
+    def get_object(self, queryset=None):
+        timeslot = get_object_or_404(Timeslot, pk=self.kwargs['pk'])
+        return timeslot
 
 
 class TimeslotCreateView(FormView):
