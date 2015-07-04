@@ -24,7 +24,7 @@
 import time
 import os
 import pyglet
-import pygame
+#import pygame
 import subprocess
 from pycall import CallFile, Call, Application, Context
 
@@ -45,11 +45,11 @@ def play_call():
     send_amqp_message("{'play': 'funky'}", "player.start")
     # call = pyglet.media.load(funky, streaming=False)
     # player = call.play()
-    pygame.mixer.init()
-    pygame.mixer.music.load(funky)
-    pygame.mixer.music.play(0)
-    time.sleep(10)
-    pygame.mixer.music.stop()
+    # pygame.mixer.init()
+    # pygame.mixer.music.load(funky)
+    # pygame.mixer.music.play(0)
+    # time.sleep(10)
+    # pygame.mixer.music.stop()
 
 
 @app.task
