@@ -103,37 +103,12 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-#DATABASES = {
+
+DATABASES = {
     # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
- #   'default': env.db("DATABASE_URL", default="sqllite3///paleo.db"),
-#}
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-#SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
-
-try:
-    from .settings_base import *
-    USING_APP_ENGINE = True
-except ImportError:
-    USING_APP_ENGINE = False
-
-    DEBUG = True
-    TEMPLATE_DEBUG = DEBUG
-
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', '
-            'NAME': os.path.join(BASE_DIR, 'db-development.sqlite3'),
-            'USER': '',                      # Not used with sqlite3.
-            'PASSWORD': '',                  # Not used with sqlite3.
-            'HOST': '',                      # Set to empty string for localhost. Not used with
-            'PORT': '',                      # Set to empty string for default. Not used with sq
-        }
-    }
-
-    SITE_ID = 1
-
+    'default': env.db("DATABASE_URL", default="postgres://gestionaircontrol:toto@localhost/gestionaircontrol"),
+}
 DATABASES['default']['ATOMIC_REQUESTS'] = True
-
 
 # GENERAL CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -144,7 +119,7 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 TIME_ZONE = 'UTC'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-ch'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
