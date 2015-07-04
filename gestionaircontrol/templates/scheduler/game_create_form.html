@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+        <h1>Add Team</h1>
+        <form action="." method="post">
+            {% csrf_token %}
+            <div>
+                {{ form.as_p }}
+            </div>
+            <fieldset>
+                <legend>Players</legend>
+                {{ player_form.management_form }}
+                {{ player_form.non_form_errors }}
+                {% for form in player_form %}
+                    {{ form.as_p }}
+                    <div class="inline {{ player_form.prefix }}">
+                        {{ form.description.errors }}
+                        {{ form.description.label_tag }}
+                        {{ form.description }}
+                    </div>
+                {% endfor %}
+            </fieldset>
+            <input type="submit" value="Add team" class="submit" />
+        </form>
+
+{% endblock content %}

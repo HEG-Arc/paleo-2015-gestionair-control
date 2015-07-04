@@ -45,4 +45,5 @@ urlpatterns = [
     url(r'^timeslots/free/$', views.TimeslotListView.as_view(), {'filter': 'free'}, name="timeslots-free-list"),
     url(r'^timeslots/$', views.TimeslotListView.as_view(), {'filter': 'current'}, name="timeslots-list"),
     url(r'^timeslot/(?P<pk>\d{4}-\d{2}-\d{2} \d{2}:\d{2})/$', views.TimeslotDetailView.as_view(), name='timeslot-detail-view'),
+    url(r'^game/new/(?P<timeslot>\d{4}-\d{2}-\d{2} \d{2}:\d{2})/$', views.CreateGame.as_view(), name='game-create'),
 ]

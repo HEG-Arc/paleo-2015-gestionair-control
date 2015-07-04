@@ -30,10 +30,10 @@ import os
 # Core Django imports
 from django.core.cache import cache
 from django.template.context import RequestContext
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView, FormView
+from django.views.generic import ListView, FormView, CreateView
 from django.views.generic.detail import DetailView
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.utils.decorators import method_decorator
@@ -45,8 +45,8 @@ from django.db.models import F, Count
 # paleo2015 imports
 from gestionaircontrol.callcenter.tasks import sound_control, create_call_file
 from .messaging import send_amqp_message
-from .models import Timeslot, Booking
-from .forms import TimeslotCreationForm
+from .models import Timeslot, Booking, Game
+from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
 
 
 def get_game_status(game_start_time):
@@ -212,6 +212,49 @@ class TimeslotCreateView(FormView):
         # It should return an HttpResponse.
         form.create_timeslots()
         return super(TimeslotCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('scheduler:timeslots-list')
+
+
+class CreateGame(CreateView):
+    template_name = 'scheduler/game_create_form.html'
+    model = Game
+    form_class = GameForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        player_form = PlayerFormSet()
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  player_form=player_form))
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        player_form = PlayerFormSet(self.request.POST)
+        if form.is_valid() and player_form.is_valid():
+            return self.form_valid(form, player_form)
+        else:
+            return self.form_invalid(form, player_form)
+
+    def form_valid(self, form, player_form):
+        self.object = form.save()
+        player_form.instance = self.object
+        player_form.save()
+        timeslot = get_object_or_404(Timeslot, pk=self.kwargs['timeslot'])
+        game = get_object_or_404(Game, pk=self.object.code)
+        booking = Booking(timeslot=timeslot, game=game)
+        booking.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, player_form):
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  player_form=player_form))
 
     def get_success_url(self):
         return reverse('scheduler:timeslots-list')

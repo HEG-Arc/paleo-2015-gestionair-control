@@ -25,13 +25,15 @@ import datetime
 
 # Core Django imports
 from django import forms
-from bootstrap3_datetime.widgets import DateTimePicker
+from django.forms import ModelForm
+from django.forms.models import inlineformset_factory
 
 # Third-party app imports
+from bootstrap3_datetime.widgets import DateTimePicker
 
 # paleo-2015-gestionair-control imports
 from .models import Timeslot
-
+from gestionaircontrol.callcenter.models import Game, Player
 
 class TimeslotCreationForm(forms.Form):
     start_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD"}))
@@ -50,3 +52,19 @@ class TimeslotCreationForm(forms.Form):
             timeslot = Timeslot(start_time=start_time, duration=duration, booking_capacity=booking_capacity, booking_availability=booking_availability)
             timeslot.save()
             start_time = start_time + datetime.timedelta(minutes=duration)
+
+
+class GameForm(ModelForm):
+    class Meta:
+        model = Game
+        fields = ['team']
+
+
+class PlayerForm(ModelForm):
+
+    class Meta:
+        model = Player
+        fields = ['name']
+
+
+PlayerFormSet = inlineformset_factory(Game, Player, form=PlayerForm, extra=2)

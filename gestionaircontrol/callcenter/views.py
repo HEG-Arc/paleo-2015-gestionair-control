@@ -88,12 +88,3 @@ def listGroup(request):
     return render(request, 'web/listeGroupe.html', {
         'games': games,
     })
-
-
-#def son(beat):
- #   if beat == 240:
-  #      introson.start()
-   # if beat == 225:
-    #    simulson.start()
-    #if beat == 15:
-     #   finalson.start()
