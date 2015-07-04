@@ -199,7 +199,7 @@ class TimeslotDetailView(DetailView):
         return context
 
     def get_object(self, queryset=None):
-        timeslot = get_object_or_404(Timeslot, pk=self.kwargs['pk'])
+        timeslot = get_object_or_404(Timeslot.objects.prefetch_related('bookings'), pk=self.kwargs['pk'])
         return timeslot
 
 
