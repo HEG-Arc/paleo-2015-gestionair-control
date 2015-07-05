@@ -26,6 +26,7 @@ import datetime
 # Core Django imports
 #from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 # Third-party app imports
 
@@ -37,7 +38,7 @@ from gestionaircontrol.scheduler.models import Timeslot
 @app.task
 def schedule_availability():
     # TODO: timedelta should be dynamic!
-    available_slots = Timeslot.objects.filter(start_time__lte=datetime.datetime.now()+datetime.timedelta(minutes=20))
+    available_slots = Timeslot.objects.filter(start_time__lte=timezone.now()+datetime.timedelta(minutes=20))
     updated = False
     for slot in available_slots:
         slot.booking_availability = slot.booking_capacity

@@ -28,6 +28,7 @@ import json
 import os
 
 # Core Django imports
+from django.utils import timezone
 from django.core.cache import cache
 from django.template.context import RequestContext
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
@@ -51,7 +52,7 @@ from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
 
 def get_game_status(game_start_time):
     if game_start_time:
-        if datetime.datetime.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
+        if timezone.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
             current_status = "RUNNING"
         else:
             current_status = "FINISHED"
@@ -78,7 +79,7 @@ def start(request):
         message = "Game is already running"
     elif current_status == "FINISHED":
         # We can start a new counter
-        start_time = datetime.datetime.now()
+        start_time = timezone.now()
         # We store the value in Redis
         cache.set_many({'game_start_time': start_time, 'current_game': 999})
         # We initialize the new simulation
@@ -153,7 +154,7 @@ def countdown(request):
     game_start_time = game.get('game_start_time')
     current_status = get_game_status(game_start_time)
     if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (datetime.datetime.now() - game.get('game_start_time'))
+        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game.get('game_start_time'))
         game['time_left'] = time_left.seconds
     elif current_status == "FINISHED":
         game['time_left'] = "GAME OVER!"
@@ -184,9 +185,9 @@ class TimeslotListView(ListView):
         if self.kwargs['filter'] == 'all':
             time_slots = Timeslot.objects.prefetch_related('bookings').all()
         elif self.kwargs['filter'] == 'free':
-            time_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
+            time_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=timezone.now()-datetime.timedelta(hours=1))
         else:
-            time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=datetime.datetime.now()-datetime.timedelta(hours=1))
+            time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=timezone.now()-datetime.timedelta(hours=1))
         return time_slots
 
 
