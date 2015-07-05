@@ -15,7 +15,7 @@
         </thead>
         <tbody>
         {% for game in object_list %}
-            <tr {% if game.is_late %}class="bg-danger"{% elif game.players.count < 5 %}class="bg-warning"{% endif %}>
+            <tr {% if game.is_late %}class="bg-danger"{% elif game.players.count < 5 %}class="bg-warning"{% else %}class="bg-success"{% endif %}>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ game.slot.timeslot.start_time|date:'H:i' }}</td>
                 <td>{{ game.team }}</td>

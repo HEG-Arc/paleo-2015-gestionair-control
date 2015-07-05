@@ -196,5 +196,5 @@ class GameQueueListView(ListView):
         return context
 
     def get_queryset(self):
-        games = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0).order_by('slot__timeslot__start_time')
+        games = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0).order_by('slot__timeslot__start_time', 'slot__booking_position')
         return games
