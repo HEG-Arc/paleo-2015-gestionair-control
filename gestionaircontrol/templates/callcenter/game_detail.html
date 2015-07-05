@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2><i class="fa fa-users"></i> {{ object.team }}</h2>
+    {% if object.initialized %}
+        <p>Waiting time: 00:00</p>
+    {% endif %}
+    <table class="table">
+        <thead>
+            <tr>
+                {% if object.initialized %}
+                    <th>#</th>
+                    <th>Name</th>
+                {% else %}
+                    <th>Name</th>
+                    <th></th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for player in object.players.all %}
+            <tr>
+                {% if object.initialized %}
+                    <td>{{ player.number }}</td>
+                    <td>{{ player.name }}</td>
+                {% else %}
+                    <td>{{ player.name }}</td>
+                    <td><a class="btn btn-danger btn-xs" href="{% url 'cc:player-delete-view' object.code player.id %}"><i class="fa fa-trash-o"></i> Delete</a></td>
+                {% endif %}
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="2">There are currently no players assigned to this team.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if object.initialized %}
+        <a class="btn btn-primary btn-lg" href="#"><i class="fa fa-phone-square fa-2x"></i> Start demo</a>
+        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-cancel-redirectview' object.code %}"><i class="fa fa-reply fa-2x"></i> Cancel</a>
+    {% else %}
+        <a class="btn btn-primary btn-lg" href="{% url 'cc:game-initialize-redirectview' object.code %}"><i class="fa fa-phone-square fa-2x"></i> Start game</a>
+        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-update-view' object.code %}"><i class="fa fa-pencil-square-o fa-2x"></i> Edit team/players</a>
+    {% endif %}
+
+
+{% endblock %}

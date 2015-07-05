@@ -3,7 +3,7 @@
 
 {% block content %}
     <h1>Create new timeslots</h1>
-    <form action="{% url 'scheduler:timeslots-create' %}" method="post">
+    <form action="." method="post">
         {% csrf_token %}
         {{ form|crispy }}
         <button type="submit" class="btn btn-success"><i class="fa fa-check-square-o"></i> Create timeslots</button>

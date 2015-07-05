@@ -57,6 +57,19 @@ class Game(models.Model):
     initialized = models.BooleanField(verbose_name=_("initialized"), default=False, blank=True,
                                       help_text=_("A game is initialized when the team is ready to play"))
 
+    def initialize_game(self):
+        self.initialized = True
+        self.save()
+        i = 1
+        for player in self.players.all():
+            player.number = i
+            player.save()
+            i += 1
+
+    def cancel_game(self):
+        self.initialized = False
+        self.save()
+
     def save(self, *args, **kwargs):
         if not self.code:
             total_games = Game.objects.count()
@@ -73,6 +86,14 @@ class Player(models.Model):
     # Foreign keys
     game = models.ForeignKey('Game', verbose_name=_('game'), related_name=_('players'),
                              help_text=_("The game in which the player takes part"))
+
+    class Meta:
+        verbose_name = _("player")
+        verbose_name_plural = _("players")
+        ordering = ['id']
+
+    def __unicode__(self):
+        return str(self.name)
 
 
 class Answer(models.Model):
