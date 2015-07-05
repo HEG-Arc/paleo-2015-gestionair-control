@@ -36,6 +36,7 @@ from gestionaircontrol.scheduler.models import Timeslot
 
 @app.task
 def schedule_availability():
+    # TODO: timedelta should be dynamic!
     available_slots = Timeslot.objects.filter(start_time__lte=datetime.datetime.now()+datetime.timedelta(minutes=20))
     updated = False
     for slot in available_slots:
