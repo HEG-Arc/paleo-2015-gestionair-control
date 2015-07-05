@@ -20,6 +20,7 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
     url(r'^scheduler/', include("gestionaircontrol.scheduler.urls", namespace="scheduler")),
+    url(r'^cc/', include("gestionaircontrol.callcenter.urls", namespace="cc")),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
