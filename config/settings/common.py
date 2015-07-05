@@ -12,6 +12,8 @@ from __future__ import absolute_import, unicode_literals
 
 import environ
 import os
+import datetime
+
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('gestionaircontrol')
 
@@ -257,3 +259,10 @@ SESSION_CACHE_ALIAS = "default"
 
 # Game duration in seconds
 GAME_DURATION = 10
+
+CELERYBEAT_SCHEDULE = {
+    "schedule_availability": {
+        "task": "gestionaircontrol.scheduler.tasks.schedule_availability",
+        "schedule": datetime.timedelta(minutes=1),
+    },
+}

@@ -10,6 +10,8 @@ web.py
 
 Celery
 
+celery -A config worker -l info -B
+
 ## Cache
 
 Redis
