@@ -27,12 +27,17 @@ from threading import Thread
 from datetime import datetime
 
 # Core Django imports
+from django.utils import timezone
+from django.views.generic import ListView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 
 # Third-party app imports
 from extra_views import InlineFormSet, UpdateWithInlinesView
@@ -100,7 +105,7 @@ def sleep():
 
 
 def date1(request):
-    return render(request, 'date.html', {'date': datetime.now()})
+    return render(request, 'date.html', {'date': timezone.now()})
 
 
 def index(request):
@@ -176,3 +181,20 @@ class GameCancelRedirectView(RedirectView):
         game = get_object_or_404(Game, pk=kwargs['pk'])
         game.cancel_game()
         return super(GameCancelRedirectView, self).get_redirect_url(*args, **kwargs)
+
+
+class GameQueueListView(ListView):
+    model = Game
+    template_name = 'callcenter/game_queue.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(GameQueueListView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(GameQueueListView, self).get_context_data(**kwargs)
+        return context
+
+    def get_queryset(self):
+        games = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0).order_by('slot__timeslot__start_time')
+        return games

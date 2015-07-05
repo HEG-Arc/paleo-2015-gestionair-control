@@ -21,10 +21,12 @@
 # along with paleo2015. If not, see <http://www.gnu.org/licenses/>.
 
 # Stdlib imports
+import datetime
 
 # Core Django imports
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 # Third-party app imports
 
@@ -56,6 +58,12 @@ class Game(models.Model):
                                    help_text=_("A game is canceled in the case of a no-show (time slot + grace period"))
     initialized = models.BooleanField(verbose_name=_("initialized"), default=False, blank=True,
                                       help_text=_("A game is initialized when the team is ready to play"))
+
+    @property
+    def is_late(self):
+        if self.slot.timeslot.start_time < timezone.now() - datetime.timedelta(minutes=20):
+            return True
+        return False
 
     def initialize_game(self):
         self.initialized = True

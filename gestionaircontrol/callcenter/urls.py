@@ -32,6 +32,7 @@ from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
+    url(r'^game/queue/$', views.GameQueueListView.as_view(), name='game-queue-view'),
     url(r'^game/(?P<pk>\w+)/$', views.GameDetailView.as_view(), name='game-detail-view'),
     url(r'^game/(?P<pk>\w+)/edit/$', views.GameUpdateView.as_view(), name='game-update-view'),
     url(r'^game/(?P<pk>\w+)/initialize/$', views.GameInitializeRedirectView.as_view(), name='game-initialize-redirectview'),
