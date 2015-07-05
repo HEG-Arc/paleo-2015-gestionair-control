@@ -66,6 +66,10 @@ class Game(models.Model):
         return False
 
     def initialize_game(self):
+        init_list = Game.objects.filter(initialized=True, start_time__isnull=True)
+        for game in init_list:
+            game.initialized = False
+            game.save()
         self.initialized = True
         self.save()
         i = 1
