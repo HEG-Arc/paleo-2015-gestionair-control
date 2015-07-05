@@ -67,4 +67,4 @@ class PlayerForm(ModelForm):
         fields = ['name']
 
 
-PlayerFormSet = inlineformset_factory(Game, Player, form=PlayerForm, extra=2)
+PlayerFormSet = inlineformset_factory(Game, Player, form=PlayerForm, min_num=6, max_num=6)
