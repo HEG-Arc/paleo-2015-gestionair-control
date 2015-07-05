@@ -33,9 +33,9 @@ from . import views
 
 urlpatterns = [
     url(r'^game/queue/$', views.GameQueueListView.as_view(), name='game-queue-view'),
-    url(r'^game/(?P<pk>\w+)/$', views.GameDetailView.as_view(), name='game-detail-view'),
-    url(r'^game/(?P<pk>\w+)/edit/$', views.GameUpdateView.as_view(), name='game-update-view'),
-    url(r'^game/(?P<pk>\w+)/initialize/$', views.GameInitializeRedirectView.as_view(), name='game-initialize-redirectview'),
-    url(r'^game/(?P<pk>\w+)/cancel/$', views.GameCancelRedirectView.as_view(), name='game-cancel-redirectview'),
-    url(r'^game/(?P<game>\w+)/delete/(?P<pk>\d+)/$', views.PlayerDeleteView.as_view(), name='player-delete-view'),
+    url(r'^game/(?P<pk>\d+)/$', views.GameDetailView.as_view(), name='game-detail-view'),
+    url(r'^game/(?P<pk>\d+)/edit/$', views.GameUpdateView.as_view(), name='game-update-view'),
+    url(r'^game/(?P<pk>\d+)/initialize/$', views.GameInitializeRedirectView.as_view(), name='game-initialize-redirectview'),
+    url(r'^game/(?P<pk>\d+)/cancel/$', views.GameCancelRedirectView.as_view(), name='game-cancel-redirectview'),
+    url(r'^game/(?P<game>\d+)/delete/(?P<pk>\d+)/$', views.PlayerDeleteView.as_view(), name='player-delete-view'),
 ]

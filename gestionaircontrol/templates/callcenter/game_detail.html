@@ -25,7 +25,7 @@
                     <td>{{ player.name }}</td>
                 {% else %}
                     <td>{{ player.name }}</td>
-                    <td><a class="btn btn-danger btn-xs" href="{% url 'cc:player-delete-view' object.code player.id %}"><i class="fa fa-trash-o"></i> Delete</a></td>
+                    <td><a class="btn btn-danger btn-xs" href="{% url 'cc:player-delete-view' object.id player.id %}"><i class="fa fa-trash-o"></i> Delete</a></td>
                 {% endif %}
             </tr>
         {% empty %}
@@ -37,10 +37,10 @@
     </table>
     {% if object.initialized %}
         <a class="btn btn-primary btn-lg" href="#"><i class="fa fa-phone-square fa-2x"></i> Start demo</a>
-        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-cancel-redirectview' object.code %}"><i class="fa fa-reply fa-2x"></i> Cancel</a>
+        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-cancel-redirectview' object.id %}"><i class="fa fa-reply fa-2x"></i> Cancel</a>
     {% else %}
-        <a class="btn btn-primary btn-lg" href="{% url 'cc:game-initialize-redirectview' object.code %}"><i class="fa fa-phone-square fa-2x"></i> Start game</a>
-        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-update-view' object.code %}"><i class="fa fa-pencil-square-o fa-2x"></i> Edit team/players</a>
+        <a class="btn btn-primary btn-lg" href="{% url 'cc:game-initialize-redirectview' object.id %}"><i class="fa fa-phone-square fa-2x"></i> Start game</a>
+        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-update-view' object.id %}"><i class="fa fa-pencil-square-o fa-2x"></i> Edit team/players</a>
     {% endif %}
 
 

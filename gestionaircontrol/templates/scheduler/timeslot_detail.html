@@ -22,9 +22,9 @@
         {% for booking in object.bookings.all %}
             <tr>
                 <td>{{ booking.booking_position }}</td>
-                <td>{{ booking.game.code }}</td>
+                <td>{{ booking.game.id }}</td>
                 <td>{{ booking.game.team }}</td>
-                <td><a class="btn btn-primary" href="{% url 'cc:game-detail-view' booking.game.code %}"><i class="fa fa-users"></i> View</a></td>
+                <td><a class="btn btn-primary" href="{% url 'cc:game-detail-view' booking.game.id %}"><i class="fa fa-users"></i> View</a></td>
             </tr>
         {% empty %}
             <tr>

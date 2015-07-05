@@ -46,7 +46,7 @@ def int_to_cust(i):
 
 
 class Game(models.Model):
-    code = models.CharField(verbose_name=_("code"), max_length=5, unique=True, primary_key=True, blank=True,
+    code = models.CharField(verbose_name=_("code"), max_length=5, unique=True, blank=True,
                             help_text=_("The identification code of the game"))
     team = models.CharField(verbose_name=_("team"), max_length=100,
                             help_text=_("The name of the team (this field is not unique!)"))
@@ -80,9 +80,11 @@ class Game(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.code:
-            total_games = Game.objects.count()
-            code = int_to_cust(total_games)
-            self.code = code
+            if not self.id:
+                self.save()
+                self.code = int_to_cust(self.id)
+            else:
+                self.code = int_to_cust(self.id)
         super(Game, self).save(*args, **kwargs)
 
 

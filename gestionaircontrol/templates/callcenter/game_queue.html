@@ -20,7 +20,7 @@
                 <td>{{ game.slot.timeslot.start_time|date:'H:i' }}</td>
                 <td>{{ game.team }}</td>
                 <td>{{ game.players.count }}</td>
-                <td><a class="btn btn-primary" href="{% url 'cc:game-detail-view' game.code %}"><i class="fa fa-users"></i> Select</a></td>
+                <td><a class="btn btn-primary" href="{% url 'cc:game-detail-view' game.id %}"><i class="fa fa-users"></i> Select</a></td>
             </tr>
         {% empty %}
             <tr>

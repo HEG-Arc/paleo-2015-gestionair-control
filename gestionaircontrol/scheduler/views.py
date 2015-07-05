@@ -247,7 +247,7 @@ class CreateGame(CreateView):
         player_form.instance = self.object
         player_form.save()
         timeslot = get_object_or_404(Timeslot, pk=self.kwargs['timeslot'])
-        game = get_object_or_404(Game, pk=self.object.code)
+        game = get_object_or_404(Game, pk=self.object.id)
         booking = Booking(timeslot=timeslot, game=game)
         booking.save()
         return HttpResponseRedirect(self.get_success_url())
