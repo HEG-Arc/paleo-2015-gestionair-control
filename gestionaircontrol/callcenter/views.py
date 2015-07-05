@@ -24,7 +24,7 @@
 # Stdlib imports
 import time
 from threading import Thread
-from datetime import datetime
+import datetime
 
 # Core Django imports
 from django.utils import timezone
@@ -37,7 +37,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Sum, F
 
 # Third-party app imports
 from extra_views import InlineFormSet, UpdateWithInlinesView
@@ -45,6 +45,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 # paleo-2015-gestionair-control imports
 from gestionaircontrol.callcenter.models import Game, Player
 from gestionaircontrol.scheduler.forms import PlayerFormSet, GameForm
+from gestionaircontrol.scheduler.models import Timeslot, Booking
 
 
 def home(request):
@@ -198,3 +199,33 @@ class GameQueueListView(ListView):
     def get_queryset(self):
         games = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0).order_by('slot__timeslot__start_time', 'slot__booking_position')
         return games
+
+
+class GameRebookListView(ListView):
+    model = Timeslot
+    template_name = 'callcenter/game_rebook.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(GameRebookListView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(GameRebookListView, self).get_context_data(**kwargs)
+        context['game'] = get_object_or_404(Game, pk=self.kwargs['pk'])
+        return context
+
+    def get_queryset(self):
+        timeslots = Timeslot.objects.prefetch_related('bookings').annotate(num_bookings=Count('bookings')).filter(start_time__gte=timezone.now()-datetime.timedelta(minutes=20), num_bookings__lt=F('booking_availability'))
+        return timeslots
+
+
+class GameRebookRedirectView(RedirectView):
+    permanent = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        game = get_object_or_404(Game, pk=kwargs['pk'])
+        timeslot = get_object_or_404(Timeslot, start_time=kwargs['timeslot'])
+        booking = get_object_or_404(Booking, game=game)
+        booking.timeslot = timeslot
+        booking.save()
+        return reverse('cc:game-detail-view', kwargs={'pk': kwargs['pk']})

@@ -79,12 +79,8 @@ class Game(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
-        if not self.code:
-            if not self.id:
-                self.save()
-                self.code = int_to_cust(self.id)
-            else:
-                self.code = int_to_cust(self.id)
+        if not self.code and self.id:
+            self.code = int_to_cust(self.id)
         super(Game, self).save(*args, **kwargs)
 
 

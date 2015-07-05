@@ -2,6 +2,7 @@
 
 {% block content %}
     <h2><i class="fa fa-users"></i> {{ object.team }}</h2>
+    <p>Timeslot: {{ object.slot.timeslot.start_time|date:"H:i" }}</p>
     {% if object.initialized %}
         <p>Waiting time: 00:00</p>
     {% endif %}
@@ -41,6 +42,7 @@
     {% else %}
         <a class="btn btn-primary btn-lg" href="{% url 'cc:game-initialize-redirectview' object.id %}"><i class="fa fa-phone-square fa-2x"></i> Start game</a>
         <a class="btn btn-warning btn-lg" href="{% url 'cc:game-update-view' object.id %}"><i class="fa fa-pencil-square-o fa-2x"></i> Edit team/players</a>
+        <a class="btn btn-warning btn-lg" href="{% url 'cc:game-rebook-view' object.id %}"><i class="fa fa-clock-o fa-2x"></i> Rebook</a>
     {% endif %}
 
 
