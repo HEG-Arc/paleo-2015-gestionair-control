@@ -229,3 +229,14 @@ class GameRebookRedirectView(RedirectView):
         booking.timeslot = timeslot
         booking.save()
         return reverse('cc:game-detail-view', kwargs={'pk': kwargs['pk']})
+
+
+class GameSearchView(ListView):
+    template_name = 'callcenter/games_list.html'
+
+    def get_queryset(self):
+        q = self.request.GET.get('q', '')
+        if q:
+            return Game.objects.filter(team__icontains=q)
+        else:
+            return Game.objects.filter()

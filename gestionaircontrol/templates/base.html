@@ -39,11 +39,10 @@
       <div class="container">
         <a class="navbar-brand" href="/">Gestion'air Web controller</a>
         <ul class="nav navbar-nav">
-          <li class="active"><a href="{% url 'home' %}">Home</a></li>
-          <li><a href="{% url 'about' %}">About</a></li>
-
           {% if request.user.is_authenticated %}
-            <li><a href="{% url 'cc:game-queue-view' %}"><i class="fa fa-calendar"></i> Game Queue</a></li>
+            <li><a href="{% url 'scheduler:timeslots-list' %}"><i class="fa fa-calendar"></i> Timeslots</a></li>
+            <li><a href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o"></i> Game Queue</a></li>
+            <li><a href="{% url 'cc:game-search-view' %}"><i class="fa fa-gamepad"></i> Games List</a></li>
             <li><a href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
             <li><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
           {% else %}
