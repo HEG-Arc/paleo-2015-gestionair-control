@@ -15,7 +15,8 @@
                 .done(function (data) {
                 $('#current_game').text(data.current_game);
                 $('#time_left').text(data.time_left);
-                $('#start_time').text(data.start_time);
+                $('#start_time').text(data.game_start_time);
+                $('#game_status').text(data.game_status);
             });
         };
         setInterval('jqxhr()', 1000); // 1 second
@@ -24,10 +25,12 @@
 <body>
 <h1>Gestion'air</h1>
 <h2>Current game</h2>
-<div id="current_game">None</div>
+<div id="current_game">N/A</div>
 <h2>Time left</h2>
-<div id="time_left">FINISHED</div>
+<div id="time_left">N/A</div>
 <h2>Start time</h2>
-<div id="start_time">Over</div>
+<div id="start_time">N/A</div>
+<h2>Game status</h2>
+<div id="game_status">N/A</div>
 </body>
 </html>

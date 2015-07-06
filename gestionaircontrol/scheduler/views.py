@@ -171,14 +171,13 @@ def call(request):
 
 
 def countdown(request):
-    game = cache.get_many(['game_start_time', 'current_game'])
-    game_start_time = game.get('game_start_time', '')
-    if game_start_time:
-        current_status = get_game_status(game_start_time)
+    game = cache.get_many(['game_start_time', 'current_game', 'game_status'])
+    if 'game_start_time' in game:
+        current_status = get_game_status(game['game_start_time'])
     else:
         current_status = "FINISHED"
     if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game.get('game_start_time'))
+        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game['game_start_time'])
         game['time_left'] = time_left.seconds
     elif current_status == "FINISHED":
         game['time_left'] = "GAME OVER!"

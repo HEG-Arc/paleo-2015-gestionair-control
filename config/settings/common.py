@@ -258,7 +258,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 # Game duration in seconds
-GAME_DURATION = 30
+GAME_DURATION = 260
 
 CELERYBEAT_SCHEDULE = {
     "schedule_availability": {

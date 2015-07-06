@@ -170,6 +170,8 @@ class Language(models.Model):
                                 help_text=_("The french name of the language"))
     flag = models.ImageField(verbose_name=_("flag file"), upload_to='flags',
                              help_text=_("The flag file of the language"))
+    weight = models.IntegerField(verbose_name=_("language weight"), default=1,
+                                 help_text=_("The weight of the language in the random draw"))
 
     class Meta:
         verbose_name = _("language")
