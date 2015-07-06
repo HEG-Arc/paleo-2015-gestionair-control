@@ -21,7 +21,7 @@
 # along with paleo-2015-gestionair-control. If not, see <http://www.gnu.org/licenses/>.
 
 # Stdlib imports
-import time
+import datetime
 import os
 import pyglet
 #import pygame
@@ -30,12 +30,15 @@ from pycall import CallFile, Call, Application, Context
 
 # Core Django imports
 from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
 
 # Third-party app imports
 
 # paleo-2015-gestionair-control imports
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
+from gestionaircontrol.callcenter.models import Game
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
@@ -84,3 +87,13 @@ def create_call_file(phone, type):
         send_amqp_message("{'call': context, 'phone': phone}", "asterisk.call")
     else:
         pass
+
+
+@app.task
+def init_simulation():
+    game = cache.get_many(['game_start_time', 'current_game'])
+    while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
+        pass
+    # Delete cache
+    cache.delete_many(['game_start_time', 'current_game'])
+
