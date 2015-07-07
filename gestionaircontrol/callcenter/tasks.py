@@ -39,7 +39,7 @@ from django.utils import timezone
 # paleo-2015-gestionair-control imports
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
-from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation
+from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
@@ -129,6 +129,7 @@ def get_departments_numbers():
     if cached:
         return cached
     else:
+        # TODO: Add logging
         departments = Department.objects.all()
         departments_numbers = []
         for department in departments:
@@ -143,6 +144,7 @@ def get_languages_codes():
     if cached:
         return cached
     else:
+        # TODO: Add logging
         languages = Language.objects.all()
         weighted_languages_codes = []
         for language in languages:
@@ -158,6 +160,7 @@ def get_current_game():
     if cached:
         return cached
     else:
+        # TODO: Add logging
         game = Game.objects.filter(initialized=True, start_time__isnull=False, end_time__isnull=True).order_by('-start_time')[0]
         cache.set('current_game', game.id)
         return game.id
@@ -183,17 +186,32 @@ def draw_question(player_id):
     try:
         question = random.choice(translations_list)
     except IndexError:
+        # TODO: Add logging
         translations_list = Translation.objects.all()
         question = random.choice(translations_list)
     return question.id
 
 
 @app.task
-def ami_interface(player_number):
+def ami_interface(player_number, phone_number):
     current_game_id = get_current_game()
     game = Game.objects.get(pk=current_game_id)
     player = Player.objects.get(game=game, number=player_number)
     translation = draw_question(player.id)
     response = {'translation': translation.id, 'response': translation.question.department.number,
-                'player': player.id, 'game': game.id}
+                'player': player.id, 'game': game.id, 'phone': phone_number}
+    send_amqp_message(response, "simulation.control")
     return response
+
+
+@app.task
+def answer_to_db(player_id, translation_id, answer, pickup_time, hangup_time, correct, phone_number):
+    player = Player.objects.get(pk=player_id)
+    translation = Translation.objects.get(pk=translation_id)
+    phone = Phone.objects.get(number=phone_number)
+    new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
+                        hangup_time=hangup_time, correct=correct)
+    new_answer.save()
+    response = {'answer': answer, 'phone': phone.number}
+    send_amqp_message(response, "simulation.control")
+    return True
