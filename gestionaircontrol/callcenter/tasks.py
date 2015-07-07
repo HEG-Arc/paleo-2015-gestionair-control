@@ -23,6 +23,7 @@
 # Stdlib imports
 import datetime
 import os
+import random
 import pyglet
 #import pygame
 import subprocess
@@ -38,7 +39,7 @@ from django.utils import timezone
 # paleo-2015-gestionair-control imports
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
-from gestionaircontrol.callcenter.models import Game, Phone
+from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
@@ -92,13 +93,125 @@ def create_call_file(phone, type):
 @app.task
 def init_simulation():
     game = cache.get_many(['game_start_time', 'current_game'])
+    game_status = 'INIT'
+    send_amqp_message("{'game': %s}" % game_status, "simulation.control")
     while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
-        pass
+        # 00 : Intro
+        if game_status == 'INIT':
+            game_status = 'INTRO'
+            cache.set('game_status', game_status)
+            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+        # 37 : Call center
+        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
+            game_status = 'CALL'
+            cache.set('game_status', game_status)
+            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+        # 217 : Powerdown
+        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=217):
+            game_status = 'POWERDOWN'
+            cache.set('game_status', game_status)
+            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+        # 247 : The END ;-)
+        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=247):
+            game_status = 'END'
+            cache.set('game_status', game_status)
+            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+    # Game is over!
+    game_status = 'OVER'
+    cache.set('game_status', game_status)
+    send_amqp_message("{'game': %s}" % game_status, "simulation.control")
     # Delete cache
     cache.delete_many(['game_start_time', 'current_game'])
 
+
+def get_departments_numbers():
+    cached = cache.get('departments_numbers', '')
+    if cached:
+        return cached
+    else:
+        # TODO: Add logging
+        departments = Department.objects.all()
+        departments_numbers = []
+        for department in departments:
+            departments_numbers.append(department.number)
+        # Expires after 300 seconds
+        cache.set('departments_numbers', departments_numbers, 300)
+        return departments_numbers
+
+
+def get_languages_codes():
+    cached = cache.get('languages_codes', '')
+    if cached:
+        return cached
+    else:
+        # TODO: Add logging
+        languages = Language.objects.all()
+        weighted_languages_codes = []
+        for language in languages:
+            weighted_languages_codes.append((language.code, language.weight))
+        # Expires after 300 seconds
+        languages_codes = [val for val, cnt in weighted_languages_codes for i in range(cnt)]
+        cache.set('languages_codes', languages_codes, 300)
+        return languages_codes
+
+
+def get_current_game():
+    cached = cache.get('current_game', '')
+    if cached:
+        return cached
+    else:
+        # TODO: Add logging
+        game = Game.objects.filter(initialized=True, start_time__isnull=False, end_time__isnull=True).order_by('-start_time')[0]
+        cache.set('current_game', game.id)
+        return game.id
+
+
+def draw_question(player_id):
+    player = Player.objects.get(pk=player_id)
+    answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
+    departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
+    languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']
+    departments = []
+    questions = []
+    for i in range(0, len(answers)/len(departments_list)+1):
+        departments += departments_list
+    # We remove departments previously drawn
+    for answer in answers:
+        departments.remove(answer.question.question.department.number)
+        questions.append(answer.question.question.number)
+    # We draw a department and a language
+    language = random.choice(languages_list)
+    department = random.choice(departments)
+    translations_list = Translation.objects.exclude(question__in=questions).filter(question__department__number=department, language__code=language)
+    try:
+        question = random.choice(translations_list)
+    except IndexError:
+        # TODO: Add logging
+        translations_list = Translation.objects.all()
+        question = random.choice(translations_list)
+    return question.id
+
+
 @app.task
-def callcenter(game_id):
-    game = Game.objects.get(pk=game_id)
-    players = game.player_set.all()
-    phones = Phone.objects.all().filter(state=Phone.CENTER)
+def ami_interface(player_number, phone_number):
+    current_game_id = get_current_game()
+    game = Game.objects.get(pk=current_game_id)
+    player = Player.objects.get(game=game, number=player_number)
+    translation = draw_question(player.id)
+    response = {'translation': translation.id, 'response': translation.question.department.number,
+                'player': player.id, 'game': game.id, 'phone': phone_number}
+    send_amqp_message(response, "simulation.control")
+    return response
+
+
+@app.task
+def answer_to_db(player_id, translation_id, answer, pickup_time, hangup_time, correct, phone_number):
+    player = Player.objects.get(pk=player_id)
+    translation = Translation.objects.get(pk=translation_id)
+    phone = Phone.objects.get(number=phone_number)
+    new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
+                        hangup_time=hangup_time, correct=correct)
+    new_answer.save()
+    response = {'answer': answer, 'phone': phone.number}
+    send_amqp_message(response, "simulation.control")
+    return True
