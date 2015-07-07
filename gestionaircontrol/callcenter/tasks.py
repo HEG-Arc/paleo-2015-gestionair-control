@@ -153,7 +153,16 @@ def get_languages_codes():
         return languages_codes
 
 
-@app.task
+def get_current_game():
+    cached = cache.get('current_game', '')
+    if cached:
+        return cached
+    else:
+        game = Game.objects.filter(initialized=True, start_time__isnull=False, end_time__isnull=True).order_by('-start_time')[0]
+        cache.set('current_game', game.id)
+        return game.id
+
+
 def draw_question(player_id):
     player = Player.objects.get(pk=player_id)
     answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
@@ -179,3 +188,12 @@ def draw_question(player_id):
     return question.id
 
 
+@app.task
+def ami_interface(player_number):
+    current_game_id = get_current_game()
+    game = Game.objects.get(pk=current_game_id)
+    player = Player.objects.get(game=game, number=player_number)
+    translation = draw_question(player.id)
+    response = {'translation': translation.id, 'response': translation.question.department.number,
+                'player': player.id, 'game': game.id}
+    return response
