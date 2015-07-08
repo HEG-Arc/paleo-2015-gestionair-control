@@ -40,6 +40,7 @@ from django.utils import timezone
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
 from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
+import endpoints
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
@@ -229,6 +230,7 @@ def call_center(game_id):
 
 @app.task
 def generate_call():
-    phone = Phone.objects.get(number=1102)
-    type = phone.type
+    endpoints.start()
+    phone = endpoints.return_phone()
+    type = 'public'
     create_call_file(phone, type)
