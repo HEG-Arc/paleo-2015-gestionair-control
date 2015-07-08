@@ -189,28 +189,29 @@ def draw_question(player_id):
         # TODO: Add logging
         translations_list = Translation.objects.all()
         question = random.choice(translations_list)
-    return question.id
+    return question
 
 
 @app.task
-def ami_interface(player_number, phone_number):
+def ami_question(player_number, phone_number):
     current_game_id = get_current_game()
     game = Game.objects.get(pk=current_game_id)
     player = Player.objects.get(game=game, number=player_number)
     translation = draw_question(player.id)
-    response = {'translation': translation.id, 'response': translation.question.department.number,
-                'player': player.id, 'game': game.id, 'phone': phone_number}
+    response = {'question': translation.question.number, 'response': translation.question.department.number,
+                'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
+                'file': "%s-%s" % (translation.question.number, translation.language.code)}
     send_amqp_message(response, "simulation.control")
     return response
 
 
 @app.task
-def answer_to_db(player_id, translation_id, answer, pickup_time, hangup_time, correct, phone_number):
+def ami_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
     player = Player.objects.get(pk=player_id)
     translation = Translation.objects.get(pk=translation_id)
     phone = Phone.objects.get(number=phone_number)
     new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
-                        hangup_time=hangup_time, correct=correct)
+                        hangup_time=timezone.now(), correct=correct)
     new_answer.save()
     response = {'answer': answer, 'phone': phone.number}
     send_amqp_message(response, "simulation.control")

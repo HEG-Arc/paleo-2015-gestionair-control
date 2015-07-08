@@ -33,7 +33,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 from django.shortcuts import render_to_response, get_object_or_404, render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -46,85 +46,20 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from gestionaircontrol.callcenter.models import Game, Player
 from gestionaircontrol.scheduler.forms import PlayerFormSet, GameForm
 from gestionaircontrol.scheduler.models import Timeslot, Booking
+from gestionaircontrol.callcenter.tasks import ami_question
 
 
-def home(request):
-    """ Accueil du Call Center """
-    text = """<h1>Bienvenue sur le Call Center</h1>
-              <p>Application pour le Paléo !</p>"""
-    return HttpResponse(text)
+def ami_request(request, player, phone):
+    ami = ami_question(player, phone)
+    return JsonResponse(ami)
 
-
-def beat():
-    """ Declenche le timer """
-    timer = 240
-    while timer > 0:
-        print(timer)
-        timer = timer-1
-        time.sleep()
-
-
-def print_test(request):
-    return HttpResponse(beat())
-
-
-class TimeThread(Thread):
-
-    def __init__(self):
-        Thread.__init__(self)
-        self.seconds = 0
-
-    def run(self):
-        cpt = 240
-        while cpt > 0:
-            self.seconds = cpt
-            cpt -= 1
-
-            time.sleep(1)
-
-    def get_seconds(self):
-        return self.seconds
-
-
-def start(request):
-
-    print("Lancement thread")
-    mon_thread = TimeThread()
-    mon_thread.start()
-
-    print("Affichage du temps")
-    while True:
-        sleep()
-        print(mon_thread.get_seconds())
-
-    text = """test"""
-    return HttpResponse(text)
-
-
-def sleep():
-    time.sleep(1)
-
-
-def date1(request):
-    return render(request, 'date.html', {'date': timezone.now()})
-
-
-def index(request):
-    return render(request, 'web/index.html')
-
-
-def addGroup(request):
-    return render(request, 'web/ajouterGroupe.html')
-
-def listGroup(request):
-    #games = Game.find(limit=10)
-    games = Game()
-
-    print (games.team)
-    return render(request, 'web/listeGroupe.html', {
-        'games': games,
-    })
-
+def ami_submit(request):
+    if request.method == "POST":
+        msg = "The operation has been received correctly."
+        print request.POST
+    else:
+        msg = "GET calls are not allowed for this view!"
+    return HttpResponse(msg)
 
 class GameDetailView(DetailView):
 
