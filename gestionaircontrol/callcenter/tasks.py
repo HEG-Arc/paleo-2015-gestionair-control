@@ -215,3 +215,19 @@ def answer_to_db(player_id, translation_id, answer, pickup_time, hangup_time, co
     response = {'answer': answer, 'phone': phone.number}
     send_amqp_message(response, "simulation.control")
     return True
+
+"""
+@app.task
+def call_center(game_id):
+    current_game_id = Game.objects.get(pk=game_id)
+    list_players = current_game_id.player_set.all()
+    list_phones = Phone.objects.all().filter(state="CENTER")
+    num_players = len(list_players)
+"""
+
+
+@app.task
+def generate_call():
+    phone = Phone.objects.get(number=1102)
+    type = phone.type
+    create_call_file(phone, type)
