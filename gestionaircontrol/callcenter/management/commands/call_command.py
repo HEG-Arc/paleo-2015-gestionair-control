@@ -40,5 +40,5 @@ class Command(DaemonCommand):
             channels.append(phone)
             print "Online endpoints: %s" % online_endpoints
             print "Open channels: %s" % channels
-            typee = 'public'
-            create_call_file(phone.json.get('resource'), typee)
+            #type = 'public'
+            #create_call_file(phone.json.get('resource'), type)
