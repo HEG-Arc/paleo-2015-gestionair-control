@@ -83,7 +83,7 @@ def create_call_file(phone, type):
     if context:
         c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
         x = Context(context, str(extension), '1')
-        cf = CallFile(c, x, user='asterisk') # add the right user
+        cf = CallFile(c, x)
         cf.spool()
         subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
         send_amqp_message("{'call': context, 'phone': phone}", "asterisk.call")
@@ -102,7 +102,7 @@ def init_simulation():
     phones = Phone.objects.filter(usage=Phone.CENTER)
     phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
                     'orientation': phone.orientation} for phone in phones]
-    message = {'type': 'GAME_START', 'endTime': game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION),
+    message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.control")
     while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
