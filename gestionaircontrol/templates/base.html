@@ -31,6 +31,11 @@
     <script src="{% static 'vendor/angular/angular.min.js' %}"></script>
     {% endblock %}
 
+    {% block jstop %}
+    <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
+    {{ form.media }}
+    {% endblock jstop %}
+
   </head>
 
   <body>
@@ -68,14 +73,14 @@
     </div> <!-- /container -->
 
     {% block modal %}{% endblock modal %}
-
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     {% block javascript %}
       <!-- Latest JQuery -->
+     
       <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
-
+      {{ form.media }}
       <!-- Latest compiled and minified JavaScript -->
       <script src="{% static 'vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js' %}"></script>
 

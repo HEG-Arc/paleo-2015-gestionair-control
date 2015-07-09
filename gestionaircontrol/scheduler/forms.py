@@ -36,8 +36,8 @@ from .models import Timeslot
 from gestionaircontrol.callcenter.models import Game, Player
 
 class TimeslotCreationForm(forms.Form):
-    start_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD"}))
-    end_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD"}))
+    start_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
+    end_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
     duration = forms.IntegerField()
     booking_capacity = forms.IntegerField()
     booking_availability = forms.IntegerField()
@@ -48,10 +48,11 @@ class TimeslotCreationForm(forms.Form):
         duration = self.cleaned_data['duration']
         booking_capacity = self.cleaned_data['booking_capacity']
         booking_availability = self.cleaned_data['booking_availability']
-        while start_time + datetime.timedelta(minutes=duration) <= end_time:
-            timeslot = Timeslot(start_time=start_time, duration=duration, booking_capacity=booking_capacity, booking_availability=booking_availability)
-            timeslot.save()
-            start_time = start_time + datetime.timedelta(minutes=duration)
+        # while start_time + datetime.timedelta(minutes=duration) <= end_time:
+        # 
+        timeslot = Timeslot(start_time=start_time, duration=duration, booking_capacity=booking_capacity, booking_availability=booking_availability)
+        timeslot.save()
+        start_time = start_time + datetime.timedelta(minutes=duration)
 
 
 class GameForm(ModelForm):
