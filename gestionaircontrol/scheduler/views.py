@@ -97,7 +97,7 @@ def start(request):
             init_simulation.apply_async()
             success = True
             message = "Game started"
-            send_amqp_message("Simulation started", "simulator.start")
+            send_amqp_message({'simulation': "STARTED"}, "simulator.start")
         else:
             success = False
             message = "No initialized game found!"

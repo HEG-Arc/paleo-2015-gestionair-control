@@ -241,4 +241,29 @@ def dmx_phone_answer_scene(phone_number, correct):
 
 @app.task
 def play_teuf():
-    os.system("aplay -D front:CARD=DGX,DEV=0 /home/gestionair/teuf.wav")
+    play = play_sound.apply_async(['call', 'front'])
+    cache.set('front', play.request.id)
+
+
+@app.task
+def play_sound(sound, area):
+    if sound == 'ambiance':
+        file = 'ambiance.wav'
+    elif sound == 'call':
+        file = 'call.wav'
+    elif sound == 'intro':
+        file = 'intro.wav'
+    elif sound == 'powerdown':
+        file = 'powerdown.wav'
+    else:
+        file = False
+
+    if area == 'front':
+        card = 'DGX'
+    elif area == 'center':
+        card = 'system'
+    else:
+        card = False
+
+    if file and card:
+        play = os.system("aplay -D front:CARD=%s,DEV=0 /home/gestionair/%s" % (card, file))
