@@ -67,8 +67,8 @@ def sound_control(sound):
 def create_call_file(phone, type):
     if type == 'public':
         wait = 20
-        extension = 2003
-        context = 'paleo-public'
+        extension = 6666
+        context = 'paleo-jukebox'
     elif type == 'demo':
         wait = 10
         extension = 2001
@@ -86,7 +86,7 @@ def create_call_file(phone, type):
         cf = CallFile(c, x)
         cf.spool()
         subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
-        send_amqp_message("{'call': context, 'phone': phone}", "asterisk.call")
+        send_amqp_message({'type': 'PHONE_RINGING', 'phone': int(phone)}, "asterisk.call")
     else:
         pass
 

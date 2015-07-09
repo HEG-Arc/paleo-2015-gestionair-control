@@ -3,9 +3,6 @@ from daemon_command import DaemonCommand
 import gestionaircontrol.callcenter.asterisk_ari as asterisk_ari
 from gestionaircontrol.callcenter.tasks import create_call_file
 
-host = 'http://157.26.114.42'
-port = 8088
-
 num_players = 6
 game_running = False
 
@@ -33,7 +30,7 @@ class Command(DaemonCommand):
         channels = asterisk_ari.get_channels()
 
         while game_running is False and len(channels) < num_players and len(online_endpoints) > 0:
-            phone = asterisk_ari.return_phone()
+            phone = asterisk_ari.return_phone(online_endpoints)
             online_endpoints.remove(phone)
             channels.append(phone)
             print "Online endpoints: %s" % online_endpoints
