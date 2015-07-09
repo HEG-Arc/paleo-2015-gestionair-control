@@ -95,7 +95,16 @@ def create_call_file(phone, type):
 def init_simulation():
     game = cache.get_many(['game_start_time', 'current_game'])
     game_status = 'INIT'
-    send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+    players = Player.objects.filter(game_id=game['current_game'])
+    players_list = []
+    for player in players:
+        players_list.append({'id': player.number, 'name': player.name})
+    phones = Phone.objects.filter(usage=Phone.CENTER)
+    phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
+                    'orientation': phone.orientation} for phone in phones]
+    message = {'type': 'GAME_START', 'endTime': game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION),
+               'players': players_list, 'phones': phones_list}
+    send_amqp_message(message, "simulation.control")
     while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
         # 00 : Intro
         if game_status == 'INIT':
@@ -201,8 +210,10 @@ def agi_question(player_number, phone_number):
     translation = draw_question(player.id)
     response = {'question': translation.question.number, 'response': translation.question.department.number,
                 'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
-                'file': "%s-%s" % (translation.question.number, translation.language.code)}
-    send_amqp_message(response, "simulation.control")
+                'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
+    message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language,
+               'type': 'PLAYER_ANSWERING'}
+    send_amqp_message(message, "simulation.control")
     return response
 
 
@@ -215,7 +226,7 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
                         hangup_time=timezone.now(), correct=correct)
     new_answer.save()
     dmx_phone_answer_scene.apply_async(phone.number, correct)
-    response = {'answer': answer, 'phone': phone.number}
+    response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': correct, 'number': phone.number}
     send_amqp_message(response, "simulation.control")
 
 
