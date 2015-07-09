@@ -67,8 +67,8 @@ def sound_control(sound):
 def create_call_file(phone, type):
     if type == 'public':
         wait = 20
-        extension = 2003
-        context = 'paleo-public'
+        extension = 6666
+        context = 'paleo-jukebox'
     elif type == 'demo':
         wait = 10
         extension = 2001

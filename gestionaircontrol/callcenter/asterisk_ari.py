@@ -48,7 +48,7 @@ def get_channels():
     return channels
 
 
-def return_phone():
+def return_phone(list):
     """Selects a random endpoint in the open_endpoints list"""
-    phone = random.choice(online_endpoints)
+    phone = random.choice(list)
     return phone
