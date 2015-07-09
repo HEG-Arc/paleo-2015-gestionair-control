@@ -6,9 +6,7 @@ from gestionaircontrol.callcenter.tasks import create_call_file
 host = 'http://157.26.114.42'
 port = 8088
 
-#server_connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#server_connect.connect((host, port))
-num_players = 5
+num_players = 6
 game_running = False
 
 
@@ -40,5 +38,6 @@ class Command(DaemonCommand):
             channels.append(phone)
             print "Online endpoints: %s" % online_endpoints
             print "Open channels: %s" % channels
-            #type = 'public'
-            #create_call_file(phone.json.get('resource'), type)
+            type = 'public'
+            create_call_file(phone.json.get('resource'), type)
+            online_endpoints.append(phone)
