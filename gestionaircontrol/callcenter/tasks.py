@@ -226,3 +226,8 @@ def dmx_phone_answer_scene(phone_number, correct):
         scene = "GREEN"
     else:
         scene = "RED"
+
+
+@app.task
+def play_teuf():
+    os.system("aplay -D front:CARD=DGX,DEV=0 /home/gestionair/teuf.wav")

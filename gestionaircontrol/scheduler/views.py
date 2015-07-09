@@ -44,7 +44,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -163,7 +163,7 @@ def demo(request):
 def call(request):
     # TODO: Do something here....
     # For tests only...
-    sound_control.apply_async(args=['call'])
+    play_teuf.apply_async()
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
