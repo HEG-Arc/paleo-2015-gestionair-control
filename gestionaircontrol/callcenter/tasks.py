@@ -214,6 +214,15 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
     new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
                         hangup_time=timezone.now(), correct=correct)
     new_answer.save()
+    dmx_phone_answer_scene.apply_async(phone.number, correct)
     response = {'answer': answer, 'phone': phone.number}
     send_amqp_message(response, "simulation.control")
-    return True
+
+
+@app.task
+def dmx_phone_answer_scene(phone_number, correct):
+    phone = Phone.objects.get(number=phone_number)
+    if correct:
+        scene = "GREEN"
+    else:
+        scene = "RED"
