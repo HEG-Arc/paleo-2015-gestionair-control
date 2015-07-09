@@ -15,9 +15,9 @@ num_players = 5
 def start():
     """For each endpoint, checks its state and adds it to the online list"""
     if len(current_endpoints) == 0:
-        print "No channels currently"
+        print "No endpoints currently"
     else:
-        print "Current channels:"
+        print "Current endpoints:"
         for endpoint in current_endpoints:
             if endpoint.json.get('state') == 'online':
                 online_endpoints.append(endpoint)
@@ -27,11 +27,9 @@ def start():
 def return_phone():
     """Selects a random endpoint in the open_endpoints list"""
     phone = random.choice(online_endpoints)
-    print phone.json.get('resource')
+    print "Phone selected: %s" % phone.json.get('resource')
     return phone.json.get('resource')
 
 
 def stop():
     pass
-
-client.run(apps="endpoints")
