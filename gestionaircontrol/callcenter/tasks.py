@@ -40,10 +40,10 @@ from django.utils import timezone
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
 from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
-import endpoints
 
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
+
 
 @app.task
 def play_call():
@@ -217,20 +217,3 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
     response = {'answer': answer, 'phone': phone.number}
     send_amqp_message(response, "simulation.control")
     return True
-
-"""
-@app.task
-def call_center(game_id):
-    current_game_id = Game.objects.get(pk=game_id)
-    list_players = current_game_id.player_set.all()
-    list_phones = Phone.objects.all().filter(state="CENTER")
-    num_players = len(list_players)
-"""
-
-
-@app.task
-def generate_call():
-    endpoints.start()
-    phone = endpoints.return_phone()
-    type = 'public'
-    create_call_file(phone, type)
