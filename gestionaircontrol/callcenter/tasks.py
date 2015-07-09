@@ -194,7 +194,7 @@ def draw_question(player_id):
 
 
 @app.task
-def ami_question(player_number, phone_number):
+def agi_question(player_number, phone_number):
     current_game_id = get_current_game()
     game = Game.objects.get(pk=current_game_id)
     player = Player.objects.get(game=game, number=player_number)
@@ -207,7 +207,7 @@ def ami_question(player_number, phone_number):
 
 
 @app.task
-def ami_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
+def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
     player = Player.objects.get(pk=player_id)
     translation = Translation.objects.get(pk=translation_id)
     phone = Phone.objects.get(number=phone_number)

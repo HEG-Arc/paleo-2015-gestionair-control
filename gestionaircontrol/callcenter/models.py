@@ -107,7 +107,7 @@ class Player(models.Model):
 
 
 class Answer(models.Model):
-    sequence = models.IntegerField(verbose_name=_("question sequence"),
+    sequence = models.IntegerField(verbose_name=_("question sequence"), blank=True, null=True,
                                    help_text=_("The sequence of the questions for a player"))
     answer = models.IntegerField(verbose_name=_("answer given"), blank=True, null=True,
                                  help_text=_("The answer key that was pressed during the game"))
@@ -124,6 +124,11 @@ class Answer(models.Model):
                                  help_text=_("The question/language which was answered"))
     phone = models.ForeignKey('Phone', verbose_name=_("phone"), related_name=_('answers'),
                               help_text=_("The identifier of the phone used for this answer"))
+
+    def save(self, *args, **kwargs):
+        if not self.sequence:
+            self.sequence = Answer.objects.filter(player=self.player).count() + 1
+        super(Answer, self).save(*args, **kwargs)
 
 
 class Question(models.Model):

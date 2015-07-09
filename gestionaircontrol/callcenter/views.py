@@ -25,6 +25,7 @@
 import time
 from threading import Thread
 import datetime
+import json
 
 # Core Django imports
 from django.utils import timezone
@@ -38,6 +39,7 @@ from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum, F
+from django.views.decorators.csrf import csrf_exempt
 
 # Third-party app imports
 from extra_views import InlineFormSet, UpdateWithInlinesView
@@ -46,17 +48,22 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from gestionaircontrol.callcenter.models import Game, Player
 from gestionaircontrol.scheduler.forms import PlayerFormSet, GameForm
 from gestionaircontrol.scheduler.models import Timeslot, Booking
-from gestionaircontrol.callcenter.tasks import ami_question
+from gestionaircontrol.callcenter.tasks import agi_question, agi_save
 
 
-def ami_request(request, player, phone):
-    ami = ami_question(player, phone)
-    return JsonResponse(ami)
+def agi_request(request, player, phone):
+    agi = agi_question(player, phone)
+    return JsonResponse(agi)
 
-def ami_submit(request):
-    if request.method == "POST":
-        msg = "The operation has been received correctly."
-        print request.POST
+@csrf_exempt
+def agi_submit(request):
+    #if request.is_ajax():
+    if request.method == 'POST':
+            r = json.loads(request.body)
+            print r
+            print "player : %s" % r['player_id']
+            agi_save.apply_async([r['player_id'], r['translation_id'], r['answer'], r['pickup_time'], r['correct'], r['phone_number']])
+            msg = "OK"
     else:
         msg = "GET calls are not allowed for this view!"
     return HttpResponse(msg)
