@@ -1,14 +1,14 @@
 from django.core.management.base import CommandError
 from daemon_command import DaemonCommand
-import socket
-from gestionaircontrol.callcenter.endpoints import get_online_endpoints, get_open_channels, return_phone
+import gestionaircontrol.callcenter.endpoints as endpoints
+from gestionaircontrol.callcenter.tasks import create_call_file
 
 host = 'http://157.26.114.42'
 port = 8088
 
-server_connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_connect.connect((host, port))
-num_players = 0
+#server_connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#server_connect.connect((host, port))
+num_players = 5
 game_running = False
 
 
@@ -24,10 +24,12 @@ class Command(DaemonCommand):
         """ When a game ends """
         game_running = False
 
-    def handle_noargs(self):
-        """  """
+    def handle_noargs(self, **options):
+        """ Make calls on the open channels """
 
-        online_endpoints = get_online_endpoints()
-        open_channels = get_open_channels()
+        open_endpoints = endpoints.get_online_endpoints()
 
-        if game_running == True and num_players > open_channels:
+        if game_running is False and num_players > len(open_endpoints):
+            phone = endpoints.return_phone()
+            create_call_file(phone, type)
+            print phone

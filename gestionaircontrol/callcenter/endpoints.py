@@ -57,7 +57,3 @@ def return_phone():
     phone = random.choice(online_endpoints)
     print "Phone selected: %s" % phone.json.get('resource')
     return phone.json.get('resource')
-
-
-def stop():
-    pass
