@@ -133,7 +133,16 @@ def init_simulation():
             play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
-            send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
+            #TODO: compute score
+            
+            
+            
+            #Ordered array from 1st place to nth.
+            #languages ordered by their in game appearence
+            #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+            scores = []
+            message = {"game": game_status, "type": "GAME_END", "scores": scores}
+            send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
             game_status = 'END'
