@@ -28,6 +28,7 @@ import pyglet
 #import pygame
 import subprocess
 from pycall import CallFile, Call, Application, Context
+import signal
 
 # Core Django imports
 from django.conf import settings
@@ -110,26 +111,23 @@ def init_simulation():
         if game_status == 'INIT':
             game_status = 'INTRO'
             cache.set('game_status', game_status)
-            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
             game_status = 'CALL'
             cache.set('game_status', game_status)
-            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=217):
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
-            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=247):
             game_status = 'END'
             cache.set('game_status', game_status)
-            send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+        send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Game is over!
     game_status = 'OVER'
     cache.set('game_status', game_status)
-    send_amqp_message("{'game': %s}" % game_status, "simulation.control")
+    send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Delete cache
     cache.delete_many(['game_start_time', 'current_game'])
 
@@ -240,9 +238,25 @@ def dmx_phone_answer_scene(phone_number, correct):
 
 
 @app.task
+def play_end(result, area):
+    cache.delete(area)
+
+
+@app.task
 def play_teuf():
-    play = play_sound.apply_async(['call', 'front'])
-    cache.set('front', play.request.id)
+    play_sound.apply_async(['call', 'front'])  #, link=play_end.s('front'))
+
+
+@app.task
+def play_ambiance():
+    play_sound.apply_async(['ambiance', 'front'])  #, link=play_end.s('front'))
+
+
+@app.task
+def play_stop(pid):
+    os.kill(pid, signal.SIGQUIT)
+    # process = cache.get('front')
+    # process.terminate()
 
 
 @app.task
@@ -265,5 +279,9 @@ def play_sound(sound, area):
     else:
         card = False
 
+    card = 'Intel'
+
     if file and card:
-        play = os.system("aplay -D front:CARD=%s,DEV=0 /home/gestionair/%s" % (card, file))
+        process = subprocess.Popen(['aplay', '-l0', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cache.set('front', process)
+        print "PID: %s" % process.pid

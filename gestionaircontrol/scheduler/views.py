@@ -44,7 +44,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -97,7 +97,7 @@ def start(request):
             init_simulation.apply_async()
             success = True
             message = "Game started"
-            send_amqp_message({'simulation': "STARTED"}, "simulator.start")
+            send_amqp_message('{"simulation": "STARTED"}', "simulator.start")
         else:
             success = False
             message = "No initialized game found!"
@@ -164,6 +164,17 @@ def call(request):
     # TODO: Do something here....
     # For tests only...
     play_teuf.apply_async()
+    success = True
+    message = "Call was started"
+    result = {'success': success, 'message': message}
+    return JsonResponse(result)
+
+
+@login_required()
+def ambiance(request):
+    # TODO: Do something here....
+    # For tests only...
+    play_ambiance.apply_async()
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
