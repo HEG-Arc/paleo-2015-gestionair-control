@@ -129,11 +129,12 @@ def init_simulation():
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
             loop.revoke()
+            play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
             send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
         # 247 : The END ;-)
-        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=247):
+        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
             game_status = 'END'
             cache.set('game_status', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
@@ -309,7 +310,7 @@ def call_center_loop(nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
-    client = ari.connect('http://157.26.114.42:8088', 'paleo', 'paleo7top')
+    client = ari.connect('http://192.168.1.1', 'paleo', 'paleo7top')
 
     while True:
         open_channels = client.channels.list()
