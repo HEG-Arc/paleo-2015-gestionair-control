@@ -38,6 +38,8 @@ exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
 exchange.declare()
 queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
 queue.declare()
+queue = Queue(name="caller", exchange=exchange, routing_key='simulation.caller', channel=connection)
+queue.declare()
 
 publisher = Producer(channel=connection, exchange=exchange)
 

@@ -107,7 +107,7 @@ def init_simulation():
                     'orientation': phone.orientation} for phone in phones]
     message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION)).isoformat(),
                'players': players_list, 'phones': phones_list}
-    send_amqp_message(message, "simulation.control")
+    send_amqp_message(message, "simulation.caller")
     while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
         # 00 : Intro
         if game_status == 'INIT':
@@ -132,7 +132,7 @@ def init_simulation():
     # Game is over!
     game_status = 'OVER'
     cache.set('game_status', game_status)
-    send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+    send_amqp_message('{"game": "%s"}' % game_status, "simulation.caller")
     # Delete cache
     cache.delete_many(['game_start_time', 'current_game'])
 
