@@ -29,6 +29,9 @@ import pyglet
 import subprocess
 from pycall import CallFile, Call, Application, Context
 import signal
+import random
+import ari
+
 
 # Core Django imports
 from django.conf import settings
@@ -96,6 +99,7 @@ def create_call_file(phone):
 
 @app.task
 def init_simulation():
+    loop = None
     game = cache.get_many(['game_start_time', 'current_game'])
     game_status = 'INIT'
     players = Player.objects.filter(game_id=game['current_game'])
@@ -116,11 +120,13 @@ def init_simulation():
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
+            loop = call_center_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             cache.set('game_status', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
-        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=217):
+        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
+            loop.revoke()
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
             send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
@@ -296,3 +302,31 @@ def play_sound(sound, area):
         process = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cache.set('front', process)
         print "PID: %s" % process.pid
+
+
+@app.task
+def call_center_loop(nb_players):
+    min_phone_ringing = nb_players + 1
+    disabled_phones = {}
+
+    client = ari.connect('http://157.26.114.42:8088', 'paleo', 'paleo7top')
+
+    while True:
+        open_channels = client.channels.list()
+        ringing_channels = [channel.json.get('name') for channel in open_channels if channel.json.get('state') == "Ringing"]
+
+        if len(ringing_channels) < min_phone_ringing:
+            for phone, timestamp in disabled_phones.copy().iteritems():
+                if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
+                    del disabled_phones[phone]
+            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
+            for channel in ringing_channels:
+                if channel in available_phones:
+                    available_phones.remove(channel)
+            for phone in disabled_phones.keys():
+                if phone in available_phones:
+                    available_phones.remove(phone)
+            if len(available_phones) > 0:
+                phone = random.choice(available_phones)
+                create_call_file('phone')
+                disabled_phones[phone] = timezone.now()
