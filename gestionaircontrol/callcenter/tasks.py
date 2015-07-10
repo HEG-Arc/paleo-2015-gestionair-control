@@ -83,7 +83,7 @@ def create_call_file(phone, type):
     if context:
         c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
         x = Context(context, str(extension), '1')
-        cf = CallFile(c, x)
+        cf = CallFile(c, x, user='asterisk') # add the right user)
         cf.spool()
         subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
         send_amqp_message({'type': 'PHONE_RINGING', 'phone': int(phone)}, "asterisk.call")
