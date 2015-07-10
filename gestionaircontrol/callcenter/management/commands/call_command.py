@@ -1,41 +1,43 @@
 from django.core.management.base import CommandError
 from daemon_command import DaemonCommand
-import gestionaircontrol.callcenter.asterisk_ari as asterisk_ari
 from gestionaircontrol.callcenter.tasks import create_call_file
 import random
-
-num_players = 6
-game_running = True
+import ari
+import datetime
+from django.utils import timezone
 
 
 class Command(DaemonCommand):
     help = 'Manages the calls'
 
+    disabled_phones = {}
+    min_phone_ringing = 2
+    game_running = True
+
     def loop_callback(self):
         """ When a new game starts """
-        #num_players = num_players
-        #game_running = True
 
-        # get the list of endpoints in state 'online'
-        online_endpoints = asterisk_ari.get_online_endpoints()
-        print online_endpoints
+        client = ari.connect('http://157.26.114.42:8088', 'paleo', 'paleo7top')
 
-        # get the channels; empty in the beginning
-        channels = asterisk_ari.get_channels()
+        while self.game_running:
+            open_channels = client.channels.list()
+            ringing_channels = [channel.json.get('name') for channel in open_channels if channel.json.get('state') == "Ringing"]
 
-        #  and len(channels) < num_players and len(online_endpoints) > 0
-        while game_running:
-            phone = random.choice(online_endpoints)
-            channels.append(phone)
-            print "Online endpoints: %s" % online_endpoints
-            print "Channels ringing: %s" % channels
-            create_call_file(phone.json.get('resource'))
-            del online_endpoints[:]
-            online_endpoints = asterisk_ari.get_online_endpoints()
-            online_endpoints.remove(phone)
-            channels.remove(phone)
+            if len(ringing_channels) < self.min_phone_ringing:
+                for phone, timestamp in self.disabled_phones.iteritems():
+                    if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
+                        del self.disabled_phones[phone]
+                available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
+                for channel in ringing_channels:
+                    if channel in available_phones:
+                        available_phones.remove(channel)
+                for phone in self.disabled_phones.keys():
+                    if phone in available_phones:
+                        available_phones.remove(phone)
+                phone = random.choice(available_phones)
+                create_call_file(phone)
+                self.disabled_phones[phone] = timezone.now()
 
     def exit_callback(self):
         """ When a game ends """
-        game_running = False
-
+        self.game_running = False
