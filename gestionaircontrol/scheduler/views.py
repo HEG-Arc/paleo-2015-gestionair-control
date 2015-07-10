@@ -52,7 +52,7 @@ from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
 
 def get_game_status(game_start_time):
     if game_start_time:
-        if timezone.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
+        if datetime.datetime.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
             current_status = "RUNNING"
         else:
             current_status = "FINISHED"
@@ -192,16 +192,36 @@ def ambiance(request):
 
 def countdown(request):
     game = cache.get_many(['game_start_time', 'current_game', 'game_status'])
+    #game['game_start_time'] = datetime.datetime.fromtimestamp(1436540639) #for test purpose
     if 'game_start_time' in game:
         current_status = get_game_status(game['game_start_time'])
     else:
         current_status = "FINISHED"
+        game['time_left'] = 0
+
     if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game['game_start_time'])
+        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (datetime.datetime.now() - game['game_start_time'])
+        game['times'] = getSecondsToMinuteHours(time_left.seconds)
         game['time_left'] = time_left.seconds
-    elif current_status == "FINISHED":
-        game['time_left'] = "GAME OVER!"
+
+
     return JsonResponse(game)
+
+
+def getSecondsToMinuteHours(s):
+    h = s / 3600
+    s -= h * 3600
+    m = s / 60
+    s -= m * 60
+
+    if s < 10:
+        s = '0' + str(s)
+
+    if m < 10:
+        m = '0' + str(m)
+
+
+    return {'h': h, 'm': m, 's': s}
 
 
 def status(request):
