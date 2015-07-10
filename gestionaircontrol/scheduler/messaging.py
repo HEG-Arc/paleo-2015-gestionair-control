@@ -27,13 +27,13 @@ from kombu import Producer, Queue, Exchange
 # Core Django imports
 
 # Third-party app imports
+from amqp import RecoverableConnectionError
 
 # paleo-2015-gestionair-control imports
 
 AMPQ_EXCHANGE = 'gestionair'
 
 connection = celery.current_app.pool.acquire()
-
 exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
 exchange.declare()
 queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
@@ -46,6 +46,15 @@ publisher = Producer(channel=connection, exchange=exchange)
 
 def send_amqp_message(message, routing):
     """Send a message to a specific queue on RabbitMQ."""
-    publisher.publish(message, routing_key=routing)
-    publisher.close()
-    #connection.close()
+    try:
+        publisher.publish(message, routing_key=routing)
+        publisher.close()
+    except RecoverableConnectionError:
+        connection = celery.current_app.pool.acquire()
+        exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
+        exchange.declare()
+        queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
+        queue.declare()
+        queue = Queue(name="caller", exchange=exchange, routing_key='simulation.caller', channel=connection)
+        queue.declare()
+        publisher = Producer(channel=connection, exchange=exchange)
