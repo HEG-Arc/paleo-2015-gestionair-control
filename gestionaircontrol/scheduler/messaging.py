@@ -36,17 +36,21 @@ AMPQ_EXCHANGE = 'gestionair'
 connection = celery.current_app.pool.acquire()
 exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
 exchange.declare()
+
 queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
 queue.declare()
 queue = Queue(name="caller", exchange=exchange, routing_key='simulation.caller', channel=connection)
 queue.declare()
 
-publisher = Producer(channel=connection, exchange=exchange)
+CONNECTION = connection
+EXCHANGE = exchange
+#publisher = Producer(channel=connection, exchange=exchange)
 
 
 def send_amqp_message(message, routing):
     """Send a message to a specific queue on RabbitMQ."""
     try:
+        publisher = Producer(channel=CONNECTION, exchange=EXCHANGE)
         publisher.publish(message, routing_key=routing)
         publisher.close()
     except RecoverableConnectionError:
@@ -57,4 +61,6 @@ def send_amqp_message(message, routing):
         queue.declare()
         queue = Queue(name="caller", exchange=exchange, routing_key='simulation.caller', channel=connection)
         queue.declare()
-        publisher = Producer(channel=connection, exchange=exchange)
+        publisher = Producer(channel=CONNECTION, exchange=EXCHANGE)
+        publisher.publish(message, routing_key=routing)
+        publisher.close()
