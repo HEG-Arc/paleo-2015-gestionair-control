@@ -314,7 +314,7 @@ def call_center_loop(nb_players):
 
     while True:
         open_channels = client.channels.list()
-        ringing_channels = [channel.json.get('name') for channel in open_channels if channel.json.get('state') == "Ringing"]
+        ringing_channels = [channel.json.get('caller')['number'] for channel in open_channels if channel.json.get('state') == "Ringing"]
 
         if len(ringing_channels) < min_phone_ringing:
             for phone, timestamp in disabled_phones.copy().iteritems():
