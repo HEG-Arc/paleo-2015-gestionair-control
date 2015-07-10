@@ -65,16 +65,17 @@ def sound_control(sound):
 
 
 @app.task
-def create_call_file(phone, type):
-    if type == 'public':
+def create_call_file(phone):
+    type = Phone.objects.get(number=int(phone)).usage
+    if type == Phone.PUBLIC:
         wait = 20
         extension = 6666
         context = 'paleo-jukebox'
-    elif type == 'demo':
+    elif type == Phone.DEMO:
         wait = 10
         extension = 2001
         context = 'paleo-call'
-    elif type == 'call':
+    elif type == Phone.CENTER:
         wait = 5
         extension = 2001
         context = 'paleo-call'

@@ -160,6 +160,15 @@ def demo(request):
 
 
 @login_required()
+def ring(request, number):
+    create_call_file.apply_async([number, ])
+    success = True
+    message = "Call was started"
+    result = {'success': success, 'message': message}
+    return JsonResponse(result)
+
+
+@login_required()
 def call(request):
     # TODO: Do something here....
     # For tests only...
