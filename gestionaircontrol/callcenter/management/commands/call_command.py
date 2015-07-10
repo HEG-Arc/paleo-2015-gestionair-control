@@ -38,6 +38,7 @@ class Command(DaemonCommand):
             print "Channels ringing: %s" % channels
             type = 'public'
             create_call_file(phone.json.get('resource'), type)
+            online_endpoints = []
             online_endpoints = asterisk_ari.get_online_endpoints()
             online_endpoints.remove(phone)
             channels.remove(phone)
