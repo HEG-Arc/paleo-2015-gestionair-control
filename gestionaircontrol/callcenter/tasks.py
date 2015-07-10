@@ -111,19 +111,22 @@ def init_simulation():
         if game_status == 'INIT':
             game_status = 'INTRO'
             cache.set('game_status', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
             game_status = 'CALL'
             cache.set('game_status', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=217):
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=247):
             game_status = 'END'
             cache.set('game_status', game_status)
-        send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Game is over!
     game_status = 'OVER'
     cache.set('game_status', game_status)
