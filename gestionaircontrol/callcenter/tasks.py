@@ -139,7 +139,7 @@ def init_simulation():
 
 @app.task
 def stop_simulation():
-    send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
+    #send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
     pass
 
 
