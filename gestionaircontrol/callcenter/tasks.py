@@ -310,7 +310,7 @@ def call_center_loop(nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
-    client = ari.connect('http://192.168.1.1', 'paleo', 'paleo7top')
+    client = ari.connect('http://192.168.1.1:8088', 'paleo', 'paleo7top')
 
     while True:
         open_channels = client.channels.list()
