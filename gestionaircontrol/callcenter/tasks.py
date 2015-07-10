@@ -254,7 +254,7 @@ def play_teuf():
 
 @app.task
 def play_ambiance():
-    play_sound.apply_async(['ambiance', 'front'])  #, link=play_end.s('front'))
+    play_sound.apply_async(['ambiance', 'center'])  #, link=play_end.s('front'))
 
 
 @app.task
