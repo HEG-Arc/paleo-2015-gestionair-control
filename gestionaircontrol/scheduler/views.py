@@ -200,11 +200,9 @@ def countdown(request):
         game['time_left'] = 0
 
     if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (datetime.datetime.now() - game['game_start_time'])
+        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game['game_start_time'])
         game['times'] = getSecondsToMinuteHours(time_left.seconds)
         game['time_left'] = time_left.seconds
-
-
     return JsonResponse(game)
 
 
