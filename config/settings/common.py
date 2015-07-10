@@ -266,3 +266,5 @@ CELERYBEAT_SCHEDULE = {
         "schedule": datetime.timedelta(minutes=1),
     },
 }
+
+BROKER_POOL_LIMIT = 100
