@@ -69,7 +69,7 @@ def sound_control(sound):
 
 @app.task
 def create_call_file(phone):
-    type = Phone.objects.get(number=int(phone)).usage
+    type = Phone.objects.get(number=phone).usage
     if type == Phone.PUBLIC:
         wait = 20
         extension = 6666
