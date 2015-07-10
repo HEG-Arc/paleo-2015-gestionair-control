@@ -34,9 +34,10 @@ class Command(DaemonCommand):
                 for phone in self.disabled_phones.keys():
                     if phone in available_phones:
                         available_phones.remove(phone)
-                phone = random.choice(available_phones)
-                create_call_file(phone)
-                self.disabled_phones[phone] = timezone.now()
+                if len(available_phones) > 0:
+                    phone = random.choice(available_phones)
+                    create_call_file(phone)
+                    self.disabled_phones[phone] = timezone.now()
 
     def exit_callback(self):
         """ When a game ends """
