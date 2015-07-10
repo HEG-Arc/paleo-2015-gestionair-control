@@ -24,7 +24,7 @@ class Command(DaemonCommand):
             ringing_channels = [channel.json.get('name') for channel in open_channels if channel.json.get('state') == "Ringing"]
 
             if len(ringing_channels) < self.min_phone_ringing:
-                for phone, timestamp in self.disabled_phones.iteritems():
+                for phone, timestamp in self.disabled_phones.copy().iteritems():
                     if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
                         del self.disabled_phones[phone]
                 available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
