@@ -81,7 +81,8 @@ def create_call_file(phone):
         context = 'paleo-call'
     else:
         context = None
-
+    print type
+    print context
     if context:
         c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
         x = Context(context, str(extension), '1')
