@@ -46,9 +46,3 @@ def get_channels():
             else:
                 channels.append(channel)
     return channels
-
-
-def return_phone(list):
-    """Selects a random endpoint in the open_endpoints list"""
-    phone = random.choice(list)
-    return phone
