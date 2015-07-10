@@ -52,7 +52,7 @@ from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
 
 def get_game_status(game_start_time):
     if game_start_time:
-        if datetime.datetime.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
+        if timezone.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
             current_status = "RUNNING"
         else:
             current_status = "FINISHED"
