@@ -74,11 +74,11 @@ def create_call_file(phone):
     elif type == Phone.DEMO:
         wait = 10
         extension = 2001
-        context = 'paleo-call'
+        context = 'paleo-callcenter'
     elif type == Phone.CENTER:
-        wait = 5
+        wait = 15
         extension = 2001
-        context = 'paleo-call'
+        context = 'paleo-callcenter'
     else:
         context = None
     print type
