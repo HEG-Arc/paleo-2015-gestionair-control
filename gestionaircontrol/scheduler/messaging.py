@@ -32,20 +32,18 @@ from kombu import Producer, Queue, Exchange
 
 AMPQ_EXCHANGE = 'gestionair'
 
+connection = celery.current_app.pool.acquire()
+
+exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
+exchange.declare()
+queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
+queue.declare()
+
+publisher = Producer(channel=connection, exchange=exchange)
+
 
 def send_amqp_message(message, routing):
     """Send a message to a specific queue on RabbitMQ."""
-    connection = celery.current_app.pool.acquire()
-
-    # TODO: Put somewhere else... no need to redeclare each time
-    exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
-    exchange.declare()
-    queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
-    queue.declare()
-
-    publisher = Producer(channel=connection,
-                         exchange=exchange)
-
     publisher.publish(message, routing_key=routing)
     publisher.close()
-    connection.close()
+    #connection.close()
