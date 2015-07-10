@@ -69,6 +69,7 @@ def sound_control(sound):
 
 @app.task
 def create_call_file(phone):
+    print "PHONE %s" % phone
     type = Phone.objects.get(number=phone).usage
     if type == Phone.PUBLIC:
         wait = 20
@@ -116,6 +117,7 @@ def init_simulation():
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
+            play_sound.apply_async(['intro', 'center'])
             cache.set('game_status', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
@@ -299,9 +301,7 @@ def play_sound(sound, area):
         card = False
 
     if file and card:
-        process = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        cache.set('front', process)
-        print "PID: %s" % process.pid
+        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
 
 
 @app.task
@@ -328,5 +328,5 @@ def call_center_loop(nb_players):
                     available_phones.remove(phone)
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
-                create_call_file('phone')
+                create_call_file(phone)
                 disabled_phones[phone] = timezone.now()
