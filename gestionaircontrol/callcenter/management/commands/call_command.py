@@ -30,13 +30,14 @@ class Command(DaemonCommand):
         # get the channels; empty in the beginning
         channels = asterisk_ari.get_channels()
 
-        while game_running and len(channels) < num_players and len(online_endpoints) > 0:
+        #  and len(channels) < num_players and len(online_endpoints) > 0
+        while game_running:
             phone = random.choice(online_endpoints)
-            online_endpoints.remove(phone)
             channels.append(phone)
             print "Online endpoints: %s" % online_endpoints
-            print "Open channels: %s" % channels
+            print "Channels ringing: %s" % channels
             type = 'public'
             create_call_file(phone.json.get('resource'), type)
-            online_endpoints.append(phone)
+            online_endpoints = asterisk_ari.get_online_endpoints()
+            online_endpoints.remove(phone)
             channels.remove(phone)
