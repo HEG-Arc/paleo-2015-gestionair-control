@@ -13,15 +13,8 @@ class Command(DaemonCommand):
 
     def loop_callback(self, num_players):
         """ When a new game starts """
-        num_players = num_players
-        game_running = True
-
-    def exit_callback(self):
-        """ When a game ends """
-        game_running = False
-
-    def handle_noargs(self, **options):
-        """ Make calls on the open channels """
+        #num_players = num_players
+        #game_running = True
 
         # get the list of endpoints in state 'online'
         online_endpoints = asterisk_ari.get_online_endpoints()
@@ -42,3 +35,11 @@ class Command(DaemonCommand):
             online_endpoints = asterisk_ari.get_online_endpoints()
             online_endpoints.remove(phone)
             channels.remove(phone)
+
+    def exit_callback(self):
+        """ When a game ends """
+        game_running = False
+
+    def handle_noargs(self, **options):
+        """ Make calls on the open channels """
+
