@@ -222,7 +222,7 @@ def agi_question(player_number, phone_number):
     response = {'question': translation.question.number, 'response': translation.question.department.number,
                 'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
                 'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
-    message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language,
+    message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
                'type': 'PLAYER_ANSWERING'}
     send_amqp_message(message, "simulation.control")
     return response
