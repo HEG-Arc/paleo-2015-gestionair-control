@@ -214,6 +214,7 @@ def draw_question(player_id):
 
 @app.task
 def agi_question(player_number, phone_number):
+    print "PLAYER: %s | PHONE: %s" % (phone_number, phone_number)
     current_game_id = get_current_game()
     game = Game.objects.get(pk=current_game_id)
     player = Player.objects.get(game=game, number=player_number)
