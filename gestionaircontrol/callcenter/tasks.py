@@ -284,8 +284,6 @@ def play_sound(sound, area):
     else:
         card = False
 
-    card = 'Intel'
-
     if file and card:
         process = subprocess.Popen(['aplay', '-l0', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cache.set('front', process)
