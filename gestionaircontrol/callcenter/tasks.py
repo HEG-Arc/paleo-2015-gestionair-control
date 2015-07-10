@@ -320,7 +320,7 @@ def call_center_loop(nb_players):
             for phone, timestamp in disabled_phones.copy().iteritems():
                 if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
                     del disabled_phones[phone]
-            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
+            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online" and int(endpoint.json.get('resource')) > 1000 and int(endpoint.json.get('resource')) < 1100]
             for channel in ringing_channels:
                 if channel in available_phones:
                     available_phones.remove(channel)
