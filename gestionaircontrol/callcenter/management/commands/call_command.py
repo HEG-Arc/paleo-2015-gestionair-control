@@ -11,7 +11,7 @@ game_running = True
 class Command(DaemonCommand):
     help = 'Manages the calls'
 
-    def loop_callback(self, num_players):
+    def loop_callback(self, **options):
         """ When a new game starts """
         #num_players = num_players
         #game_running = True
