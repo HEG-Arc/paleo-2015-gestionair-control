@@ -39,6 +39,7 @@ django-redis==4.0.0
 
 # RabbitMQ
 kombu==3.0.26
+pika==0.9.8
 
 # Asterisk
 pycall==2.2

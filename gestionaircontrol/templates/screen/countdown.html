@@ -1,36 +1,99 @@
-<!DOCTYPE html>
+{% load staticfiles i18n %}<!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title></title>
-    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-    <script>
+    <title>CountDown</title>
+
+    <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
+ <script>
         // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
         var jqxhr = function() {
+
             $.ajax({
                 url: "/scheduler/countdown/json/",
                 dataType: 'json'
             })
                 .done(function (data) {
-                $('#current_game').text(data.current_game);
-                $('#time_left').text(data.time_left);
-                $('#start_time').text(data.game_start_time);
-                $('#game_status').text(data.game_status);
+                console.log(data);
+                if (data.time_left > 0) {
+                    $('#gameover-block').hide();
+                    $('#current-block').show();
+                    $('#minutes').text(data.times.m);
+                    $('#seconds').text(data.times.s);      
+                }
+                else {
+                    $('#current-block').hide();
+                    $('#gameover-block').show();
+                }
             });
         };
         setInterval('jqxhr()', 1000); // 1 second
     </script>
+<style type="text/css">
+
+            body {
+                background: #363f48;
+                color: white;
+                font: normal 12px 'Open Sans', sans-serif;
+                margin-top: 20px;
+            }
+
+            ul.countdown {
+                list-style: none;
+                margin: 75px 0;
+                padding: 0;
+                display: block;
+                text-align: center;
+            }
+
+            ul.countdown li {
+                display: inline-block;
+            }
+
+            ul.countdown li span {
+                font-size: 160px;
+                font-weight: 300;
+                line-height: 80px;
+            }
+
+            ul.countdown li.seperator {
+                font-size: 80px;
+                line-height: 70px;
+                vertical-align: top;
+            }
+
+            ul.countdown li p {
+                color: #a7abb1;
+                font-size: 14px;
+            }
+
+    </style>
 </head>
 <body>
-<h1>Gestion'air</h1>
-<h2>Current game</h2>
-<div id="current_game">N/A</div>
-<h2>Time left</h2>
-<div id="time_left">N/A</div>
-<h2>Start time</h2>
-<div id="start_time">N/A</div>
-<h2>Game status</h2>
-<div id="game_status">N/A</div>
+    <ul id="current-block" style="display:none" class="countdown">
+        <li>
+            <span class="hours">00</span>
+            <p>Heures</p>
+        </li>
+        <li class="seperator">:</li>
+        <li>
+            <span id="minutes">00</span>
+            <p>minutes</p>
+        </li>
+        <li class="seperator">:</li>
+        <li>
+            <span id="seconds">00</span>
+            <p>secondes</p>
+        </li>
+    </ul>
+    
+
+    <ul id="gameover-block" style="display:none" class="countdown">
+        <li>
+            <span>GAME OVER !</span>
+        </li>
+
+    </ul>
+
 </body>
 </html>
