@@ -89,7 +89,7 @@ def create_call_file(phone):
         cf = CallFile(c, x)
         cf.spool()
         subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
-        send_amqp_message({'type': 'PHONE_RINGING', 'phone': int(phone)}, "asterisk.call")
+        send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
     else:
         pass
 
@@ -135,6 +135,13 @@ def init_simulation():
     send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Delete cache
     cache.delete_many(['game_start_time', 'current_game'])
+
+
+@app.task
+def stop_simulation():
+    send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
+    pass
+
 
 
 def get_departments_numbers():
