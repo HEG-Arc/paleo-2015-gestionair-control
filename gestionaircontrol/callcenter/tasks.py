@@ -31,6 +31,7 @@ from pycall import CallFile, Call, Application, Context
 import signal
 import random
 import ari
+import time
 
 
 # Core Django imports
@@ -320,7 +321,7 @@ def call_center_loop(nb_players):
             for phone, timestamp in disabled_phones.copy().iteritems():
                 if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
                     del disabled_phones[phone]
-            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online" and int(endpoint.json.get('resource')) > 1000 and int(endpoint.json.get('resource')) < 1100]
+            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
             for channel in ringing_channels:
                 if channel in available_phones:
                     available_phones.remove(channel)
@@ -331,3 +332,4 @@ def call_center_loop(nb_players):
                 phone = random.choice(available_phones)
                 create_call_file(phone)
                 disabled_phones[phone] = timezone.now()
+        time.sleep(1)
