@@ -5,41 +5,20 @@ import random
 import ari
 import datetime
 from django.utils import timezone
-import pika
-import json
 
 
 class Command(DaemonCommand):
     help = 'Manages the calls'
 
     disabled_phones = {}
-    min_phone_ringing = 0
+    min_phone_ringing = 2
     daemon_running = True
-    game_running = False
+    game_running = True
 
     def loop_callback(self):
         """ When a new game starts """
 
         client = ari.connect('http://157.26.114.42:8088', 'paleo', 'paleo7top')
-        #TODO connect to events
-
-        #on game start set self.min_phone_ringing and self.game_running = True
-        connection = pika.BlockingConnection(pika.ConnectionParameters('157.26.114.42'))
-        channel = connection.channel()
-
-        print ' [*] Waiting for messages. To exit press CTRL+C'
-
-        def callback(ch, method, properties, body):
-            print " [x] Received %r" % body
-            decoded_body = json.loads(body)
-            if decoded_body.json.type == 'GAME_START':
-                self.min_phone_ringing = 2
-                self.game_running = True
-            if decoded_body.json.type == 'GAME_END':
-                self.game_running = False
-                #on game end set stop ringing phones and delete call files
-
-        channel.basic_consume(callback, queue='caller', no_ack=True)
 
         while self.daemon_running:
             if self.game_running:
@@ -61,7 +40,6 @@ class Command(DaemonCommand):
                         phone = random.choice(available_phones)
                         create_call_file(phone)
                         self.disabled_phones[phone] = timezone.now()
-
 
     def exit_callback(self):
         """ When a game ends """
