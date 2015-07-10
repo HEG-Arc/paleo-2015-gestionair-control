@@ -236,7 +236,7 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
     new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
                         hangup_time=timezone.now(), correct=correct)
     new_answer.save()
-    dmx_phone_answer_scene.apply_async(phone.number, correct)
+    #dmx_phone_answer_scene.apply_async(phone.number, correct)
     response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': correct, 'number': phone.number}
     send_amqp_message(response, "simulation.control")
 
