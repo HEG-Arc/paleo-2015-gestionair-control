@@ -105,7 +105,7 @@ def init_simulation(self):
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
 
-    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=game_duration + 2):
+    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
@@ -150,21 +150,20 @@ def init_simulation(self):
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
     else:
         # Task is aborted!
-        print "MAIN GAME LOOP ABORTED!!!"
         try:
             loop_task.abort()
         except:
-            print "UNABLE TO ABORT MAIN LOOP"
+            pass
         try:
             play_intro_task = AbortableAsyncResult(play_intro_task_id)
             play_intro_task.abort()
         except:
-            print "UNABLE TO ABORT PLAY INTRO"
+            pass
         try:
             play_powerdown_task = AbortableAsyncResult(play_powerdown_task_id)
             play_powerdown_task.abort()
         except:
-            print "UNABLE TO ABORT PLAY POWERDOWN"
+            pass
 
         game_status = 'STOP'
         cache.set('callcenter', game_status)
