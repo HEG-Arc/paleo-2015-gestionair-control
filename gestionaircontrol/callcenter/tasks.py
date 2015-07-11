@@ -307,9 +307,9 @@ def play_sound(sound, area):
         card = False
 
     if soundfile and area:
-        player = aplayer.apply_async([card, file])
-        cache.set('player_%s' % sound, player)
-        return player
+        audio_player = aplayer.apply_async([card, file])
+        cache.set('player_%s' % sound, audio_player.id)
+        return audio_player.id
 
     return False
 
