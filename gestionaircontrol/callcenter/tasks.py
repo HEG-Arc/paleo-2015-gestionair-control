@@ -50,6 +50,9 @@ from gestionaircontrol.callcenter.models import Game, Player, Answer, Department
 
 funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
 
+URL = 'http://192.168.1.1:8088'
+AUTH = ('paleo', 'paleo7top')
+
 
 @app.task
 def play_call():
@@ -316,24 +319,31 @@ def play_sound(sound, area):
         subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
 
 
+@app.task
+def clean_callcenter():
+    subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
+    open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
+    for channel in open_channels:
+        if channel['caller']['number'] < 1100:
+            requests.delete(URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
+    print "ALL CLEAN! BYE"
+
+
 @app.task(bind=True, base=AbortableTask)
 def call_center_loop(self, nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
-
-    url = 'http://192.168.1.1:8088'
-    auth = ('paleo', 'paleo7top')
 
     while not self.is_aborted():
         for phone, timestamp in disabled_phones.copy().iteritems():
             if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
                 del disabled_phones[phone]
         
-        open_channels = requests.get(url + '/ari/channels', auth=auth).json()
+        open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
         ringing_channels = [channel['caller']['number'] for channel in open_channels if channel['state'] == "Ringing"]
 
         if len(ringing_channels) + len(disabled_phones.keys()) < min_phone_ringing:
-            endpoints = requests.get(url + '/ari/endpoints', auth=auth).json()
+            endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
             available_phones = [endpoint['resource'] for endpoint in endpoints if endpoint['state'] == "online" and int(endpoint['resource']) > 1000 and int(endpoint['resource']) < 1100]
             for channel in ringing_channels:
                 if channel in available_phones:
@@ -345,11 +355,7 @@ def call_center_loop(self, nb_players):
                 phone = random.choice(available_phones)
                 create_call_file(phone)
                 disabled_phones[phone] = timezone.now()
-        #print "CHANNELS: %s" % open_channels
         time.sleep(1)
     print "IT'S TIME TO CLEAN-UP!!!"
-    subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
-    open_channels = requests.get(url + '/ari/channels', auth=auth).json()
-    for channel in open_channels:
-        requests.delete(url + '/ari/channels/%s' % channel['id'], auth=auth)
-    print "ALL CLEAN! BYE"
+    clean_callcenter.apply_async()
+
