@@ -48,11 +48,11 @@ class TimeslotCreationForm(forms.Form):
         duration = self.cleaned_data['duration']
         booking_capacity = self.cleaned_data['booking_capacity']
         booking_availability = self.cleaned_data['booking_availability']
-        # while start_time + datetime.timedelta(minutes=duration) <= end_time:
-        # 
-        timeslot = Timeslot(start_time=start_time, duration=duration, booking_capacity=booking_capacity, booking_availability=booking_availability)
-        timeslot.save()
-        start_time = start_time + datetime.timedelta(minutes=duration)
+
+        while start_time + datetime.timedelta(minutes=duration) <= end_time:
+            timeslot = Timeslot(start_time=start_time, duration=duration, booking_capacity=booking_capacity, booking_availability=booking_availability)
+            timeslot.save()
+            start_time = start_time + datetime.timedelta(minutes=duration)
 
 
 class GameForm(ModelForm):
