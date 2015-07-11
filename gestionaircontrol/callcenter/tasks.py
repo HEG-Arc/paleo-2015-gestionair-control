@@ -348,3 +348,8 @@ def call_center_loop(self, nb_players):
         #print "CHANNELS: %s" % open_channels
         time.sleep(1)
     print "IT'S TIME TO CLEAN-UP!!!"
+    subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
+    open_channels = requests.get(url + '/ari/channels', auth=auth).json()
+    for channel in open_channels:
+        requests.delete(url + '/ari/channels/%s' % channel['id'], auth=auth)
+    print "ALL CLEAN! BYE"
