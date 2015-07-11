@@ -49,13 +49,13 @@ def get_game_status(game_start_time):
 
 
 def countdown(request):
-    game = cache.get_many(['game_start_time', 'game_status'])
+    game = cache.get_many(['game_start_time', 'callcenter'])
     try:
         game_start_time = game.get('game_start_time').isoformat()
     except:
         game_start_time = ''
 
-    response = {'game_start_time': game_start_time, 'game_status': game.get('status', 'STOP'),
+    response = {'game_start_time': game_start_time, 'game_status': game.get('callcenter', 'STOP'),
                 'intro_duration': settings.GAME_PHASE_INTRO, 'game_duration': settings.GAME_PHASE_CALL}
     return JsonResponse(response)
 
