@@ -30,8 +30,8 @@ import subprocess
 from pycall import CallFile, Call, Application, Context
 import signal
 import random
-import ari
 import time
+import requests
 
 
 # Core Django imports
@@ -133,7 +133,16 @@ def init_simulation():
             play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
-            send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
+            #TODO: compute score
+            
+            
+            
+            #Ordered array from 1st place to nth.
+            #languages ordered by their in game appearence
+            #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+            scores = []
+            message = {"game": game_status, "type": "GAME_END", "scores": scores}
+            send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
             game_status = 'END'
@@ -311,17 +320,20 @@ def call_center_loop(nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
-    client = ari.connect('http://192.168.1.1:8088', 'paleo', 'paleo7top')
+    url = 'http://192.168.1.1:8088'
+    auth = ('paleo', 'paleo7top')
 
     while True:
-        open_channels = client.channels.list()
-        ringing_channels = [channel.json.get('caller')['number'] for channel in open_channels if channel.json.get('state') == "Ringing"]
+        for phone, timestamp in disabled_phones.copy().iteritems():
+            if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
+                del disabled_phones[phone]
+        
+        open_channels = requests.get(url + '/ari/channels', auth=auth).json()
+        ringing_channels = [channel['caller']['number'] for channel in open_channels if channel['state'] == "Ringing"]
 
-        if len(ringing_channels) < min_phone_ringing:
-            for phone, timestamp in disabled_phones.copy().iteritems():
-                if timezone.now() - datetime.timedelta(seconds=10) > timestamp:
-                    del disabled_phones[phone]
-            available_phones = [endpoint.json.get('resource') for endpoint in client.endpoints.list() if endpoint.json.get('state') == "online"]
+        if len(ringing_channels) + len(disabled_phones.keys()) < min_phone_ringing:
+            endpoints = requests.get(url + '/ari/endpoints', auth=auth).json()
+            available_phones = [endpoint['resource'] for endpoint in endpoints if endpoint['state'] == "online" and int(endpoint['resource']) > 1000 and int(endpoint['resource']) < 1100]
             for channel in ringing_channels:
                 if channel in available_phones:
                     available_phones.remove(channel)
