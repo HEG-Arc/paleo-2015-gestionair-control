@@ -293,9 +293,11 @@ def dmx_phone_answer_scene(phone_number, correct):
 
 @app.task(bind=True, base=AbortableTask)
 def aplayer(self, card, soundfile):
+    player = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
     while not self.is_aborted():
-        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
+        time.sleep(0.5)
     print "APLAYER ABORTED!"
+    player.kill()
 
 
 def play_sound(sound, area):
