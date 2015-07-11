@@ -39,7 +39,15 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
+GAME_LENGTH = settings.GAME_PHASE_INTRO + settings.GAME_PHASE_CALL + settings.GAME_PHASE_POWERDOWN + settings.GAME_PHASE_END
 
 def get_next_start_time():
-    next_start = timezone.now() + datetime.timedelta(minutes=3, seconds=33)
+    game = cache.get_many(['game_start_time', 'game_status'])
+    game_start_time = game.get('game_start_time', False)
+    game_status = game.get('game_status', False)
+
+    if game_status and game_start_time and game_status != "STOP":
+        next_start = game_start_time + datetime.timedelta(seconds=GAME_LENGTH)
+    else:
+        next_start = timezone.now()
     return next_start

@@ -95,36 +95,6 @@ def ambiance(request):
     return JsonResponse(result)
 
 
-def countdown(request):
-    game = cache.get_many(['game_start_time', 'current_game', 'game_status'])
-    #game['game_start_time'] = datetime.datetime.fromtimestamp(1436540639) #for test purpose
-    if 'game_start_time' in game:
-        current_status = get_game_status(game['game_start_time'])
-    else:
-        current_status = "FINISHED"
-        game['time_left'] = 0
-
-    if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game['game_start_time'])
-        game['times'] = getSecondsToMinuteHours(time_left.seconds)
-        game['time_left'] = time_left.seconds
-    return JsonResponse(game)
-
-
-def getSecondsToMinuteHours(s):
-    h = s / 3600
-    s -= h * 3600
-    m = s / 60
-    s -= m * 60
-
-    if s < 10:
-        s = '0' + str(s)
-
-    if m < 10:
-        m = '0' + str(m)
-    return {'h': h, 'm': m, 's': s}
-
-
 def status(request):
     status = get_gestionair_status()
     return JsonResponse(status)

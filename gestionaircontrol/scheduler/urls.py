@@ -39,8 +39,6 @@ urlpatterns = [
     url(r'^call/', views.call, name='call'),
     url(r'^ring/(?P<number>\d+)/', views.ring, name='ring'),
     url(r'^ambiance/', views.ambiance, name='ambiance'),
-    url(r'^countdown/json/', views.countdown, name='countdown-json'),
-    url(r'^countdown/$', TemplateView.as_view(template_name='scheduler/countdown.html'), name="countdown"),
     url(r'^scheduler/$', TemplateView.as_view(template_name='scheduler/scheduler.html'), name="scheduler"),
     url(r'^timeslots/create/$', views.TimeslotCreateView.as_view(), name="timeslots-create"),
     url(r'^timeslots/all/$', views.TimeslotListView.as_view(), {'filter': 'all'}, name="timeslots-full-list"),
