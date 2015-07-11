@@ -33,6 +33,7 @@ import random
 import time
 import requests
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
+import pytz
 
 
 # Core Django imports
@@ -275,7 +276,9 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
         player = Player.objects.get(pk=player_id)
         translation = Translation.objects.get(pk=translation_id)
         phone = Phone.objects.get(number=phone_number)
-        new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
+        zurich = pytz.timezone('Europe/Zurich')
+        loc_pickup_time = pickup_time.astimezone(zurich)
+        new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=loc_pickup_time,
                             hangup_time=timezone.now(), correct=correct)
         new_answer.save()
         #dmx_phone_answer_scene.apply_async(phone.number, correct)
