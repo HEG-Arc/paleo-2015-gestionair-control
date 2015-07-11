@@ -209,27 +209,31 @@ def get_current_game():
         return game.id
 
 
-def draw_question(player_id):
-    player = Player.objects.get(pk=player_id)
-    answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
-    departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
-    languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']
-    departments = []
-    questions = []
-    for i in range(0, len(answers)/len(departments_list)+1):
-        departments += departments_list
-    # We remove departments previously drawn
-    for answer in answers:
-        departments.remove(answer.question.question.department.number)
-        questions.append(answer.question.question.number)
-    # We draw a department and a language
-    language = random.choice(languages_list)
-    department = random.choice(departments)
-    translations_list = Translation.objects.exclude(question__in=questions).filter(question__department__number=department, language__code=language)
-    try:
-        question = random.choice(translations_list)
-    except IndexError:
-        # TODO: Add logging
+def draw_question(player_id=None):
+    if player_id:
+        player = Player.objects.get(pk=player_id)
+        answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
+        departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
+        languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']
+        departments = []
+        questions = []
+        for i in range(0, len(answers)/len(departments_list)+1):
+            departments += departments_list
+        # We remove departments previously drawn
+        for answer in answers:
+            departments.remove(answer.question.question.department.number)
+            questions.append(answer.question.question.number)
+        # We draw a department and a language
+        language = random.choice(languages_list)
+        department = random.choice(departments)
+        translations_list = Translation.objects.exclude(question__in=questions).filter(question__department__number=department, language__code=language)
+        try:
+            question = random.choice(translations_list)
+        except IndexError:
+            # TODO: Add logging
+            translations_list = Translation.objects.all()
+            question = random.choice(translations_list)
+    else:
         translations_list = Translation.objects.all()
         question = random.choice(translations_list)
     return question
@@ -238,30 +242,39 @@ def draw_question(player_id):
 @app.task
 def agi_question(player_number, phone_number):
     print "PLAYER: %s | PHONE: %s" % (phone_number, phone_number)
-    current_game_id = get_current_game()
-    game = Game.objects.get(pk=current_game_id)
-    player = Player.objects.get(game=game, number=player_number)
-    translation = draw_question(player.id)
-    response = {'question': translation.question.number, 'response': translation.question.department.number,
-                'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
-                'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
-    message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
-               'type': 'PLAYER_ANSWERING'}
-    send_amqp_message(message, "simulation.control")
+    phone = Phone.objects.get(number=phone_number)
+    if phone.usage == Phone.CENTER:
+        current_game_id = get_current_game()
+        game = Game.objects.get(pk=current_game_id)
+        player = Player.objects.get(game=game, number=player_number)
+        translation = draw_question(player.id)
+        response = {'question': translation.question.number, 'response': translation.question.department.number,
+                    'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
+                    'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
+        message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
+                   'type': 'PLAYER_ANSWERING'}
+        send_amqp_message(message, "simulation.control")
+    else:
+        translation = draw_question()
+        response = {'question': translation.question.number, 'response': translation.question.department.number,
+                    'player': 0, 'game': 0, 'phone': phone_number, 'translation': translation.id,
+                    'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
     return response
 
 
 @app.task
 def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
-    player = Player.objects.get(pk=player_id)
-    translation = Translation.objects.get(pk=translation_id)
     phone = Phone.objects.get(number=phone_number)
-    new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
-                        hangup_time=timezone.now(), correct=correct)
-    new_answer.save()
-    #dmx_phone_answer_scene.apply_async(phone.number, correct)
-    response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': int(correct), 'number': phone.number}
-    send_amqp_message(response, "simulation.control")
+    if phone.usage == Phone.CENTER:
+        player = Player.objects.get(pk=player_id)
+        translation = Translation.objects.get(pk=translation_id)
+        phone = Phone.objects.get(number=phone_number)
+        new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=pickup_time,
+                            hangup_time=timezone.now(), correct=correct)
+        new_answer.save()
+        #dmx_phone_answer_scene.apply_async(phone.number, correct)
+        response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': int(correct), 'number': phone.number}
+        send_amqp_message(response, "simulation.control")
 
 
 @app.task
@@ -409,3 +422,16 @@ def callcenter_start():
         message = "No initialized game found!"
 
     return {'success': success, 'message': message}
+
+
+def demo_start():
+    state = get_gestionair_status()
+    if state['demo']:
+        message = "Demo is already running"
+        success = False
+    else:
+        create_call_file.apply_async(['1201'])
+        cache.set('demo', True, 8)
+        success = True
+        message = "Demo started"
+    return {'success': success, 'message': message, }

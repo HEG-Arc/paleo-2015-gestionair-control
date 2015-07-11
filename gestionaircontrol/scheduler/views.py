@@ -44,28 +44,10 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start, get_gestionair_status
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start, get_gestionair_status, demo_start
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
-
-
-def get_game_status(game_start_time):
-    if game_start_time:
-        if timezone.now() < game_start_time + datetime.timedelta(seconds=settings.GAME_DURATION):
-            current_status = "RUNNING"
-        else:
-            current_status = "FINISHED"
-    else:
-        current_status = "FINISHED"
-    return current_status
-
-
-def get_demo_status():
-    demo_status = cache.get('demo_status')
-    if not demo_status:
-        demo_status = "FINISHED"
-    return demo_status
 
 
 @login_required()
@@ -78,7 +60,7 @@ def start(request):
 def stop(request):
     game = cache.get_many(['game_start_time', 'current_game'])
     game_start_time = game.get('game_start_time')
-    current_status = get_game_status(game_start_time)
+    current_status = get_gestionair_status()
 
     if current_status == "RUNNING":
         # Game is running, we stop it
@@ -97,24 +79,7 @@ def stop(request):
 
 @login_required()
 def demo(request):
-    # Is it already working?
-    demo_status = cache.get('demo_status')
-    if not demo_status:
-        demo_status = "FINISHED"
-
-    if demo_status == "RUNNING":
-        success = False
-        message = "Demo is already running"
-    elif demo_status == "FINISHED":
-        # We can start a new demo
-        # TODO: Start the demo ;-)
-        create_call_file.apply_async(args=['6001', 'demo'])
-        # We store the value in Redis (expiration is only for tests!)
-        cache.set('demo_status', 'RUNNING', 8)
-        success = True
-        message = "Demo started"
-
-    result = {'success': success, 'message': message, }
+    result = demo_start()
     return JsonResponse(result)
 
 
