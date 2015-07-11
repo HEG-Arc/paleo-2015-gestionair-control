@@ -129,7 +129,7 @@ def init_simulation():
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-            loop.revoke()
+            loop.revoke(terminate=True)
             play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
