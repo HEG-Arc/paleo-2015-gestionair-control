@@ -41,8 +41,6 @@ def send_amqp_message(message, routing):
     exchange.declare()
     queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
     queue.declare()
-    queue = Queue(name="caller", exchange=exchange, routing_key='simulation.caller', channel=connection)
-    queue.declare()
 
     publisher = Producer(channel=connection, exchange=exchange)
 
