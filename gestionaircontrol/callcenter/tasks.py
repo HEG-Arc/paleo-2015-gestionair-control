@@ -344,5 +344,5 @@ def call_center_loop(nb_players):
                 phone = random.choice(available_phones)
                 create_call_file(phone)
                 disabled_phones[phone] = timezone.now()
-        print "CHANNELS: %s" % open_channels
+        #print "CHANNELS: %s" % open_channels
         time.sleep(1)
