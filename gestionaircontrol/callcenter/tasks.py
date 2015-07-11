@@ -295,6 +295,7 @@ def dmx_phone_answer_scene(phone_number, correct):
 def aplayer(self, card, soundfile):
     while not self.is_aborted():
         subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
+    print "APLAYER ABORTED!"
 
 
 def play_sound(sound, area):
