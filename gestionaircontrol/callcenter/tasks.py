@@ -148,6 +148,7 @@ def init_simulation(self):
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
 
     # Task is aborted!
+    print "MAIN GAME LOOP ABORTED!!!"
     try:
         loop.abort()
         play_intro.abort()
