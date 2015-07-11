@@ -305,7 +305,7 @@ def play_sound(sound, area):
         card = 'system'
     else:
         card = False
-    card = "Intel"
+
     if soundfile and area:
         audio_player = aplayer.apply_async([card, soundfile])
         cache.set('player_%s' % sound, audio_player.id)
