@@ -32,6 +32,7 @@ import signal
 import random
 import time
 import requests
+from celery.contrib.abortable import AbortableTask
 
 
 # Core Django imports
@@ -129,7 +130,7 @@ def init_simulation():
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-            loop.revoke(terminate=True)
+            loop.abort()
             play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
             cache.set('game_status', game_status)
@@ -315,15 +316,15 @@ def play_sound(sound, area):
         subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
 
 
-@app.task
-def call_center_loop(nb_players):
+@app.task(bind=True, base=AbortableTask)
+def call_center_loop(self, nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
     url = 'http://192.168.1.1:8088'
     auth = ('paleo', 'paleo7top')
 
-    while True:
+    while not self.is_aborted():
         for phone, timestamp in disabled_phones.copy().iteritems():
             if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
                 del disabled_phones[phone]
@@ -346,3 +347,4 @@ def call_center_loop(nb_players):
                 disabled_phones[phone] = timezone.now()
         #print "CHANNELS: %s" % open_channels
         time.sleep(1)
+    print "IT'S TIME TO CLEAN-UP!!!"
