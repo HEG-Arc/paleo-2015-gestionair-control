@@ -55,24 +55,6 @@ AUTH = ('paleo', 'paleo7top')
 
 
 @app.task
-def play_call():
-    send_amqp_message("{'play': 'funky'}", "player.start")
-    # call = pyglet.media.load(funky, streaming=False)
-    # player = call.play()
-    # pygame.mixer.init()
-    # pygame.mixer.music.load(funky)
-    # pygame.mixer.music.play(0)
-    # time.sleep(10)
-    # pygame.mixer.music.stop()
-
-
-@app.task
-def sound_control(sound):
-    if sound == 'call':
-        play_call.apply_async()
-
-
-@app.task
 def create_call_file(phone):
     print "PHONE %s" % phone
     type = Phone.objects.get(number=phone).usage
@@ -103,9 +85,12 @@ def create_call_file(phone):
         pass
 
 
-@app.task
-def init_simulation():
+@app.task(bind=True, base=AbortableTask)
+def init_simulation(self):
     loop = None
+    play_intro = None
+    play_powerdown = None
+
     game = cache.get_many(['game_start_time', 'current_game'])
     game_status = 'INIT'
     players = Player.objects.filter(game_id=game['current_game'])
@@ -118,53 +103,63 @@ def init_simulation():
     message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
-    while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
-        # 00 : Intro
-        if game_status == 'INIT':
-            game_status = 'INTRO'
-            play_sound.apply_async(['intro', 'center'])
-            cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-        # 37 : Call center
-        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
-            loop = call_center_loop.apply_async([len(players_list)])
-            game_status = 'CALL'
-            cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-        # 217 : Powerdown
-        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-            loop.abort()
-            play_sound.apply_async(['powerdown', 'center'])
-            game_status = 'POWERDOWN'
-            cache.set('callcenter', game_status)
-            #TODO: compute score
-            
-            
-            
-            #Ordered array from 1st place to nth.
-            #languages ordered by their in game appearence
-            #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
-            scores = []
-            message = {"game": game_status, "type": "GAME_END", "scores": scores}
-            send_amqp_message(message, "simulation.caller")
-        # 247 : The END ;-)
-        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
-            game_status = 'END'
-            cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-    # Game is over!
+
+    while not self.is_aborted():
+        while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
+            # 00 : Intro
+            if game_status == 'INIT':
+                game_status = 'INTRO'
+                play_intro = play_sound('intro', 'center')
+                cache.set('callcenter', game_status)
+                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            # 37 : Call center
+            elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
+                loop = call_center_loop.apply_async([len(players_list)])
+                game_status = 'CALL'
+                cache.set('callcenter', game_status)
+                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            # 217 : Powerdown
+            elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
+                loop.abort()
+                play_powerdown = play_sound('powerdown', 'center')
+                game_status = 'POWERDOWN'
+                cache.set('callcenter', game_status)
+                #TODO: compute score
+
+
+
+                #Ordered array from 1st place to nth.
+                #languages ordered by their in game appearence
+                #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+                scores = []
+                message = {"game": game_status, "type": "GAME_END", "scores": scores}
+                send_amqp_message(message, "simulation.caller")
+            # 247 : The END ;-)
+            elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
+                game_status = 'END'
+                cache.set('callcenter', game_status)
+                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+                cache.delete('callcenter_loop')
+        # Game is over!
+        game_status = 'STOP'
+        cache.set('callcenter', game_status)
+        send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+        # Delete cache
+        cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
+
+    # Task is aborted!
+    try:
+        loop.abort()
+        play_intro.abort()
+        play_powerdown.abort()
+    except:
+        pass
     game_status = 'STOP'
     cache.set('callcenter', game_status)
-    send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-    # Delete cache
+    scores = []
+    message = {"game": game_status, "type": "GAME_END", "scores": scores}
+    send_amqp_message(message, "simulation.caller")
     cache.delete_many(['game_start_time', 'current_game'])
-
-
-@app.task
-def stop_simulation():
-    #send_amqp_message('{"game": "%s", "type": "GAME_END"}' % game_status, "simulation.caller")
-    pass
-
 
 
 def get_departments_numbers():
@@ -286,40 +281,23 @@ def dmx_phone_answer_scene(phone_number, correct):
         scene = "RED"
 
 
-@app.task
-def play_end(result, area):
-    cache.delete(area)
+@app.task(bind=True, base=AbortableTask)
+def aplayer(self, card, file):
+    while not self.is_aborted():
+        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
 
 
-@app.task
-def play_teuf():
-    play_sound.apply_async(['call', 'front'])  #, link=play_end.s('front'))
-
-
-@app.task
-def play_ambiance():
-    play_sound.apply_async(['ambiance', 'center'])  #, link=play_end.s('front'))
-
-
-@app.task
-def play_stop(pid):
-    os.kill(pid, signal.SIGQUIT)
-    # process = cache.get('front')
-    # process.terminate()
-
-
-@app.task
 def play_sound(sound, area):
     if sound == 'ambiance':
-        file = 'ambiance.wav'
+        soundfile = 'ambiance.wav'
     elif sound == 'call':
-        file = 'call.wav'
+        soundfile = 'call.wav'
     elif sound == 'intro':
-        file = 'intro.wav'
+        soundfile = 'intro.wav'
     elif sound == 'powerdown':
-        file = 'powerdown.wav'
+        soundfile = 'powerdown.wav'
     else:
-        file = False
+        soundfile = False
 
     if area == 'front':
         card = 'DGX'
@@ -328,8 +306,12 @@ def play_sound(sound, area):
     else:
         card = False
 
-    if file and card:
-        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
+    if soundfile and area:
+        player = aplayer.apply_async([card, file])
+        cache.set('player_%s' % sound, player)
+        return player
+
+    return False
 
 
 @app.task
@@ -414,7 +396,8 @@ def callcenter_start():
         # We store the value in Redis
         cache.set_many({'game_start_time': start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
         # We initialize the new simulation
-        init_simulation.apply_async()
+        loop = init_simulation.apply_async()
+        cache.set('callcenter_loop', loop)
         success = True
         message = "Game started"
     else:
@@ -434,4 +417,18 @@ def demo_start():
         cache.set('demo', True, 8)
         success = True
         message = "Demo started"
+    return {'success': success, 'message': message, }
+
+
+@app.task
+def callcenter_stop():
+    loop = cache.get('callcenter_loop', False)
+    if loop:
+        loop.abort()
+
+    scores = []
+    message = {"game": "STOP", "type": "GAME_END", "scores": scores}
+    send_amqp_message(message, "simulation.caller")
+    success = True
+    message = "Game was stopped"
     return {'success': success, 'message': message, }

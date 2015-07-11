@@ -44,7 +44,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start, get_gestionair_status, demo_start
+from gestionaircontrol.callcenter.tasks import create_call_file, callcenter_start, get_gestionair_status, demo_start, callcenter_stop, play_sound
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -58,22 +58,7 @@ def start(request):
 
 @login_required()
 def stop(request):
-    game = cache.get_many(['game_start_time', 'current_game'])
-    game_start_time = game.get('game_start_time')
-    current_status = get_gestionair_status()
-
-    if current_status == "RUNNING":
-        # Game is running, we stop it
-        cache.delete_many(['game_start_time', 'current_game'])
-        success = True
-        message = "Game was stopped"
-    elif current_status == "FINISHED":
-        # Game is paused, no need to stop it
-        success = False
-        message = "Game is already finished"
-
-    cache.delete_many(['game_start_time', 'current_game'])
-    result = {'success': success, 'message': message}
+    result = callcenter_stop()
     return JsonResponse(result)
 
 
@@ -94,9 +79,7 @@ def ring(request, number):
 
 @login_required()
 def call(request):
-    # TODO: Do something here....
-    # For tests only...
-    play_teuf.apply_async()
+    play_sound.apply_async(['call', 'front'])
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
@@ -105,11 +88,9 @@ def call(request):
 
 @login_required()
 def ambiance(request):
-    # TODO: Do something here....
-    # For tests only...
-    play_ambiance.apply_async()
+    play_sound.apply_async(['ambiance', 'front'])
     success = True
-    message = "Call was started"
+    message = "Ambiance was started"
     result = {'success': success, 'message': message}
     return JsonResponse(result)
 
