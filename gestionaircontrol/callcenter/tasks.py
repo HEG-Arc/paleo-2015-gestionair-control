@@ -32,7 +32,7 @@ import signal
 import random
 import time
 import requests
-from celery.contrib.abortable import AbortableTask
+from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 
 
 # Core Django imports
@@ -87,9 +87,9 @@ def create_call_file(phone):
 
 @app.task(bind=True, base=AbortableTask)
 def init_simulation(self):
-    loop = None
-    play_intro = None
-    play_powerdown = None
+    loop_task = None
+    play_intro_task_id = None
+    play_powerdown_task_id = None
 
     game = cache.get_many(['game_start_time', 'current_game'])
     game_status = 'INIT'
@@ -109,19 +109,19 @@ def init_simulation(self):
             # 00 : Intro
             if game_status == 'INIT':
                 game_status = 'INTRO'
-                play_intro = play_sound('intro', 'center')
+                play_intro_task_id = play_sound('intro', 'center')
                 cache.set('callcenter', game_status)
                 send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
             # 37 : Call center
             elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
-                loop = call_center_loop.apply_async([len(players_list)])
+                loop_task = call_center_loop.apply_async([len(players_list)])
                 game_status = 'CALL'
                 cache.set('callcenter', game_status)
                 send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
             # 217 : Powerdown
             elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-                loop.abort()
-                play_powerdown = play_sound('powerdown', 'center')
+                loop_task.abort()
+                play_powerdown_task_id = play_sound('powerdown', 'center')
                 game_status = 'POWERDOWN'
                 cache.set('callcenter', game_status)
                 #TODO: compute score
@@ -150,11 +150,20 @@ def init_simulation(self):
     # Task is aborted!
     print "MAIN GAME LOOP ABORTED!!!"
     try:
-        loop.abort()
-        play_intro.abort()
-        play_powerdown.abort()
+        loop_task.abort()
     except:
-        pass
+        print "UNABLE TO ABORT MAIN LOOP"
+    try:
+        play_intro_task = AbortableAsyncResult(play_intro_task_id)
+        play_intro_task.abort()
+    except:
+        print "UNABLE TO ABORT PLAY INTRO"
+    try:
+        play_powerdown_task = AbortableAsyncResult(play_powerdown_task_id)
+        play_powerdown_task.abort()
+    except:
+        print "UNABLE TO ABORT PLAY POWERDOWN"
+
     game_status = 'STOP'
     cache.set('callcenter', game_status)
     scores = []
