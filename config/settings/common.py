@@ -42,6 +42,7 @@ THIRD_PARTY_APPS = (
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
     'bootstrap3_datetime',
+    'djcelery',
 )
 
 # Apps specific for this project go here.
@@ -259,6 +260,8 @@ SESSION_CACHE_ALIAS = "default"
 
 # Game duration in seconds
 GAME_DURATION = 260
+
+CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend'
 
 CELERYBEAT_SCHEDULE = {
     "schedule_availability": {
