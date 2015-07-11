@@ -436,9 +436,15 @@ def demo_start():
 
 @app.task
 def callcenter_stop():
-    loop = cache.get('callcenter_loop', False)
-    if loop:
-        loop.abort()
+    game = Game.objects.get(pk=get_current_game)
+    if game:
+        game.start_time = None
+        game.initialized = False
+        game.save()
+    loop_id = cache.get('callcenter_loop', False)
+    if loop_id:
+        task = AbortableAsyncResult(id)
+        task.abort()
 
     scores = []
     message = {"game": "STOP", "type": "GAME_END", "scores": scores}
