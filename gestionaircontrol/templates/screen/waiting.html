@@ -1,0 +1,80 @@
+{% load staticfiles i18n %}<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>Attente</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css' %}">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.3.5-dist/css/bootstrap-theme.min.css' %}">
+
+        <!-- Your stuff: Third-party css libraries go here -->
+        <link rel="stylesheet" href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}">
+
+        <!-- This file store project specific CSS -->
+        <link href="{% static 'css/project.css' %}" rel="stylesheet">
+    </head>
+
+<style type="text/css">
+            body {
+                background: #363f48;
+                color: white;
+                font: normal 12px 'Open Sans', sans-serif;
+                margin-top: 20px;
+            }
+
+            .left {
+                font-size: 80px;
+                font-weight: 600;
+                line-height: 80px;
+            }
+
+            .right {
+                font-size: 80px;
+                font-weight: 300;
+                line-height: 80px;
+            }
+
+            .top-buffer {
+                margin-top: 50px;
+            }
+</style>
+
+    <body>
+
+        <div class="container-fluid">
+            <div class="row top-buffer">
+                <div class="col-md-6 col-md-offset-1 left">Temps d'attente</div>
+                <div class="col-md-3 right">to be implemented</div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col-md-6 col-md-offset-1 left">Prochain créneau horaire disponible</div>
+                <div class="col-md-3 right">{{ free_time_slots.start_time.time }}</div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col-md-6 col-md-offset-1 left">Prochains groupes</div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col-md-6 col-md-offset-2 right">
+                    <ol>
+                        {% for game in next_games %}
+                            <li>{{ game.team }}</li>
+                            {% if forloop.counter > 2 %}
+                                <div class="col-md-6 right">
+                                    <li>{{ game.team }}</li>
+                                </div>
+                            {% endif %}
+                        {% empty %}
+                            Aucun groupe inscrit
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+</html>
+

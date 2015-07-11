@@ -28,6 +28,9 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.conf import settings
+from gestionaircontrol.scheduler.models import Timeslot, Game
+from django.views.generic import TemplateView
+from django.db.models import F, Count
 
 # Third-party app imports
 
@@ -71,3 +74,14 @@ def scheduler(request):
     elif current_status == "FINISHED":
         game['time_left'] = "GAME OVER!"
     return JsonResponse(game)
+
+
+class WaitingView(TemplateView):
+    template_name = "screen/waiting.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(WaitingView, self).get_context_data(**kwargs)
+        context['free_time_slots'] = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=timezone.now()-datetime.timedelta(hours=1))[0]
+        context['next_games'] = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0, start_time__isnull=True).order_by('slot__timeslot__start_time', 'slot__booking_position')[:4]
+        #context['waiting_time'] = to be implemented
+        return context

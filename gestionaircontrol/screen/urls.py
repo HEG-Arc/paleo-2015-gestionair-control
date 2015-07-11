@@ -25,6 +25,7 @@
 # Core Django imports
 from django.conf.urls import *
 from django.views.generic import TemplateView
+from .views import WaitingView
 
 # Third-party app imports
 
@@ -36,4 +37,5 @@ urlpatterns = [
     url(r'^countdown/$', TemplateView.as_view(template_name='screen/countdown.html'), name="countdown"),
     url(r'^scheduler/json/', views.scheduler, name='scheduler-json'),
     url(r'^scheduler/$', TemplateView.as_view(template_name='screen/scheduler.html'), name="scheduler"),
+    url(r'^waiting/$', WaitingView.as_view(), name="waiting"),
 ]
