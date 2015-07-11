@@ -49,17 +49,10 @@ def get_game_status(game_start_time):
 
 
 def countdown(request):
-    game = cache.get_many(['game_start_time', 'current_game', 'game_status'])
-    if 'game_start_time' in game:
-        current_status = get_game_status(game['game_start_time'])
-    else:
-        current_status = "FINISHED"
-    if current_status == "RUNNING":
-        time_left = datetime.timedelta(seconds=settings.GAME_DURATION) - (timezone.now() - game['game_start_time'])
-        game['time_left'] = time_left.seconds
-    elif current_status == "FINISHED":
-        game['time_left'] = "GAME OVER!"
-    return JsonResponse(game)
+    game = cache.get_many(['game_start_time', 'game_status'])
+    response = {'game_start_time': game['game_start_time'].isoformat(), 'game_status': game['status'],
+                'intro_duration': settings.GAME_PHASE_INTRO, 'game_duration': settings.GAME_PHASE_CALL}
+    return JsonResponse(response)
 
 
 def scheduler(request):

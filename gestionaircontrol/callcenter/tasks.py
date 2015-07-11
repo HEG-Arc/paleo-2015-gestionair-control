@@ -48,8 +48,6 @@ from gestionaircontrol.scheduler.messaging import send_amqp_message
 from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
 
 
-funky = os.path.join(settings.STATIC_ROOT, 'sounds', 'game music FUNK.mp3')
-
 URL = 'http://192.168.1.1:8088'
 AUTH = ('paleo', 'paleo7top')
 
@@ -91,6 +89,8 @@ def init_simulation(self):
     play_intro_task_id = None
     play_powerdown_task_id = None
 
+    game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
+
     game = cache.get_many(['game_start_time', 'current_game'])
     game_status = 'INIT'
     players = Player.objects.filter(game_id=game['current_game'])
@@ -100,11 +100,11 @@ def init_simulation(self):
     phones = Phone.objects.filter(usage=Phone.CENTER)
     phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
                     'orientation': phone.orientation} for phone in phones]
-    message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=settings.GAME_DURATION)).isoformat(),
+    message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
 
-    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
+    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=game_duration + 2):
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
@@ -112,17 +112,17 @@ def init_simulation(self):
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
-        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
+        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = call_center_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
-        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-            loop_task.abort()
+        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             cache.set('callcenter', game_status)
+            loop_task.abort()
             #TODO: compute score
 
 
@@ -134,7 +134,7 @@ def init_simulation(self):
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
-        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
+        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
