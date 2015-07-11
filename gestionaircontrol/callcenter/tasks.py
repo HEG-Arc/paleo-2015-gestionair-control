@@ -104,72 +104,73 @@ def init_simulation(self):
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
 
-    while not self.is_aborted():
-        while game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
-            # 00 : Intro
-            if game_status == 'INIT':
-                game_status = 'INTRO'
-                play_intro_task_id = play_sound('intro', 'center')
-                cache.set('callcenter', game_status)
-                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-            # 37 : Call center
-            elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
-                loop_task = call_center_loop.apply_async([len(players_list)])
-                game_status = 'CALL'
-                cache.set('callcenter', game_status)
-                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-            # 217 : Powerdown
-            elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
-                loop_task.abort()
-                play_powerdown_task_id = play_sound('powerdown', 'center')
-                game_status = 'POWERDOWN'
-                cache.set('callcenter', game_status)
-                #TODO: compute score
+    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=settings.GAME_DURATION):
+        # 00 : Intro
+        if game_status == 'INIT':
+            game_status = 'INTRO'
+            play_intro_task_id = play_sound('intro', 'center')
+            cache.set('callcenter', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+        # 37 : Call center
+        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
+            loop_task = call_center_loop.apply_async([len(players_list)])
+            game_status = 'CALL'
+            cache.set('callcenter', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+        # 217 : Powerdown
+        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
+            loop_task.abort()
+            play_powerdown_task_id = play_sound('powerdown', 'center')
+            game_status = 'POWERDOWN'
+            cache.set('callcenter', game_status)
+            #TODO: compute score
 
 
 
-                #Ordered array from 1st place to nth.
-                #languages ordered by their in game appearence
-                #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
-                scores = []
-                message = {"game": game_status, "type": "GAME_END", "scores": scores}
-                send_amqp_message(message, "simulation.caller")
-            # 247 : The END ;-)
-            elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
-                game_status = 'END'
-                cache.set('callcenter', game_status)
-                send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
-                cache.delete('callcenter_loop')
+            #Ordered array from 1st place to nth.
+            #languages ordered by their in game appearence
+            #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+            scores = []
+            message = {"game": game_status, "type": "GAME_END", "scores": scores}
+            send_amqp_message(message, "simulation.caller")
+        # 247 : The END ;-)
+        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
+            game_status = 'END'
+            cache.set('callcenter', game_status)
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            cache.delete('callcenter_loop')
+
+    if not self.is_aborted():
         # Game is over!
         game_status = 'STOP'
         cache.set('callcenter', game_status)
         send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # Delete cache
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
+    else:
+        # Task is aborted!
+        print "MAIN GAME LOOP ABORTED!!!"
+        try:
+            loop_task.abort()
+        except:
+            print "UNABLE TO ABORT MAIN LOOP"
+        try:
+            play_intro_task = AbortableAsyncResult(play_intro_task_id)
+            play_intro_task.abort()
+        except:
+            print "UNABLE TO ABORT PLAY INTRO"
+        try:
+            play_powerdown_task = AbortableAsyncResult(play_powerdown_task_id)
+            play_powerdown_task.abort()
+        except:
+            print "UNABLE TO ABORT PLAY POWERDOWN"
 
-    # Task is aborted!
-    print "MAIN GAME LOOP ABORTED!!!"
-    try:
-        loop_task.abort()
-    except:
-        print "UNABLE TO ABORT MAIN LOOP"
-    try:
-        play_intro_task = AbortableAsyncResult(play_intro_task_id)
-        play_intro_task.abort()
-    except:
-        print "UNABLE TO ABORT PLAY INTRO"
-    try:
-        play_powerdown_task = AbortableAsyncResult(play_powerdown_task_id)
-        play_powerdown_task.abort()
-    except:
-        print "UNABLE TO ABORT PLAY POWERDOWN"
-
-    game_status = 'STOP'
-    cache.set('callcenter', game_status)
-    scores = []
-    message = {"game": game_status, "type": "GAME_END", "scores": scores}
-    send_amqp_message(message, "simulation.caller")
-    cache.delete_many(['game_start_time', 'current_game'])
+        game_status = 'STOP'
+        cache.set('callcenter', game_status)
+        scores = []
+        message = {"game": game_status, "type": "GAME_END", "scores": scores}
+        send_amqp_message(message, "simulation.caller")
+        cache.delete_many(['game_start_time', 'current_game'])
 
 
 def get_departments_numbers():
