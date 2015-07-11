@@ -356,6 +356,6 @@ def call_center_loop(self, nb_players):
                 create_call_file(phone)
                 disabled_phones[phone] = timezone.now()
         time.sleep(1)
-    print "IT'S TIME TO CLEAN-UP!!!"
+    print "IT'S TIME TO CLEAN-UP!"
     clean_callcenter.apply_async()
 
