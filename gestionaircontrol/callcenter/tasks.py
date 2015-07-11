@@ -149,11 +149,11 @@ def init_simulation():
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
-            game_status = 'FINAL'
+            game_status = 'END'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Game is over!
-    game_status = 'END'
+    game_status = 'STOP'
     cache.set('callcenter', game_status)
     send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Delete cache
