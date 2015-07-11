@@ -79,7 +79,7 @@ def ring(request, number):
 
 @login_required()
 def call(request):
-    play_sound.apply_async(['call', 'front'])
+    play_sound('call', 'front')
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
@@ -88,7 +88,7 @@ def call(request):
 
 @login_required()
 def ambiance(request):
-    play_sound.apply_async(['ambiance', 'front'])
+    play_sound('ambiance', 'front')
     success = True
     message = "Ambiance was started"
     result = {'success': success, 'message': message}
