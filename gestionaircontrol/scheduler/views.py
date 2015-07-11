@@ -44,7 +44,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -70,48 +70,7 @@ def get_demo_status():
 
 @login_required()
 def start(request):
-    # Is it already working?
-    game_start_time = cache.get('game_start_time', '')
-    if game_start_time:
-        current_status = get_game_status(game_start_time)
-    else:
-        current_status = "FINISHED"
-
-    if current_status == "RUNNING":
-        success = False
-        message = "Game is already running"
-    elif current_status == "FINISHED":
-        # We can start a new counter
-        start_time = timezone.now()
-        # We get the current game
-        try:
-            current_game = Game.objects.filter(initialized=True, start_time__isnull=True)[0]
-            current_game.start_time = start_time
-            current_game.save()
-        except IndexError:
-            current_game = False
-        if current_game:
-            # We store the value in Redis
-            cache.set_many({'game_start_time': start_time, 'current_game': current_game.id})
-            # We initialize the new simulation
-            init_simulation.apply_async()
-            success = True
-            message = "Game started"
-            send_amqp_message('{"simulation": "STARTED"}', "simulator.start")
-        else:
-            success = False
-            message = "No initialized game found!"
-
-    game = cache.get_many(['game_start_time', 'current_game'])
-    if 'game_start_time' not in game:
-        game['start_time'] = None
-    else:
-        game['start_time'] = game['game_start_time'].isoformat()
-    if 'current_game' not in game:
-        game['current_game'] = None
-
-    result = {'success': success, 'message': message, 'game': game['current_game'],
-              'game_start_time': game['start_time']}
+    result = callcenter_start()
     return JsonResponse(result)
 
 
@@ -217,8 +176,6 @@ def getSecondsToMinuteHours(s):
 
     if m < 10:
         m = '0' + str(m)
-
-
     return {'h': h, 'm': m, 's': s}
 
 

@@ -123,20 +123,20 @@ def init_simulation():
         if game_status == 'INIT':
             game_status = 'INTRO'
             play_sound.apply_async(['intro', 'center'])
-            cache.set('game_status', game_status)
+            cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=37):
             loop = call_center_loop.apply_async([len(players_list)])
             game_status = 'CALL'
-            cache.set('game_status', game_status)
+            cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=117):
             loop.abort()
             play_sound.apply_async(['powerdown', 'center'])
             game_status = 'POWERDOWN'
-            cache.set('game_status', game_status)
+            cache.set('callcenter', game_status)
             #TODO: compute score
             
             
@@ -149,12 +149,12 @@ def init_simulation():
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=147):
-            game_status = 'END'
-            cache.set('game_status', game_status)
+            game_status = 'FINAL'
+            cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Game is over!
-    game_status = 'OVER'
-    cache.set('game_status', game_status)
+    game_status = 'END'
+    cache.set('callcenter', game_status)
     send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
     # Delete cache
     cache.delete_many(['game_start_time', 'current_game'])
@@ -359,3 +359,53 @@ def call_center_loop(self, nb_players):
     print "IT'S TIME TO CLEAN-UP!"
     clean_callcenter.apply_async()
 
+
+def get_gestionair_status():
+    callcenter_status = False
+    demo_status = False
+    public_status = False
+    status = cache.get_many(['callcenter', 'demo', 'public'])
+
+    callcenter = status.get('callcenter', '')
+    if callcenter and callcenter != 'STOP':
+        callcenter_status = True
+
+    demo = status.get('demo', '')
+    if demo and demo != 'STOP':
+            demo_status = True
+
+    public = status.get('public', '')
+    if public and public != 'STOP':
+            public_status = True
+
+    return {'callcenter': callcenter_status, 'demo': demo_status, 'public': public_status}
+
+
+def callcenter_start():
+    state = get_gestionair_status()
+    if state['callcenter']:
+        message = "Game is already running"
+        success = False
+        return {'success': success, 'message': message}
+
+    start_time = timezone.now()
+    # We get the current game
+    try:
+        current_game = Game.objects.filter(initialized=True, start_time__isnull=True)[0]
+        current_game.start_time = start_time
+        current_game.save()
+    except IndexError:
+        current_game = None
+
+    if current_game:
+        # We store the value in Redis
+        cache.set_many({'game_start_time': start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
+        # We initialize the new simulation
+        init_simulation.apply_async()
+        success = True
+        message = "Game started"
+    else:
+        success = False
+        message = "No initialized game found!"
+
+    return {'success': success, 'message': message}
