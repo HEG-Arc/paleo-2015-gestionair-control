@@ -282,9 +282,9 @@ def dmx_phone_answer_scene(phone_number, correct):
 
 
 @app.task(bind=True, base=AbortableTask)
-def aplayer(self, card, file):
+def aplayer(self, card, soundfile):
     while not self.is_aborted():
-        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % file])
+        subprocess.call(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
 
 
 def play_sound(sound, area):
@@ -305,9 +305,9 @@ def play_sound(sound, area):
         card = 'system'
     else:
         card = False
-
+    card = "Intel"
     if soundfile and area:
-        audio_player = aplayer.apply_async([card, file])
+        audio_player = aplayer.apply_async([card, soundfile])
         cache.set('player_%s' % sound, audio_player.id)
         return audio_player.id
 
