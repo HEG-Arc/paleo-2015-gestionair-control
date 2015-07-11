@@ -44,7 +44,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start
+from gestionaircontrol.callcenter.tasks import sound_control, create_call_file, init_simulation, play_teuf, play_ambiance, callcenter_start, get_gestionair_status
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -180,9 +180,7 @@ def getSecondsToMinuteHours(s):
 
 
 def status(request):
-    status = cache.get_many(['game_start_time', 'current_game'])
-    status['game'] = get_game_status(status.get('game_start_time'))
-    status['demo'] = get_demo_status()
+    status = get_gestionair_status()
     return JsonResponse(status)
 
 
