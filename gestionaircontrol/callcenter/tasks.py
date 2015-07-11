@@ -323,9 +323,8 @@ def play_sound(sound, area):
 def clean_callcenter():
     subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
     open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
-    print open_channels
     for channel in open_channels:
-        if channel['caller']['number'] < 1100:
+        if int(channel['caller']['number']) < 1100:
             requests.delete(URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
     print "ALL CLEAN! BYE"
 
