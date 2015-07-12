@@ -84,6 +84,14 @@ def create_call_file(phone):
         pass
 
 
+def compute_scores(game):
+    #Ordered array from 1st place to nth.
+    #languages ordered by their in game appearence
+    #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+    scores = []
+    return scores
+
+
 @app.task(bind=True, base=AbortableTask)
 def init_simulation(self):
     loop_task = None
@@ -125,14 +133,10 @@ def init_simulation(self):
             game_status = 'POWERDOWN'
             cache.set('callcenter', game_status)
             loop_task.abort()
-            #TODO: compute score
-
-
-
-            #Ordered array from 1st place to nth.
-            #languages ordered by their in game appearence
-            #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
-            scores = []
+            # Compute score
+            game.end_time = timezone.now()
+            game.save()
+            scores = compute_scores(game)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)

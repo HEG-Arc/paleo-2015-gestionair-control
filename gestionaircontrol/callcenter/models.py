@@ -93,6 +93,8 @@ class Player(models.Model):
                                  help_text=_("The identification number of the player"))
     name = models.CharField(verbose_name=_("player's name"), max_length=100, blank=True, null=True,
                             help_text=_("The name of the player"))
+    score = models.IntegerField(verbose_name=_("player's score"), blank=True, null=True,
+                                help_text=_("The final score of the player (computed at game end)"))
     # Foreign keys
     game = models.ForeignKey('Game', verbose_name=_('game'), related_name=_('players'),
                              help_text=_("The game in which the player takes part"))
