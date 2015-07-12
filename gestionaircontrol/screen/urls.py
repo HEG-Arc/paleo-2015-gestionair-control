@@ -25,7 +25,6 @@
 # Core Django imports
 from django.conf.urls import *
 from django.views.generic import TemplateView
-from .views import WaitingView
 
 # Third-party app imports
 
