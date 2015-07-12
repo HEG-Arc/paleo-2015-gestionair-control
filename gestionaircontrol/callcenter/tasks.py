@@ -32,7 +32,7 @@ import time
 import requests
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 import pytz
-import pysimpledmx
+#import pysimpledmx
 
 
 # Core Django imports
@@ -540,7 +540,7 @@ def callcenter_stop():
     return {'success': success, 'message': message, }
 
 
-mydmx = pysimpledmx.DMXConnection(settings.DMX_COM_PORT)
+#mydmx = pysimpledmx.DMXConnection(settings.DMX_COM_PORT)
 
 
 def dmx_scene():
