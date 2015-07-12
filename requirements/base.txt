@@ -45,3 +45,6 @@ pika==0.9.8
 # Asterisk
 pycall==2.2
 websocket==0.2.1
+
+# Lightshow
+pysimpledmx==0.1.0
