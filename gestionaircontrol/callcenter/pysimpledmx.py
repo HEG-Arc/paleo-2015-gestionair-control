@@ -8,7 +8,7 @@ END_VAL = 0xE7
 
 COM_BAUD = 57600
 COM_TIMEOUT = 1
-COM_PORT = '/dev/ttyUSB0'
+COM_PORT = '/dev/ttyUSB1'
 
 LABELS = {     
             'GET_WIDGET_PARAMETERS' :3,  #unused

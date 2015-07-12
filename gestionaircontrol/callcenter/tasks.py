@@ -32,7 +32,9 @@ import time
 import requests
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 import pytz
-#import pysimpledmx
+import pysimpledmx
+import Queue
+from threading import Thread
 
 
 # Core Django imports
@@ -50,6 +52,31 @@ from gestionaircontrol.callcenter.models import Game, Player, Answer, Department
 
 URL = 'http://192.168.1.1:8088'
 AUTH = ('paleo', 'paleo7top')
+
+import pysimpledmx
+import Queue
+from threading import Thread
+
+COM_PORT = '/dev/ttyUSB1'
+
+q = Queue.Queue()
+
+def send_dmx_scene():
+    mydmx = pysimpledmx.DMXConnection(COM_PORT)
+    while True:
+        # scene = [(1, 200), (3, 150), ...]
+        scene = q.get()
+        print "New scene %s" % scene
+        for channel in scene:
+            mydmx.setChannel(*channel)
+            print "Channel (%s, %s)" % channel
+        mydmx.render()
+        print "Done!"
+        q.task_done()
+
+t = Thread(target=send_dmx_scene)
+t.daemon = True
+t.start()
 
 
 @app.task
@@ -81,6 +108,7 @@ def create_call_file(phone):
         send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
     else:
         pass
+    play_dmx_scene.apply_async()
 
 
 def compute_player_score(player, languages_queryset):
@@ -540,13 +568,10 @@ def callcenter_stop():
     return {'success': success, 'message': message, }
 
 
-#mydmx = pysimpledmx.DMXConnection(settings.DMX_COM_PORT)
-
-
-def dmx_scene():
-    pass
-
-
 @app.task
 def play_dmx_scene():
-    pass
+    scene = [(1, 99)]
+    q.put(scene)
+    time.sleep(5)
+    scene = [(1, 0)]
+    q.put(scene)
