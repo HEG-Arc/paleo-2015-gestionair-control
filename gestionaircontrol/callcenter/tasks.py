@@ -114,7 +114,7 @@ def init_simulation(self):
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
-            loop_task = call_center_loop.apply_async([len(players_list)])
+            loop_task = callcenter_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
@@ -341,7 +341,7 @@ def clean_callcenter():
 
 
 @app.task(bind=True, base=AbortableTask)
-def call_center_loop(self, nb_players):
+def callcenter_loop(self, nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
@@ -349,7 +349,7 @@ def call_center_loop(self, nb_players):
         for phone, timestamp in disabled_phones.copy().iteritems():
             if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
                 del disabled_phones[phone]
-        
+
         open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
         ringing_channels = [channel['caller']['number'] for channel in open_channels if channel['state'] == "Ringing"]
 
