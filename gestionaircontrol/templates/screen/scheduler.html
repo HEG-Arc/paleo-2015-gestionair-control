@@ -1,30 +1,175 @@
- {% load staticfiles i18n %}<!DOCTYPE html>
+{% load staticfiles i18n %}<!DOCTYPE html>
 <html>
-    <head lang="en">
-        <meta charset="UTF-8">
-        <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
-        <script>
-            // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
-            var jqxhr = function() {
-                $.ajax({
-                    url: "/screen/scheduler/json",
-                    dataType: 'json'
-                })
-                    .done(function (data) {
-                        next_slot = new Date(data.next_free_slot_start_time).getTime();
-                        next_start = new Date(data.next_start_time).getTime();
-                        $('#next_free_slot_start_time').text(next_slot);
-                        $('#next_start_time').text(next_start);
-                        $('#next_teams_list').text(data.next_teams);
-                    });
-            };
-            setInterval('jqxhr()', 1000); // 1 second
-        </script>
-    </head>
-    <body>
-        Prochain créneau horaire disponible
-        <div id="next_free_slot">Next free slot <span id="next_free_slot_start_time">???</span> [display HH:MM or NOW if next_free_slot_start_time == now()]</div>
-        <div id="next_start">Next start <span id="next_start_time">???</span> [display MM:SS or READY if next_start_time == now()]</div>
-        <div id="next_teams"> Prochains groupes Next teams <span id="next_teams_list">???</span> [display table with team and nb_players for each team if len==0]</div>
-    </body>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>Scheduler SCREEN</title>
+    <style>
+         ::-webkit-scrollbar {
+              display: none;
+          }
+      * {
+          box-sizing: border-box;
+        }
+        html, body{
+          height: 100%;
+          overflow: hidden;
+        }
+  			body{
+  				background: #0098D8 url('/static/images/background.png') no-repeat 50% 50%;
+          -webkit-background-size:contain;
+          background-size: contain;
+          display: -webkit-flex;
+  				display: flex;
+          -webkit-flex-flow: column;
+  				flex-flow: column;
+          font-family: Verdana, Geneva, Tahoma, sans-serif;
+          color: white;
+  			}
+        #top{
+          -webkit-flex: 1;
+          flex: 1;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-flex-flow: row;
+          flex-flow: row;
+        }
+        .big{
+          font-size: 10em;
+        }
+        .label{
+          font-size: 2em;
+          margin-right: 40px;
+        }
+        #top > div{
+          -webkit-flex: 1;
+          flex: 1;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-justify-content: center;
+          justify-content: center;
+          padding: 10px;
+        }
+        #top > div:first-child{
+          border-right: 4px solid white;
+        }
+        #top > div > div {
+          -webkit-align-self: center;
+          align-self: center;
+        }
+        #bottom{
+          overflow-y: auto;
+        }
+        #slots{
+          -webkit-flex: 3;
+          flex: 3;
+          font-size: 4em;
+          background-color: rgba(0,152,216,0.9);
+          width: 100%;
+          border-top: 4px solid white;
+          border-collapse: collapse;
+          margin-bottom: 4em;
+        }
+        .slot-title{
+          height: 2em;
+        }
+        .free-title{
+          float:right;
+          font-size: 0.5em;
+          vertical-align: baseline;
+          line-height: 3em;
+        }
+        .team{
+          border-bottom: 4px solid white;
+        }
+        .PLANNED{
+
+        }
+        .BOARDING .status{
+          color: #FFDC00;
+        }
+        .PLAYING .status{
+          color: #2ECC40;
+        }
+        .DONE{
+          color: rgba(255,255,255,0.5);
+        }
+    </style>
+  </head>
+  <body>
+    <div id="top">
+      <div>
+        <div class="label">Next start in </div>
+        <div class="big" id="next_start_time"></div>
+      </div>
+      <div>
+        <div class="label">Next free slot at </div>
+        <div class="big" id="next_free_slot_time"></div>
+      </div>
+    </div>
+    <div id="bottom">
+      <table id="slots">
+
+      </table>
+    </div>
+    <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
+    <script src="{% static 'vendor/momentjs/moment-with-locales.js' %}"></script>
+    <script>
+      $(document).ready(function(){
+          $next_start_time = $('#next_start_time');
+          $next_free_slot_time = $('#next_free_slot_time');
+          $slots = $('#slots');
+          $bottom = $('#bottom');
+
+          function buildSlots(data){
+            $slots.empty();
+            data.next_slots.forEach(function(slot){
+              var $slot = $('<tr class="slot"><th colspan="3" class="slot-title">' + moment(slot.slot).format('HH:mm') + '<span class="free-title">FREE</span></th></tr>').appendTo($slots);
+              slot.teams.forEach(function(team){
+                var freePlayers = data.max_players - team.players;
+                if(team.status === 'DONE' || freePlayers === 0){
+                  freePlayers = '';
+                }
+
+                $slots.append('<tr class="team ' + team.status + '"><td>' + team.team
+                  + '</td><td class="status">' + team.status
+                  + '</td><td class="free">' + freePlayers + '</td></tr>')
+              });
+            });
+          }
+
+          function handleData(data){
+              $next_start_time.text(moment.utc(moment(data.next_start_time).diff(moment())).format("mm:ss"));
+              $next_free_slot_time.text(moment(data.next_free_slot_start_time).format('HH:mm'));
+              buildSlots(data);
+          }
+
+          function loop(){
+            //pool for information
+            /*
+            var debug = {"max_players": 6, "next_free_slot_start_time": "2015-07-12T13:00:59.220Z", "next_start_time": "2015-07-12T10:25:59.206Z", "next_slots": [{"slot": "2015-07-12T09:40:00Z", "teams": [{"status": "DONE", "position": 1, "players": 5, "team": "Les next slot"}, {"status": "PLANNED", "position": 2, "players": 6, "team": "Les derniers"}, {"status": "DONE", "position": 3, "players": 5, "team": "Encore un"}, {"status": "PLAYING", "position": 4, "players": 1, "team": "Soleil bleu"}, {"status": "BOARDING", "position": 5, "players": 5, "team": "Pluie d'\u00e9t\u00e9"}]}, {"slot": "2015-07-12T10:00:00Z", "teams": [{"status": "PLANNED", "position": 1, "players": 6, "team": "Il y a de la place ici"}]}, {"slot": "2015-07-12T10:20:00Z", "teams": []}]}
+
+            handleData(debug);
+            */
+            $.get('/screen/scheduler/json/', handleData);
+            setTimeout(loop, 1000);
+          }
+          loop();
+
+          function animateScroll(){
+            $slots.fadeOut({
+              complete: function(){
+                $bottom.scrollTop(0);
+                $slots.fadeIn();
+                setTimeout(function(){
+                  $bottom.animate({
+                    scrollTop: $slots.outerHeight(true) - $bottom.height()
+                  }, 20000, animateScroll);
+                }, 4000);
+              }
+            });
+          }
+          animateScroll();
+      	});
+    </script>
+  </body>
 </html>
