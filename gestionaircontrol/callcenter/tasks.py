@@ -145,7 +145,8 @@ def compute_player_score(player, languages_queryset):
     return {'name': player.name, 'score': score, 'languages': languages}
 
 
-def compute_scores(game):
+def compute_scores(game_id):
+    game = Game.objects.get(pk=game_id)
     scores = []
     languages = Language.objects.values('code', 'weight')
     players = Player.objects.prefetch_related('answers').filter(game_id=game.id)
@@ -158,28 +159,32 @@ def compute_scores(game):
 
 
 @app.task(bind=True, base=AbortableTask)
-def init_simulation(self, game):
+def init_simulation(self):
     loop_task = None
     play_intro_task_id = None
     play_powerdown_task_id = None
 
+    game_id = cache.get('current_game', '')
+
+    game_start_time = cache.get('game_start_time', timezone.now())
+
     game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
 
-    print "NEW GAME: %s started at %s" % (game.id, game.start_time)
+    print "NEW GAME: %s started at %s" % (game_id, game_start_time)
 
     game_status = 'INIT'
-    players = Player.objects.filter(game_id=game.id)
+    players = Player.objects.filter(game_id=game_id)
     players_list = []
     for player in players:
         players_list.append({'id': player.number, 'name': player.name})
     phones = Phone.objects.filter(usage=Phone.CENTER)
     phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
                     'orientation': phone.orientation} for phone in phones]
-    message = {'type': 'GAME_START', 'endTime': (game.start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
+    message = {'type': 'GAME_START', 'endTime': (game_start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
 
-    while not self.is_aborted() and game.start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
+    while not self.is_aborted() and game_start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
@@ -188,28 +193,29 @@ def init_simulation(self, game):
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
-        elif game_status == 'INTRO' and game.start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
+        elif game_status == 'INTRO' and game_start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = callcenter_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
-        elif game_status == 'CALL' and game.start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
+        elif game_status == 'CALL' and game_start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             #play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             loop_task.abort()
             # Compute score
+            game = Game.objects.get(pk=game_id)
             game.end_time = timezone.now()
             game.save()
             print "Computing results..."
-            scores = compute_scores(game)
+            scores = compute_scores(game_id)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
-        elif game_status == 'POWERDOWN' and game.start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
+        elif game_status == 'POWERDOWN' and game_start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
@@ -540,7 +546,7 @@ def callcenter_start():
         # We store the value in Redis
         cache.set_many({'game_start_time': current_game.start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
         # We initialize the new simulation
-        loop = init_simulation.delay(current_game)
+        loop = init_simulation.apply_async()
         cache.set('callcenter_loop', loop)
         success = True
         message = "Game started"
