@@ -102,8 +102,14 @@ def compute_player_score(player, languages_queryset):
     score_languages = 0
     for score in languages_scores:
         score_languages += languages_scores[score]['correct']/languages_scores[score]['weight']
-    score_duration = duration / correct
-    score_correct = correct / player.answers.count()
+    try:
+        score_duration = duration / correct
+    except ZeroDivisionError:
+        score_duration = 0
+    try:
+        score_correct = correct / player.answers.count()
+    except ZeroDivisionError:
+        score_correct = 0
     score = int(score_languages*10 + score_duration*5 + score_correct*2)
     player.score = score
     player.save()
