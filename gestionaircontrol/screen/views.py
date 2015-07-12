@@ -65,7 +65,7 @@ def scheduler(request):
     next_slots_list = []
     for slot in next_slots:
         next_teams_list = []
-        for game in slot.bookings:
+        for game in slot.bookings_set.all():
             if not game.canceled:
                 display_team = {'team': game.team, 'position': game.slot.booking_position, 'players': game.nb_players}
                 next_teams_list.append(display_team)
