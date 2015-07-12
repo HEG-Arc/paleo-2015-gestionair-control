@@ -84,10 +84,22 @@ def create_call_file(phone):
         pass
 
 
+def compute_player_score(player, languages_queryset):
+    languages = {}
+    total_answers = 0
+    for l in languages:
+        languages[l['code']] = {'weight': l['weight'], 'correct': 0}
+
+
+
 def compute_scores(game):
     #Ordered array from 1st place to nth.
     #languages ordered by their in game appearence
     #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+    languages = Language.objects.values('code', 'weight')
+    players = Player.objects.prefetch_related('answers').filter(game_id=game.id)
+    for player in players:
+        score = compute_player_score(player, languages)
     scores = []
     return scores
 
@@ -345,33 +357,33 @@ def clean_callcenter():
     print "ALL CLEAN! BYE"
 
 
-class Phone:
+class Endpoint:
     DISABLED = 0 #not online
     AVAILABLE = 1 #onluine available to be called
     RINGING = 2 # means ringing or play answering
     COOLDOWN = 3 #phone has been used recently
 
     def __init__(self, number):
-        self.state = Phone.AVAILABLE
+        self.state = Endpoint.AVAILABLE
         self.number = number
 
     def setOnline(self, online):
-        if online and self.state == Phone.DISABLED:
-            self.state = Phone.AVAILABLE
+        if online and self.state == Endpoint.DISABLED:
+            self.state = Endpoint.AVAILABLE
         if not online:
-            self.state = Phone.DISABLED
+            self.state = Endpoint.DISABLED
 
     def update_cooldown(self):
-        if self.state == Phone.COOLDOWN:
+        if self.state == Endpoint.COOLDOWN:
             if timezone.now() - datetime.timedelta(seconds=10) > self.cooldown_start:
-                self.state = Phone.AVAILABLE
+                self.state = Endpoint.AVAILABLE
 
     def update_ringing(self, ringing):
-        if self.state == Phone.RINGING and not ringing:
-            self.state = Phone.COOLDOWN
+        if self.state == Endpoint.RINGING and not ringing:
+            self.state = Endpoint.COOLDOWN
             self.cooldown_start = timezone.now()
         if ringing:
-            self.state = Phone.RINGING
+            self.state = Endpoint.RINGING
 
     def call(self):
         create_call_file(self.number)
@@ -387,9 +399,10 @@ def callcenter_loop(self, nb_players):
         for endpoint in endpoints:
             endpoint_number = int(endpoint['resource'])
             # only callcenter numbers
-            if  1000 < endpoint_number < 1100:
+            # TODO: Do it from the database
+            if 1000 < endpoint_number < 1100:
                 if endpoint_number not in phones.keys():
-                    phones[endpoint_number] = Phone(endpoint_number)
+                    phones[endpoint_number] = Endpoint(endpoint_number)
                 phones[endpoint_number].setOnline(endpoint['state'] == 'online')
 
         # update phone states
@@ -401,8 +414,8 @@ def callcenter_loop(self, nb_players):
             phone.update_ringing(number in ringing_channels)
 
         # check if we need to call phones
-        if len([phone for phone in phones.values() if phone.state == Phone.RINGING]) < min_phone_ringing:
-            available_phones = [phone for phone in phones.values() if phone.state == Phone.AVAILABLE]
+        if len([phone for phone in phones.values() if phone.state == Endpoint.RINGING]) < min_phone_ringing:
+            available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
                 phone.call()
