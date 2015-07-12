@@ -300,9 +300,10 @@
       		var coutdownInterval;
               
               function updateDigits() {
-                  var countDownSeconds = endDateSeconds - new Date().getTime();
+                  var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
                   var minutes = (countDownSeconds - (countDownSeconds % 60))/60;
-                  var seconds = countDownSeconds % 60;  
+                  var seconds = countDownSeconds % 60; 
+                  console.log(countDownSeconds, minutes, seconds);
       
                   setNumber(_minutes[0], Math.floor(minutes/10), 1);
                   setNumber(_minutes[1], minutes%10, 1);
