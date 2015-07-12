@@ -25,6 +25,7 @@
 # Core Django imports
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 # Third-party app imports
 
@@ -61,11 +62,11 @@ class Booking(models.Model):
 class Timeslot(models.Model):
     start_time = models.DateTimeField(verbose_name=_("start time"), primary_key=True,
                                       help_text=_("The start time of the timeslot"))
-    duration = models.IntegerField(verbose_name=_("time slot duration"), default=20,
+    duration = models.IntegerField(verbose_name=_("time slot duration"), default=settings.SLOT_DURATION,
                                    help_text=_("The duration of the time slot in minutes"))
-    booking_capacity = models.IntegerField(verbose_name=_("booking capacity"), default=5,
+    booking_capacity = models.IntegerField(verbose_name=_("booking capacity"), default=settings.SLOT_CAPACITY,
                                            help_text=_("The number of bookings bookable in this time slot"))
-    booking_availability = models.IntegerField(verbose_name=_("booking availability"), default=3,
+    booking_availability = models.IntegerField(verbose_name=_("booking availability"), default=settings.SLOT_AVAILABILITY,
                                                help_text=_("The number of bookings available in this time slot"))
 
     def _nb_bookings(self):
