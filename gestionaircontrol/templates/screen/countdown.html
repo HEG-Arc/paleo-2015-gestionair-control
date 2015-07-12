@@ -4,28 +4,28 @@
     <meta charset="UTF-8">
     <title>CountDown SCREEN</title>
     <style>
-      * {
+        *{
           box-sizing: border-box;
         }
         html, body{
           height: 100%;
           overflow: hidden;
         }
-  			body{
-  				background-color: black;
+        body{
+          background-color: black;
           display: -webkit-flex;
-  				display: flex;
+          display: flex;
           -webkit-flex-flow: column;
-  				flex-flow: column;
+          flex-flow: column;
           -webkit-justify-content: center;
-  				justify-content: center;
+          justify-content: center;
           -webkit-align-items: center;
-  				align-items: center;
-  			}
-  			.exit{
-  				background-color: #14A149;
+          align-items: center;
+        }
+        .exit{
+          background-color: #14A149;
 
-  			}
+        }
         .coutdown{
            background-color: black;
         }
@@ -34,12 +34,12 @@
           -webkit-background-size:contain;
           background-size: contain;
         }
-  			.exit #exit-block{
-  				display: block;
-  			}
-  			#exit-block{
-  				display: none;
-  			}
+        .exit #exit-block{
+          display: block;
+        }
+        #exit-block{
+          display: none;
+        }
 
         .number{
           color:#c00;
@@ -52,10 +52,10 @@
 
         .clock {
           -webkit-flex-flow: row;
-         flex-flow: row;
-         -webkit-transform: scale(2.8);
-         transform: scale(2.8);
-         display: none;
+          flex-flow: row;
+          -webkit-transform: scale(2.8);
+          transform: scale(2.8);
+          display: none;
         }
         .countdown > .clock{
           display: -webkit-flex;
@@ -164,7 +164,6 @@
         }
     </style>
   </head>
-
   <body>
     <div id="exit-block">
       <img src="/static/images/exit.gif" />
@@ -216,24 +215,23 @@
     </div>
     <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
     <script>
-      $(document).ready(function(){
+    $(document).ready(function(){
 
-          var gameData = {};
-          var endDateSeconds = new Date().getTime();
+        var gameData = {};
+        var endDateSeconds = new Date().getTime();
 
-          var digitSegments = [
-            [1,2,3,4,5,6],
-            [2,3],
-            [1,2,7,5,4],
-            [1,2,7,3,4],
-            [6,7,2,3],
-            [1,6,7,3,4],
-            [1,6,5,4,3,7],
-            [1,2,3],
-            [1,2,3,4,5,6,7],
-            [1,2,7,3,6]
+        var digitSegments = [
+          [1,2,3,4,5,6],
+          [2,3],
+          [1,2,7,5,4],
+          [1,2,7,3,4],
+          [6,7,2,3],
+          [1,6,7,3,4],
+          [1,6,5,4,3,7],
+          [1,2,3],
+          [1,2,3,4,5,6,7],
+          [1,2,7,3,6]
         ];
-
 
         var _minutes = document.querySelectorAll('.minutes');
         var _seconds = document.querySelectorAll('.seconds');
@@ -244,60 +242,56 @@
 
             // only switch if number has changed or wasn't set
             if (!isNaN(current) && current != number) {
-              // unset previous number
-              digitSegments[current].forEach(function(digitSegment, index) {
-
-                  segments[digitSegment-1].classList.remove('on');
-
-              });
+                // unset previous number
+                digitSegments[current].forEach(function(digitSegment, index) {
+                    segments[digitSegment-1].classList.remove('on');
+                });
             }
 
             if (isNaN(current) || current != number) {
-              // set new number after
-              setTimeout(function() {
-                digitSegments[number].forEach(function(digitSegment, index) {
-
-                    segments[digitSegment-1].classList.add('on');
-
-                });
-              }, 30);
-              digit.setAttribute('data-value', number);
+                // set new number after
+                setTimeout(function() {
+                    digitSegments[number].forEach(function(digitSegment, index) {
+                        segments[digitSegment-1].classList.add('on');
+                    });
+                }, 30);
+                digit.setAttribute('data-value', number);
             }
-          };
+        };
 
-  				function startGame(){
+        function startGame(){
             //display welcome
-            showWelcome()
+            showWelcome();
             //after x
             setTimeout(start321, (gameData.intro_duration - 3)*1000);
-  				}
+        }
 
-          function showWelcome(){
+        function showWelcome(){
             $('body').removeClass('exit');
             $('body').removeClass('countdown');
             $('body').addClass('welcome');
-          }
+        }
 
-          var $three = $('#three');
-          var $two = $('#two');
-          var $one = $('#one');
+        var $three = $('#three');
+        var $two = $('#two');
+        var $one = $('#one');
 
-      		function start321(){
-          		$('body').removeClass('welcome');
-              $three.fadeIn(1000, function(){
-                 $three.hide();
-                 $two.fadeIn(1000, function(){
-                   $two.hide();
-                   $one.fadeIn(1000, function(){
-                     $one.hide();
-                     startCountDown();
-                   })
-                 })
-              })
-      		}
-      		var coutdownInterval;
+        function start321(){
+            $('body').removeClass('welcome');
+            $three.fadeIn(1000, function(){
+                $three.hide();
+                $two.fadeIn(1000, function(){
+                    $two.hide();
+                    $one.fadeIn(1000, function(){
+                        $one.hide();
+                        startCountDown();
+                    });
+                });
+            });
+        }
+        var coutdownInterval;
 
-          function updateDigits() {
+        function updateDigits() {
             var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
             var minutes = Math.max((countDownSeconds - (countDownSeconds % 60))/60, 0);
             var seconds = Math.max(countDownSeconds % 60, 0);
@@ -307,53 +301,54 @@
 
             setNumber(_seconds[0], Math.floor(seconds/10), 1);
             setNumber(_seconds[1], seconds%10, 1);
-          }
+        }
 
-      		function startCountDown(){
-             $('body').addClass('countdown');
-             clearInterval(coutdownInterval);
+        function startCountDown(){
+            $('body').addClass('countdown');
+            clearInterval(coutdownInterval);
 
-    		     coutdownInterval = setInterval(updateDigits, 1000);
-             updateDigits();
-      		}
+            coutdownInterval = setInterval(updateDigits, 1000);
+            updateDigits();
+        }
 
-          function showExit(){
-              clearInterval(coutdownInterval);
-              $('body').removeClass('welcome');
-              $('body').removeClass('countdown');
-     		      $('body').addClass('exit');
-      		}
+        function showExit(){
+            clearInterval(coutdownInterval);
+            $('body').removeClass('welcome');
+            $('body').removeClass('countdown');
+            $('body').addClass('exit');
+        }
 
-          function handleIntro(data){
-              gameData = data;
-              endDateSeconds = new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000;
-              startGame();
-          }
+        function handleIntro(data){
+            gameData = data;
+            endDateSeconds = new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000;
+            startGame();
+        }
 
-          var currentState = 'welcome';
-          function loop(){
-                //pool for information
-                $.get('/screen/countdown/json/', function(data){
-                    if(currentState !== data.game_status){
-                      currentState = data.game_status;
-                      if(currentState === 'POWERDOWN' || currentState === 'STOP' || currentState === 'END'){
+        var currentState = 'welcome';
+        function loop(){
+            //pool for information
+            $.get('/screen/countdown/json/', function(data){
+                if(currentState !== data.game_status){
+                    currentState = data.game_status;
+                    if(currentState === 'POWERDOWN' || currentState === 'STOP' || currentState === 'END'){
                         showExit();
-                      }
-                      if(currentState === 'INTRO'){
-                        handleIntro(data);
-                      }
                     }
-                });
-                setTimeout(loop, 1000);
-          }
-          showWelcome();
-          if(window.location.hash === '#sim'){
-              handleIntro({game_status: 'INTRO', game_start_time: new Date().toISOString(), game_duration: 15, intro_duration: 10});
-              setTimeout(showExit, 26000);
-          }else{
-              loop();
-          }
-      	});
+                    if(currentState === 'INTRO'){
+                        handleIntro(data);
+                    }
+                }
+            });
+            setTimeout(loop, 1000);
+        }
+        
+        showWelcome();
+        if(window.location.hash === '#sim'){
+            handleIntro({game_status: 'INTRO', game_start_time: new Date().toISOString(), game_duration: 15, intro_duration: 10});
+            setTimeout(showExit, 26000);
+        }else{
+            loop();
+        }
+    });
     </script>
   </body>
 </html>
