@@ -92,7 +92,7 @@ def create_call_file(phone):
         extension = 2001
         context = 'paleo-callcenter'
     elif type == Phone.CENTER:
-        wait = 60
+        wait = 10
         extension = 2001
         context = 'paleo-callcenter'
     else:
@@ -183,31 +183,35 @@ def init_simulation(self, game):
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
+            print "Simulation state -> %s" % game_status
             play_intro_task_id = play_sound('intro', 'center')
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game.start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = callcenter_loop.apply_async([len(players_list)])
-            print "CALL started"
             game_status = 'CALL'
+            print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game.start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
+            print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             loop_task.abort()
             # Compute score
             game.end_time = timezone.now()
             game.save()
+            print "Computing results..."
             scores = compute_scores(game)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game.start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
+            print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
             cache.delete('callcenter_loop')
@@ -215,6 +219,7 @@ def init_simulation(self, game):
     if not self.is_aborted():
         # Game is over!
         game_status = 'STOP'
+        print "Simulation state -> %s" % game_status
         cache.set('callcenter', game_status)
         send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # Delete cache
@@ -403,7 +408,9 @@ def play_sound(sound, area):
 
 @app.task
 def clean_callcenter():
+    print "DELETING CALL FILES..."
     subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
+    print "CLOSING CHANNELS..."
     open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
     for channel in open_channels:
         if int(channel['caller']['number']) < 1100:
