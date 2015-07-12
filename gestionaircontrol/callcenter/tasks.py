@@ -59,24 +59,24 @@ from threading import Thread
 
 COM_PORT = '/dev/ttyUSB6'
 
-q = Queue.Queue()
-
-def send_dmx_scene():
-    mydmx = pysimpledmx.DMXConnection(COM_PORT)
-    while True:
-        # scene = [(1, 200), (3, 150), ...]
-        scene = q.get()
-        print "New scene %s" % scene
-        for channel in scene:
-            mydmx.setChannel(*channel)
-            print "Channel (%s, %s)" % channel
-        mydmx.render()
-        print "Done!"
-        q.task_done()
-
-t = Thread(target=send_dmx_scene)
-t.daemon = True
-t.start()
+# q = Queue.Queue()
+#
+# def send_dmx_scene():
+#     mydmx = pysimpledmx.DMXConnection(COM_PORT)
+#     while True:
+#         # scene = [(1, 200), (3, 150), ...]
+#         scene = q.get()
+#         print "New scene %s" % scene
+#         for channel in scene:
+#             mydmx.setChannel(*channel)
+#             print "Channel (%s, %s)" % channel
+#         mydmx.render()
+#         print "Done!"
+#         q.task_done()
+#
+# t = Thread(target=send_dmx_scene)
+# t.daemon = True
+# t.start()
 
 
 @app.task
@@ -424,9 +424,9 @@ class Endpoint:
     def setOnline(self, online):
         if online and self.state == Endpoint.DISABLED:
             self.state = Endpoint.AVAILABLE
-            print "available %s " % self.number
+            print "setOnline available %s " % self.number
         if not online:
-            print "disabled %s " % self.number
+            print "setOnline disabled %s " % self.number
             self.state = Endpoint.DISABLED
 
     def update_cooldown(self):
@@ -437,13 +437,13 @@ class Endpoint:
 
     def update_ringing(self, ringing):
         if self.state == Endpoint.RINGING and not ringing:
-            print "cooldown %s " % self.number
+            print "Start cooldown %s " % self.number
             self.state = Endpoint.COOLDOWN
             self.cooldown_start = timezone.now()
             send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation.control")
         if ringing:
             self.state = Endpoint.RINGING
-            print "ringing %s " % self.number
+            print "Ringing phone with number %s " % self.number
 
     def call(self):
         print "New phone call %s" % self.number
@@ -470,7 +470,7 @@ def callcenter_loop(self, nb_players):
         # update phone states
         open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
         ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
-        print ringing_channels
+        print "ringing channels %s " % ringing_channels
         for number, phone in phones.iteritems():
             #trigger cooldown handling of phones
             phone.update_cooldown()
@@ -478,10 +478,10 @@ def callcenter_loop(self, nb_players):
 
         # check if we need to call phones
         ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
-        print "ringing phones", ringing_phones
+        print "ringing_phones length %s " % len(ringing_phones)
         if len(ringing_phones) < min_phone_ringing:
             available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
-            print "available phones", available_phones
+            print "available phones count %s " % len(available_phones)
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
                 phone.call()
@@ -583,7 +583,7 @@ def callcenter_stop():
 @app.task
 def play_dmx_scene():
     scene = [(1, 99)]
-    q.put(scene)
-    time.sleep(5)
-    scene = [(1, 0)]
-    q.put(scene)
+    # q.put(scene)
+    # time.sleep(5)
+    # scene = [(1, 0)]
+    # q.put(scene)
