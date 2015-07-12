@@ -85,11 +85,29 @@ def create_call_file(phone):
 
 
 def compute_player_score(player, languages_queryset):
-    languages = {}
-    total_answers = 0
-    for l in languages:
-        languages[l['code']] = {'weight': l['weight'], 'correct': 0}
+    languages = []
+    languages_scores = {}
+    duration = 0
+    correct = 0
+    for l in languages_queryset:
+        languages_scores[l['code']] = {'weight': l['weight'], 'correct': 0}
+    for answer in player.answer_set:
+        if answer.pickup_time and answer.hangup_time:
+            if answer.correct:
+                languages_scores[answer.question.language.code]['correct'] += 1
+                correct += 1
+            duration += (answer.hangup_time - answer.pickup_time).seconds
+        languages.append({'lang': answer.question.language.code, 'correct': int(answer.correct)})
 
+    score_languages = 0
+    for score in languages_scores:
+        score_languages += score['correct']/score['weight']
+    score_duration = duration / correct
+    score_correct = correct / len(player.answer_set)
+    score = int(score_languages*10 + score_duration*5 + score_correct*2)
+    player.score = score
+    player.save()
+    return {'name': player.name, 'score': score, 'languages': languages}
 
 
 def compute_scores(game):
