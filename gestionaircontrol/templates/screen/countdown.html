@@ -301,9 +301,8 @@
               
               function updateDigits() {
                   var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
-                  var minutes = (countDownSeconds - (countDownSeconds % 60))/60;
-                  var seconds = countDownSeconds % 60; 
-                  console.log(countDownSeconds, minutes, seconds);
+                  var minutes = Math.max((countDownSeconds - (countDownSeconds % 60))/60, 0);
+                  var seconds = Math.max(countDownSeconds % 60, 0); 
       
                   setNumber(_minutes[0], Math.floor(minutes/10), 1);
                   setNumber(_minutes[1], minutes%10, 1);
