@@ -46,7 +46,7 @@ def int_to_cust(i):
 
 
 class Game(models.Model):
-    code = models.CharField(verbose_name=_("code"), max_length=5, unique=True, blank=True,
+    code = models.CharField(verbose_name=_("code"), max_length=5, blank=True,
                             help_text=_("The identification code of the game"))
     team = models.CharField(verbose_name=_("team"), max_length=100,
                             help_text=_("The name of the team (this field is not unique!)"))
