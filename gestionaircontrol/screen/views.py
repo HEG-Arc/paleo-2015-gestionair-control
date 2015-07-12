@@ -51,6 +51,18 @@ def countdown(request):
     return JsonResponse(response)
 
 
+def get_team_status(game):
+    if game.end_time:
+        status = 'DONE'
+    elif game.start_time:
+        status = 'PLAYING'
+    elif game.initialized:
+        status = 'BOARDING'
+    else:
+        status = 'PLANNED'
+    return status
+
+
 def scheduler(request):
     next_start_time = get_next_start_time()
     next_free_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_capacity')).filter(start_time__gte=timezone.now()-datetime.timedelta(minutes=settings.SLOT_DURATION))
@@ -67,7 +79,7 @@ def scheduler(request):
         next_teams_list = []
         for booking in slot.bookings.all():
             if not booking.game.canceled:
-                display_team = {'team': booking.game.team, 'position': booking.booking_position, 'players': booking.game.players.count()}
+                display_team = {'team': booking.game.team, 'position': booking.booking_position, 'players': booking.game.players.count(), 'status': get_team_status(booking.game)}
                 next_teams_list.append(display_team)
         display_slot = {'slot': slot.start_time, 'teams': next_teams_list}
         next_slots_list.append(display_slot)
