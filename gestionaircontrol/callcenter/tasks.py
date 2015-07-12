@@ -24,8 +24,6 @@
 import datetime
 import os
 import random
-import pyglet
-#import pygame
 import subprocess
 from pycall import CallFile, Call, Application, Context
 import signal
@@ -400,6 +398,7 @@ class Endpoint:
         if self.state == Endpoint.RINGING and not ringing:
             self.state = Endpoint.COOLDOWN
             self.cooldown_start = timezone.now()
+            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation.control")
         if ringing:
             self.state = Endpoint.RINGING
 
