@@ -53,7 +53,7 @@ def countdown(request):
 
 def scheduler(request):
     next_start_time = get_next_start_time()
-    next_free_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=timezone.now()-datetime.timedelta(minutes=20))
+    next_free_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_capacity')).filter(start_time__gte=timezone.now()-datetime.timedelta(minutes=settings.SLOT_DURATION))
     if len(next_free_slots) >= 1:
         next_free_slot = next_free_slots[0]
         next_free_slot_start_time = next_free_slot.start_time + datetime.timedelta(seconds=(settings.GAME_LENGTH * next_free_slot.nb_bookings))
@@ -61,11 +61,17 @@ def scheduler(request):
             next_free_slot_start_time = timezone.now()
     else:
         next_free_slot_start_time = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
-    next_teams = Game.objects.prefetch_related('slot', 'players').annotate(nb_players=Count('players')).filter(canceled=False, slot__isnull=False, nb_players__gt=0, start_time__isnull=True).order_by('slot__timeslot__start_time', 'slot__booking_position')[:4]
-    next_teams_list = []
-    for game in next_teams:
-        display_team = {'team': game.team, 'position': game.slot.booking_position, 'players': game.nb_players}
-        next_teams_list.append(display_team)
+    next_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gt=timezone.now()-datetime.timedelta(minutes=2*settings.SLOT_DURATION), start_time__lt=timezone.now()+datetime.timedelta(minutes=settings.SLOT_DURATION))
+    next_slots_list = []
+    for slot in next_slots:
+        next_teams_list = []
+        for game in slot.bookings:
+            if not game.canceled:
+                display_team = {'team': game.team, 'position': game.slot.booking_position, 'players': game.nb_players}
+                next_teams_list.append(display_team)
+        display_slot = {'slot': slot.start_time, 'teams': next_teams_list}
+        next_slots_list.append(display_slot)
+
     response = {'next_start_time': next_start_time, 'next_free_slot_start_time': next_free_slot_start_time,
-                'next_teams': next_teams_list}
+                'next_slots': next_slots_list}
     return JsonResponse(response, safe=False)
