@@ -85,5 +85,5 @@ def scheduler(request):
         next_slots_list.append(display_slot)
 
     response = {'next_start_time': next_start_time, 'next_free_slot_start_time': next_free_slot_start_time,
-                'next_slots': next_slots_list}
+                'next_slots': next_slots_list, 'max_players': settings.MAX_PLAYERS}
     return JsonResponse(response, safe=False)
