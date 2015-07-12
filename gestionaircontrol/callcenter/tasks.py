@@ -189,6 +189,7 @@ def init_simulation(self, game):
         # 37 : Call center
         elif game_status == 'INTRO' and game.start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = callcenter_loop.apply_async([len(players_list)])
+            print "CALL started"
             game_status = 'CALL'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
@@ -423,23 +424,29 @@ class Endpoint:
     def setOnline(self, online):
         if online and self.state == Endpoint.DISABLED:
             self.state = Endpoint.AVAILABLE
+            print "available %s " % self.number
         if not online:
+            print "disabled %s " % self.number
             self.state = Endpoint.DISABLED
 
     def update_cooldown(self):
         if self.state == Endpoint.COOLDOWN:
             if timezone.now() - datetime.timedelta(seconds=10) > self.cooldown_start:
+                print "END cooldown %s " % self.number
                 self.state = Endpoint.AVAILABLE
 
     def update_ringing(self, ringing):
         if self.state == Endpoint.RINGING and not ringing:
+            print "cooldown %s " % self.number
             self.state = Endpoint.COOLDOWN
             self.cooldown_start = timezone.now()
             send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation.control")
         if ringing:
             self.state = Endpoint.RINGING
+            print "ringing %s " % self.number
 
     def call(self):
+        print "New phone call %s" % self.number
         create_call_file(self.number)
 
 @app.task(bind=True, base=AbortableTask)
@@ -456,20 +463,25 @@ def callcenter_loop(self, nb_players):
             # TODO: Do it from the database
             if 1000 < endpoint_number < 1100:
                 if endpoint_number not in phones.keys():
+                    print "create phone %s" % endpoint_number
                     phones[endpoint_number] = Endpoint(endpoint_number)
                 phones[endpoint_number].setOnline(endpoint['state'] == 'online')
 
         # update phone states
         open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
         ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
+        print ringing_channels
         for number, phone in phones.iteritems():
             #trigger cooldown handling of phones
             phone.update_cooldown()
             phone.update_ringing(number in ringing_channels)
 
         # check if we need to call phones
-        if len([phone for phone in phones.values() if phone.state == Endpoint.RINGING]) < min_phone_ringing:
+        ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
+        print "ringing phones", ringing_phones
+        if len(ringing_phones) < min_phone_ringing:
             available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
+            print "available phones", available_phones
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
                 phone.call()
