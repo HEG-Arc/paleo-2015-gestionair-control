@@ -149,12 +149,12 @@
 
           function loop(){
             //pool for information
-            
+            /*
             var debug = {"max_players": 6, "next_free_slot_start_time": "2015-07-12T13:00:59.220Z", "next_start_time": "2015-07-12T10:25:59.206Z", "next_slots": [{"slot": "2015-07-12T09:40:00Z", "teams": [{"status": "DONE", "position": 1, "players": 5, "team": "Les next slot"}, {"status": "PLANNED", "position": 2, "players": 6, "team": "Les derniers"}, {"status": "DONE", "position": 3, "players": 5, "team": "Encore un"}, {"status": "PLAYING", "position": 4, "players": 1, "team": "Soleil bleu"}, {"status": "BOARDING", "position": 5, "players": 5, "team": "Pluie d'\u00e9t\u00e9"}]}, {"slot": "2015-07-12T10:00:00Z", "teams": [{"status": "PLANNED", "position": 1, "players": 6, "team": "Il y a de la place ici"}]}, {"slot": "2015-07-12T10:20:00Z", "teams": []}]}
 
             handleData(debug);
-            
-            //$.get('/screen/scheduler/json/', handleData);
+            */
+            $.get('/screen/scheduler/json/', handleData);
             setTimeout(loop, 10000);
           }
           loop();
