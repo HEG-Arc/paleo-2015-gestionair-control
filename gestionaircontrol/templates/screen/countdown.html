@@ -219,7 +219,7 @@
       $(document).ready(function(){
               
               var gameData = {};
-              var date = new Date();
+              var endDateSeconds = new Date().getTime();
       				
               var digitSegments = [
                 [1,2,3,4,5,6],
@@ -300,8 +300,9 @@
       		var coutdownInterval;
               
               function updateDigits() {
-                  now = new Date();
-                  var minutes = Math.abs(date.getMinutes() - now.getMinutes()), seconds = Math.abs(date.getSeconds() - now.getSeconds());  
+                  var countDownSeconds = endDateSeconds - new Date().getTime();
+                  var minutes = (countDownSeconds - (countDownSeconds % 60))/60;
+                  var seconds = countDownSeconds % 60;  
       
                   setNumber(_minutes[0], Math.floor(minutes/10), 1);
                   setNumber(_minutes[1], minutes%10, 1);
@@ -336,7 +337,7 @@
                       }
                       if(currentState === 'INTRO'){
                         gameData = data;
-                        date = new Date(new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000);
+                        endDateSeconds = new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000;
                         startGame();
                       }
                     }
