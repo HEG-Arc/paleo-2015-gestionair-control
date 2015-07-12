@@ -139,7 +139,7 @@ def init_simulation(self):
 
     game = Game.objects.get(pk=cache.get('current_game'))
 
-    print "NEW GAME: %s" % game.id
+    print "NEW GAME: %s started at %s" % (game.id, game.start_time)
 
     game_status = 'INIT'
     players = Player.objects.filter(game_id=game.id)
