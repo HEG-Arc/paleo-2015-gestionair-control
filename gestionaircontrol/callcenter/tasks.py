@@ -84,6 +84,10 @@ def create_call_file(phone):
         pass
 
 
+def compute_results():
+
+
+
 @app.task(bind=True, base=AbortableTask)
 def init_simulation(self):
     loop_task = None
@@ -92,20 +96,21 @@ def init_simulation(self):
 
     game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
 
-    game = cache.get_many(['game_start_time', 'current_game'])
+    game = Game.objects.get(pk=cache.get('current_game'))
+
     game_status = 'INIT'
-    players = Player.objects.filter(game_id=game['current_game'])
+    players = Player.objects.filter(game_id=game.id)
     players_list = []
     for player in players:
         players_list.append({'id': player.number, 'name': player.name})
     phones = Phone.objects.filter(usage=Phone.CENTER)
     phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
                     'orientation': phone.orientation} for phone in phones]
-    message = {'type': 'GAME_START', 'endTime': (game['game_start_time'] + datetime.timedelta(seconds=game_duration)).isoformat(),
+    message = {'type': 'GAME_START', 'endTime': (game.start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.caller")
 
-    while not self.is_aborted() and game['game_start_time'] > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
+    while not self.is_aborted() and game.start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
         if game_status == 'INIT':
             game_status = 'INTRO'
@@ -113,13 +118,13 @@ def init_simulation(self):
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
-        elif game_status == 'INTRO' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
+        elif game_status == 'INTRO' and game.start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = call_center_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
-        elif game_status == 'CALL' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
+        elif game_status == 'CALL' and game.start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             cache.set('callcenter', game_status)
@@ -135,7 +140,7 @@ def init_simulation(self):
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation.caller")
         # 247 : The END ;-)
-        elif game_status == 'POWERDOWN' and game['game_start_time'] < timezone.now() - datetime.timedelta(seconds=game_duration):
+        elif game_status == 'POWERDOWN' and game.start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
