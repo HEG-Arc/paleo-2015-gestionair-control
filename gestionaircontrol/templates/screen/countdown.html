@@ -7,7 +7,7 @@
       * {
           box-sizing: border-box;
         }
-        html, body{ 
+        html, body{
           height: 100%;
           overflow: hidden;
         }
@@ -24,7 +24,7 @@
   			}
   			.exit{
   				background-color: #14A149;
-  			
+
   			}
         .coutdown{
            background-color: black;
@@ -40,7 +40,7 @@
   			#exit-block{
   				display: none;
   			}
-      
+
         .number{
           color:#c00;
           margin: 0;
@@ -49,7 +49,7 @@
           font-weight: bold;
           display: none;
         }
-        
+
         .clock {
           -webkit-flex-flow: row;
          flex-flow: row;
@@ -67,7 +67,7 @@
           margin:0 5px;
           position:relative;
         }
-        
+
         .digit .segment {
           background:#c00;
           border-radius:5px;
@@ -79,7 +79,7 @@
           -moz-transition:opacity 0.2s;
           -o-transition:opacity 0.2s;
         }
-        
+
         .digit .segment.on, .separator {
           opacity:1;
           box-shadow:0 0 50px rgba(255,0,0,0.7);
@@ -89,7 +89,7 @@
           -moz-transition:opacity 0s;
           -o-transition:opacity 0s;
         }
-        
+
         .separator-container{
           display: -webkit-flex;
           display: flex;
@@ -97,9 +97,9 @@
           flex-flow: column;
           -webkit-justify-content: center;
           justify-content: center;
-          
+
         }
-        
+
         .separator {
           width:20px;
           height:20px;
@@ -108,14 +108,14 @@
           display:inline-block;
           margin: 13px 0;
         }
-        
+
         .digit .segment:nth-child(1) {
           top:10px;
           left:20px;
           right:20px;
           height:10px;
         }
-        
+
         .digit .segment:nth-child(2) {
           top:20px;
           right:10px;
@@ -123,7 +123,7 @@
           height:75px;
           height:calc(50% - 25px);
         }
-        
+
         .digit .segment:nth-child(3) {
           bottom:20px;
           right:10px;
@@ -131,14 +131,14 @@
           height:75px;
           height:calc(50% - 25px);
         }
-        
+
         .digit .segment:nth-child(4) {
           bottom:10px;
           right:20px;
           height:10px;
           left:20px;
         }
-        
+
         .digit .segment:nth-child(5) {
           bottom:20px;
           left:10px;
@@ -146,7 +146,7 @@
           height:75px;
           height:calc(50% - 25px);
         }
-        
+
         .digit .segment:nth-child(6) {
           top:20px;
           left:10px;
@@ -154,7 +154,7 @@
           height:75px;
           height:calc(50% - 25px);
         }
-        
+
         .digit .segment:nth-child(7) {
           bottom:95px;
           bottom:calc(50% - 5px);
@@ -164,7 +164,7 @@
         }
     </style>
   </head>
-  
+
   <body>
     <div id="exit-block">
       <img src="/static/images/exit.gif" />
@@ -217,10 +217,10 @@
     <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
     <script>
       $(document).ready(function(){
-              
+
               var gameData = {};
               var endDateSeconds = new Date().getTime();
-      				
+
               var digitSegments = [
                 [1,2,3,4,5,6],
                 [2,3],
@@ -229,61 +229,61 @@
                 [6,7,2,3],
                 [1,6,7,3,4],
                 [1,6,5,4,3,7],
-                [1,2,3], 
+                [1,2,3],
                 [1,2,3,4,5,6,7],
                 [1,2,7,3,6]
             ];
-            
-            
+
+
             var _minutes = document.querySelectorAll('.minutes');
             var _seconds = document.querySelectorAll('.seconds');
-      
+
             var setNumber = function(digit, number, on) {
                 var segments = digit.querySelectorAll('.segment');
                 var current = parseInt(digit.getAttribute('data-value'));
-      
+
                 // only switch if number has changed or wasn't set
                 if (!isNaN(current) && current != number) {
                   // unset previous number
                   digitSegments[current].forEach(function(digitSegment, index) {
-            
+
                       segments[digitSegment-1].classList.remove('on');
-       
+
                   });
                 }
-                
+
                 if (isNaN(current) || current != number) {
                   // set new number after
                   setTimeout(function() {
                     digitSegments[number].forEach(function(digitSegment, index) {
-      
+
                         segments[digitSegment-1].classList.add('on');
-        
+
                     });
                   }, 30);
                   digit.setAttribute('data-value', number);
                 }
-              };      
-              
-              
-              
+              };
+
+
+
       				function startGame(){
                 //display welcome
                 showWelcome()
                 //after x
                 setTimeout(start321, (gameData.intro_duration - 3)*1000);
       				}
-              
+
               function showWelcome(){
                 $('body').removeClass('exit');
                 $('body').removeClass('countdown');
                 $('body').addClass('welcome');
               }
-      				
+
               var $three = $('#three');
               var $two = $('#two');
               var $one = $('#one');
-      				
+
       		function start321(){
           		$('body').removeClass('welcome');
                     $three.fadeIn(1000, function(){
@@ -298,34 +298,33 @@
                     })
       		}
       		var coutdownInterval;
-              
+
               function updateDigits() {
                   var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
                   var minutes = Math.max((countDownSeconds - (countDownSeconds % 60))/60, 0);
-                  var seconds = Math.max(countDownSeconds % 60, 0); 
-      
+                  var seconds = Math.max(countDownSeconds % 60, 0);
+
                   setNumber(_minutes[0], Math.floor(minutes/10), 1);
                   setNumber(_minutes[1], minutes%10, 1);
-              
+
                   setNumber(_seconds[0], Math.floor(seconds/10), 1);
                   setNumber(_seconds[1], seconds%10, 1);
                 }
-              
+
       		function startCountDown(){
               $('body').addClass('countdown');
                clearInterval(coutdownInterval);
-                
+
       		     coutdownInterval = setInterval(updateDigits, 1000);
                updateDigits();
       		}
-      				
-      		function showExit(){
-               clearInterval(coutdownInterval);
-               $('body').removeClass('welcome');
-               $('body').removeClass('countdown');
-      		     $('body').addClass('exit');	
-      		}
-              
+
+          function handleIntro(data){
+              gameData = data;
+              endDateSeconds = new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000;
+              startGame();
+          }
+
           var currentState = 'welcome';
           function loop(){
                 //pool for information
@@ -336,16 +335,19 @@
                         showExit();
                       }
                       if(currentState === 'INTRO'){
-                        gameData = data;
-                        endDateSeconds = new Date(gameData.game_start_time).getTime() + (gameData.game_duration + gameData.intro_duration) * 1000;
-                        startGame();
+                        handleIntro(data);
                       }
                     }
                 });
                 setTimeout(loop, 1000);
-              }
-              showWelcome();
+          }
+          showWelcome();
+          if(window.location.hash === '#sim'){
+              handleIntro({game_status: 'INTRO', game_start_time: new Date().toISOString(), game_duration: 15, intro_duration: 10});
+              setTimeout(showExit, 26000);
+          }else{
               loop();
+          }
       	});
     </script>
   </body>
