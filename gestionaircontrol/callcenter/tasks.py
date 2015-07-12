@@ -317,7 +317,8 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
         player = Player.objects.get(pk=player_id)
         translation = Translation.objects.get(pk=translation_id)
         phone = Phone.objects.get(number=phone_number)
-        loc_pickup_time = pickup_time.astimezone(pytz.timezone('Europe/Zurich'))
+        #loc_pickup_time = pickup_time.astimezone(pytz.timezone('Europe/Zurich'))
+        loc_pickup_time = pickup_time
         new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=loc_pickup_time,
                             hangup_time=timezone.now(), correct=correct)
         new_answer.save()
