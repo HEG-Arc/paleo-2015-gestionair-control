@@ -493,7 +493,7 @@ def callcenter_start():
         # We store the value in Redis
         cache.set_many({'game_start_time': current_game.start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
         # We initialize the new simulation
-        loop = init_simulation.apply_async([current_game])
+        loop = init_simulation.apply_async([current_game, ])
         cache.set('callcenter_loop', loop)
         success = True
         message = "Game started"
