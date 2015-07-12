@@ -1,28 +1,30 @@
  {% load staticfiles i18n %}<!DOCTYPE html>
 <html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
-    <script>
-        // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
-        var jqxhr = function() {
-            $.ajax({
-                url: "/screen/scheduler/json",
-                dataType: 'json'
-            })
-                .done(function (data) {
-                    next_slot = new Date(data.next_free_slot_start_time).getTime();
-                    next_start = new Date(data.next_start_time).getTime();
-                    $('#next_free_slot_start_time').text(next_slot);
-                    $('#next_start_time').text(next_start);
-                    $('#next_teams_list').text(data.next_teams);
-                });
-        };
-        setInterval('jqxhr()', 1000); // 1 second
-    </script>
-</head>
-<body>
-<div id="next_free_slot">Next free slot <span id="next_free_slot_start_time">???</span> [display HH:MM or NOW if next_free_slot_start_time == now()]</div>
-<div id="next_start">Next start <span id="next_start_time">???</span> [display MM:SS or READY if next_start_time == now()]</div>
-<div id="next_teams">Next teams <span id="next_teams_list">???</span> [display table with team and nb_players for each team or a message if len==0]</div>
-</body>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <script src="{% static 'vendor/jquery/jquery-2.1.4.min.js' %}"></script>
+        <script>
+            // TODO: implement better polling (http://reallifejs.com/brainchunks/repeated-events-timeout-or-interval/)
+            var jqxhr = function() {
+                $.ajax({
+                    url: "/screen/scheduler/json",
+                    dataType: 'json'
+                })
+                    .done(function (data) {
+                        next_slot = new Date(data.next_free_slot_start_time).getTime();
+                        next_start = new Date(data.next_start_time).getTime();
+                        $('#next_free_slot_start_time').text(next_slot);
+                        $('#next_start_time').text(next_start);
+                        $('#next_teams_list').text(data.next_teams);
+                    });
+            };
+            setInterval('jqxhr()', 1000); // 1 second
+        </script>
+    </head>
+    <body>
+        Prochain créneau horaire disponible
+        <div id="next_free_slot">Next free slot <span id="next_free_slot_start_time">???</span> [display HH:MM or NOW if next_free_slot_start_time == now()]</div>
+        <div id="next_start">Next start <span id="next_start_time">???</span> [display MM:SS or READY if next_start_time == now()]</div>
+        <div id="next_teams"> Prochains groupes Next teams <span id="next_teams_list">???</span> [display table with team and nb_players for each team if len==0]</div>
+    </body>
+</html>

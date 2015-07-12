@@ -36,6 +36,5 @@ urlpatterns = [
     url(r'^countdown/json/', views.countdown, name='countdown-json'),
     url(r'^countdown/$', TemplateView.as_view(template_name='screen/countdown.html'), name="countdown"),
     url(r'^scheduler/json/', views.scheduler, name='scheduler-json'),
-    url(r'^scheduler/$', TemplateView.as_view(template_name='screen/scheduler.html'), name="scheduler"),
-    url(r'^waiting/$', WaitingView.as_view(), name="waiting"),
+    url(r'^scheduler/$', TemplateView.as_view(template_name='screen/scheduler.html'), name="scheduler")
 ]
