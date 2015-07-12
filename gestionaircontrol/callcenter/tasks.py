@@ -89,19 +89,21 @@ def compute_player_score(player, languages_queryset):
     correct = 0
     for l in languages_queryset:
         languages_scores[l['code']] = {'weight': l['weight'], 'correct': 0}
-    for answer in player.answer_set:
+    for answer in player.answers.all():
+        correct_answer = False
         if answer.pickup_time and answer.hangup_time:
             if answer.correct:
                 languages_scores[answer.question.language.code]['correct'] += 1
                 correct += 1
+                correct_answer = True
             duration += (answer.hangup_time - answer.pickup_time).seconds
-        languages.append({'lang': answer.question.language.code, 'correct': int(answer.correct)})
+        languages.append({'lang': answer.question.language.code, 'correct': int(correct_answer)})
 
     score_languages = 0
     for score in languages_scores:
-        score_languages += score['correct']/score['weight']
+        score_languages += languages_scores[score]['correct']/languages_scores[score]['weight']
     score_duration = duration / correct
-    score_correct = correct / len(player.answer_set)
+    score_correct = correct / player.answers.count()
     score = int(score_languages*10 + score_duration*5 + score_correct*2)
     player.score = score
     player.save()
@@ -109,15 +111,15 @@ def compute_player_score(player, languages_queryset):
 
 
 def compute_scores(game):
-    #Ordered array from 1st place to nth.
-    #languages ordered by their in game appearence
-    #{'name': 'a', 'score': 100, 'languages': [{'lang':'code', correct: 0}]}
+    scores = []
     languages = Language.objects.values('code', 'weight')
     players = Player.objects.prefetch_related('answers').filter(game_id=game.id)
     for player in players:
         score = compute_player_score(player, languages)
-    scores = []
-    return scores
+        scores.append(score)
+    from operator import itemgetter
+    rank_list = sorted(scores, key=itemgetter('score'), reverse=True)
+    return rank_list
 
 
 @app.task(bind=True, base=AbortableTask)

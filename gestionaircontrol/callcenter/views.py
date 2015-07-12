@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from gestionaircontrol.callcenter.models import Game, Player
 from gestionaircontrol.scheduler.forms import PlayerFormSet, GameForm
 from gestionaircontrol.scheduler.models import Timeslot, Booking
-from gestionaircontrol.callcenter.tasks import agi_question, agi_save
+from gestionaircontrol.callcenter.tasks import agi_question, agi_save, compute_scores
 
 
 def agi_request(request, player, phone):
@@ -182,3 +182,9 @@ class GameSearchView(ListView):
             return Game.objects.filter(team__icontains=q)
         else:
             return Game.objects.filter()
+
+
+def game_results_view(request, pk):
+    game = Game.objects.get(pk=pk)
+    response = compute_scores(game)
+    return JsonResponse(response, safe=False)

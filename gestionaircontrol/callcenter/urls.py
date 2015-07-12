@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^game/(?P<pk>\d+)/cancel/$', views.GameCancelRedirectView.as_view(), name='game-cancel-redirectview'),
     url(r'^game/(?P<pk>\d+)/rebook/(?P<timeslot>\d{4}-\d{2}-\d{2} \d{2}:\d{2})/$', views.GameRebookRedirectView.as_view(), name='game-rebook-redirectview'),
     url(r'^game/(?P<pk>\d+)/rebook/$', views.GameRebookListView.as_view(), name='game-rebook-view'),
+    url(r'^game/(?P<pk>\d+)/results/$', views.game_results_view, name='game-results-view'),
     url(r'^game/(?P<game>\d+)/delete/(?P<pk>\d+)/$', views.PlayerDeleteView.as_view(), name='player-delete-view'),
     url(r'^search/$', views.GameSearchView.as_view(), name='game-search-view'),
     url(r'^agi/(?P<player>\d+)/(?P<phone>\d+)/$', views.agi_request, name='ami-request'),
