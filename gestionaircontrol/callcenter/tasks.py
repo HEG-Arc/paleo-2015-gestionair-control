@@ -130,14 +130,12 @@ def compute_scores(game):
 
 
 @app.task(bind=True, base=AbortableTask)
-def init_simulation(self):
+def init_simulation(self, game):
     loop_task = None
     play_intro_task_id = None
     play_powerdown_task_id = None
 
     game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
-
-    game = Game.objects.get(pk=cache.get('current_game'))
 
     print "NEW GAME: %s started at %s" % (game.id, game.start_time)
 
@@ -495,7 +493,7 @@ def callcenter_start():
         # We store the value in Redis
         cache.set_many({'game_start_time': current_game.start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
         # We initialize the new simulation
-        loop = init_simulation.apply_async()
+        loop = init_simulation.apply_async([current_game])
         cache.set('callcenter_loop', loop)
         success = True
         message = "Game started"
