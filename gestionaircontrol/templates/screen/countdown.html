@@ -331,7 +331,7 @@
                 $.get('/screen/countdown/json/', function(data){
                     if(currentState !== data.game_status){
                       currentState = data.game_status;
-                      if(currentState === 'POWERDOWN' || currentState === 'STOP'){
+                      if(currentState === 'POWERDOWN' || currentState === 'STOP' || currentState === 'END'){
                         showExit();
                       }
                       if(currentState === 'INTRO'){
