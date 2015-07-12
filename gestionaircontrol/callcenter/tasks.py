@@ -480,18 +480,20 @@ def callcenter_start():
         success = False
         return {'success': success, 'message': message}
 
-    start_time = timezone.now()
     # We get the current game
     try:
         current_game = Game.objects.filter(initialized=True, start_time__isnull=True)[0]
-        current_game.start_time = start_time
+        current_game.start_time = timezone.now()
         current_game.save()
+
+        print "GAME %s started AT %s" % (current_game.id, current_game.start_time)
+
     except IndexError:
         current_game = None
 
     if current_game:
         # We store the value in Redis
-        cache.set_many({'game_start_time': start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
+        cache.set_many({'game_start_time': current_game.start_time, 'current_game': current_game.id, 'callcenter': 'STARTING'})
         # We initialize the new simulation
         loop = init_simulation.apply_async()
         cache.set('callcenter_loop', loop)
