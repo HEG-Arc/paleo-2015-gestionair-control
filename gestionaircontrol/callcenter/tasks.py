@@ -345,32 +345,67 @@ def clean_callcenter():
     print "ALL CLEAN! BYE"
 
 
+class Phone:
+    DISABLED = 0 #not online
+    AVAILABLE = 1 #onluine available to be called
+    RINGING = 2 # means ringing or play answering
+    COOLDOWN = 3 #phone has been used recently
+
+    def __init__(self, number):
+        self.state = Phone.AVAILABLE
+        self.number = number
+
+    def setOnline(self, online):
+        if online and self.state == Phone.DISABLED:
+            self.state = Phone.AVAILABLE
+        if not online:
+            self.state = Phone.DISABLED
+
+    def update_cooldown(self):
+        if self.state == Phone.COOLDOWN:
+            if timezone.now() - datetime.timedelta(seconds=10) > self.cooldown_start:
+                self.state = Phone.AVAILABLE
+
+    def update_ringing(self, ringing):
+        if self.state == Phone.RINGING and not ringing:
+            self.state = Phone.COOLDOWN
+            self.cooldown_start = timezone.now()
+        if ringing:
+            self.state = Phone.RINGING
+
+    def call(self):
+        create_call_file(self.number)
+
 @app.task(bind=True, base=AbortableTask)
 def callcenter_loop(self, nb_players):
-    min_phone_ringing = nb_players + 1
-    disabled_phones = {}
+    min_phone_ringing = nb_players
+    phones = {}
 
     while not self.is_aborted():
-        for phone, timestamp in disabled_phones.copy().iteritems():
-            if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
-                del disabled_phones[phone]
+        # check active endpoints and create or update our local phones
+        endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
+        for endpoint in endpoints:
+            endpoint_number = int(endpoint['resource'])
+            # only callcenter numbers
+            if  1000 < endpoint_number < 1100:
+                if endpoint_number not in phones.keys():
+                    phones[endpoint_number] = Phone(endpoint_number)
+                phones[endpoint_number].setOnline(endpoint['state'] == 'online')
 
+        # update phone states
         open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
-        ringing_channels = [channel['caller']['number'] for channel in open_channels if channel['state'] == "Ringing"]
+        ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
+        for number, phone in phones.iteritems():
+            #trigger cooldown handling of phones
+            phone.update_cooldown()
+            phone.update_ringing(number in ringing_channels)
 
-        if len(ringing_channels) + len(disabled_phones.keys()) < min_phone_ringing:
-            endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
-            available_phones = [endpoint['resource'] for endpoint in endpoints if endpoint['state'] == "online" and int(endpoint['resource']) > 1000 and int(endpoint['resource']) < 1100]
-            for channel in ringing_channels:
-                if channel in available_phones:
-                    available_phones.remove(channel)
-            for phone in disabled_phones.keys():
-                if phone in available_phones:
-                    available_phones.remove(phone)
+        # check if we need to call phones
+        if len([phone for phone in phones.values() if phone.state == Phone.RINGING]) < min_phone_ringing:
+            available_phones = [phone for phone in phones.values() if phone.state == Phone.AVAILABLE]
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
-                create_call_file(phone)
-                disabled_phones[phone] = timezone.now()
+                phone.call()
         time.sleep(1)
     print "IT'S TIME TO CLEAN-UP!"
     clean_callcenter.apply_async()
