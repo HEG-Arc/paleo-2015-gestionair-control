@@ -32,6 +32,7 @@ import time
 import requests
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 import pytz
+import pysimpledmx
 
 
 # Core Django imports
@@ -137,6 +138,8 @@ def init_simulation(self):
     game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
 
     game = Game.objects.get(pk=cache.get('current_game'))
+
+    print "NEW GAME: %s" % game.id
 
     game_status = 'INIT'
     players = Player.objects.filter(game_id=game.id)
@@ -523,14 +526,27 @@ def callcenter_stop():
         game.save()
     loop_id = cache.get('callcenter_loop', False)
     try:
-        task = AbortableAsyncResult(id)
+        task = AbortableAsyncResult(loop_id)
         task.abort()
     except:
         pass
-
+    game_status = 'STOP'
+    cache.set('callcenter', game_status)
     scores = []
     message = {"game": "STOP", "type": "GAME_END", "scores": scores}
     send_amqp_message(message, "simulation.caller")
     success = True
     message = "Game was stopped"
     return {'success': success, 'message': message, }
+
+
+mydmx = pysimpledmx.DMXConnection(settings.DMX_COM_PORT)
+
+
+def dmx_scene():
+    pass
+
+
+@app.task
+def play_dmx_scene():
+    pass
