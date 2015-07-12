@@ -47,7 +47,7 @@ def countdown(request):
         game_start_time = ''
 
     response = {'game_start_time': game_start_time, 'game_status': game.get('callcenter', 'STOP'),
-                'intro_duration': settings.GAME_PHASE_INTRO, 'game_duration': settings.GAME_PHASE_CALL}
+                'intro_duration': settings.GAME_PHASE_INTRO - 4, 'game_duration': settings.GAME_PHASE_CALL}
     return JsonResponse(response)
 
 
