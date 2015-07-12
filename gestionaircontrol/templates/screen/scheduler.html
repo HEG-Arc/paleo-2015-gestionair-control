@@ -91,7 +91,7 @@
           color: #2ECC40;
         }
         .DONE{
-          color: rgb(150,150,150);
+          color: #ADADAD;
         }
     </style>
   </head>
@@ -118,6 +118,7 @@
           $next_start_time = $('#next_start_time');
           $next_free_slot_time = $('#next_free_slot_time');
           $slots = $('#slots');
+          $top = $('#top');
           $bottom = $('#bottom');
 
           function buildSlots(data){
@@ -136,9 +137,11 @@
               });
             });
           }
+          
+          var next_start_time = new Date();
 
           function handleData(data){
-              $next_start_time.text(moment.utc(moment(data.next_start_time).diff(moment())).format("mm:ss"));
+              next_start_time = data.next_start_time;
               $next_free_slot_time.text(moment(data.next_free_slot_start_time).format('HH:mm'));
               buildSlots(data);
           }
@@ -151,7 +154,7 @@
             handleData(debug);
             
             //$.get('/screen/scheduler/json/', handleData);
-            setTimeout(loop, 1000);
+            setTimeout(loop, 10000);
           }
           loop();
 
@@ -162,13 +165,17 @@
                 $slots.fadeIn();
                 setTimeout(function(){
                   $bottom.animate({
-                    scrollTop: $slots.outerHeight(true) - $bottom.height()
+                    scrollTop: $slots.outerHeight(true) - ($(window).outerHeight(true) - $top.outerHeight(true))
                   }, 20000, animateScroll);
                 }, 4000);
               }
             });
           }
           animateScroll();
+          function timeUpdate(){
+            $next_start_time.text(moment.utc(moment(next_start_time).diff(moment())).format("mm:ss"));
+          }
+          setInterval(timeUpdate, 1000);
       	});
     </script>
   </body>
