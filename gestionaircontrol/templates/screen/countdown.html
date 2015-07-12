@@ -218,105 +218,110 @@
     <script>
       $(document).ready(function(){
 
-              var gameData = {};
-              var endDateSeconds = new Date().getTime();
+          var gameData = {};
+          var endDateSeconds = new Date().getTime();
 
-              var digitSegments = [
-                [1,2,3,4,5,6],
-                [2,3],
-                [1,2,7,5,4],
-                [1,2,7,3,4],
-                [6,7,2,3],
-                [1,6,7,3,4],
-                [1,6,5,4,3,7],
-                [1,2,3],
-                [1,2,3,4,5,6,7],
-                [1,2,7,3,6]
-            ];
-
-
-            var _minutes = document.querySelectorAll('.minutes');
-            var _seconds = document.querySelectorAll('.seconds');
-
-            var setNumber = function(digit, number, on) {
-                var segments = digit.querySelectorAll('.segment');
-                var current = parseInt(digit.getAttribute('data-value'));
-
-                // only switch if number has changed or wasn't set
-                if (!isNaN(current) && current != number) {
-                  // unset previous number
-                  digitSegments[current].forEach(function(digitSegment, index) {
-
-                      segments[digitSegment-1].classList.remove('on');
-
-                  });
-                }
-
-                if (isNaN(current) || current != number) {
-                  // set new number after
-                  setTimeout(function() {
-                    digitSegments[number].forEach(function(digitSegment, index) {
-
-                        segments[digitSegment-1].classList.add('on');
-
-                    });
-                  }, 30);
-                  digit.setAttribute('data-value', number);
-                }
-              };
+          var digitSegments = [
+            [1,2,3,4,5,6],
+            [2,3],
+            [1,2,7,5,4],
+            [1,2,7,3,4],
+            [6,7,2,3],
+            [1,6,7,3,4],
+            [1,6,5,4,3,7],
+            [1,2,3],
+            [1,2,3,4,5,6,7],
+            [1,2,7,3,6]
+        ];
 
 
+        var _minutes = document.querySelectorAll('.minutes');
+        var _seconds = document.querySelectorAll('.seconds');
 
-      				function startGame(){
-                //display welcome
-                showWelcome()
-                //after x
-                setTimeout(start321, (gameData.intro_duration - 3)*1000);
-      				}
+        var setNumber = function(digit, number, on) {
+            var segments = digit.querySelectorAll('.segment');
+            var current = parseInt(digit.getAttribute('data-value'));
 
-              function showWelcome(){
-                $('body').removeClass('exit');
-                $('body').removeClass('countdown');
-                $('body').addClass('welcome');
-              }
+            // only switch if number has changed or wasn't set
+            if (!isNaN(current) && current != number) {
+              // unset previous number
+              digitSegments[current].forEach(function(digitSegment, index) {
 
-              var $three = $('#three');
-              var $two = $('#two');
-              var $one = $('#one');
+                  segments[digitSegment-1].classList.remove('on');
+
+              });
+            }
+
+            if (isNaN(current) || current != number) {
+              // set new number after
+              setTimeout(function() {
+                digitSegments[number].forEach(function(digitSegment, index) {
+
+                    segments[digitSegment-1].classList.add('on');
+
+                });
+              }, 30);
+              digit.setAttribute('data-value', number);
+            }
+          };
+
+  				function startGame(){
+            //display welcome
+            showWelcome()
+            //after x
+            setTimeout(start321, (gameData.intro_duration - 3)*1000);
+  				}
+
+          function showWelcome(){
+            $('body').removeClass('exit');
+            $('body').removeClass('countdown');
+            $('body').addClass('welcome');
+          }
+
+          var $three = $('#three');
+          var $two = $('#two');
+          var $one = $('#one');
 
       		function start321(){
           		$('body').removeClass('welcome');
-                    $three.fadeIn(1000, function(){
-                       $three.hide();
-                       $two.fadeIn(1000, function(){
-                         $two.hide();
-                         $one.fadeIn(1000, function(){
-                           $one.hide();
-                           startCountDown();
-                         })
-                       })
-                    })
+              $three.fadeIn(1000, function(){
+                 $three.hide();
+                 $two.fadeIn(1000, function(){
+                   $two.hide();
+                   $one.fadeIn(1000, function(){
+                     $one.hide();
+                     startCountDown();
+                   })
+                 })
+              })
       		}
       		var coutdownInterval;
 
-              function updateDigits() {
-                  var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
-                  var minutes = Math.max((countDownSeconds - (countDownSeconds % 60))/60, 0);
-                  var seconds = Math.max(countDownSeconds % 60, 0);
+          function updateDigits() {
+            var countDownSeconds = Math.round((endDateSeconds - new Date().getTime()) / 1000);
+            var minutes = Math.max((countDownSeconds - (countDownSeconds % 60))/60, 0);
+            var seconds = Math.max(countDownSeconds % 60, 0);
 
-                  setNumber(_minutes[0], Math.floor(minutes/10), 1);
-                  setNumber(_minutes[1], minutes%10, 1);
+            setNumber(_minutes[0], Math.floor(minutes/10), 1);
+            setNumber(_minutes[1], minutes%10, 1);
 
-                  setNumber(_seconds[0], Math.floor(seconds/10), 1);
-                  setNumber(_seconds[1], seconds%10, 1);
-                }
+            setNumber(_seconds[0], Math.floor(seconds/10), 1);
+            setNumber(_seconds[1], seconds%10, 1);
+          }
 
       		function startCountDown(){
-              $('body').addClass('countdown');
-               clearInterval(coutdownInterval);
+             $('body').addClass('countdown');
+             clearInterval(coutdownInterval);
 
-      		     coutdownInterval = setInterval(updateDigits, 1000);
-               updateDigits();
+    		     coutdownInterval = setInterval(updateDigits, 1000);
+             updateDigits();
+      		}
+
+          function showExit(){
+              clearInterval(coutdownInterval);
+              $('body').removeClass('welcome');
+              $('body').removeClass('countdown');
+     		      $('body').addClass('exit');
       		}
 
           function handleIntro(data){
