@@ -57,7 +57,7 @@ import pysimpledmx
 import Queue
 from threading import Thread
 
-COM_PORT = '/dev/ttyUSB1'
+COM_PORT = '/dev/ttyUSB6'
 
 q = Queue.Queue()
 
