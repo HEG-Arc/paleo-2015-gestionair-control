@@ -115,7 +115,7 @@ def init_simulation(self):
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
         elif game_status == 'INTRO' and game.start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
-            loop_task = call_center_loop.apply_async([len(players_list)])
+            loop_task = callcenter_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
