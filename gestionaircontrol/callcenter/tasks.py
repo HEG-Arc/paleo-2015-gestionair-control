@@ -84,10 +84,6 @@ def create_call_file(phone):
         pass
 
 
-def compute_results():
-
-
-
 @app.task(bind=True, base=AbortableTask)
 def init_simulation(self):
     loop_task = None
@@ -346,7 +342,7 @@ def clean_callcenter():
 
 
 @app.task(bind=True, base=AbortableTask)
-def call_center_loop(self, nb_players):
+def callcenter_loop(self, nb_players):
     min_phone_ringing = nb_players + 1
     disabled_phones = {}
 
@@ -354,7 +350,7 @@ def call_center_loop(self, nb_players):
         for phone, timestamp in disabled_phones.copy().iteritems():
             if timezone.now() - datetime.timedelta(seconds=15) > timestamp:
                 del disabled_phones[phone]
-        
+
         open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
         ringing_channels = [channel['caller']['number'] for channel in open_channels if channel['state'] == "Ringing"]
 
