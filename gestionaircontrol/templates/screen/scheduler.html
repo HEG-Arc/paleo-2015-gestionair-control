@@ -174,7 +174,14 @@
           }
           animateScroll();
           function timeUpdate(){
-            $next_start_time.text(moment.utc(moment(next_start_time).diff(moment())).format("mm:ss"));
+            var text = '';
+            if (new Date(next_start_time).getTime() - new Date().getTime() < 0){
+              text = 'NOW';
+            }else{
+              text = moment.utc(moment(next_start_time).diff(moment())).format("mm:ss");
+            }
+     
+            $next_start_time.text(text);
           }
           setInterval(timeUpdate, 1000);
       	});
