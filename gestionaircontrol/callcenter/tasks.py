@@ -108,7 +108,7 @@ def create_call_file(phone):
         send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
     else:
         pass
-    return phone
+    play_dmx_ring.apply_async((phone,))
 
 
 def compute_player_score(player, languages_queryset):
@@ -461,7 +461,7 @@ class Endpoint:
 
     def call(self):
         print "New phone call %s" % self.number
-        create_call_file.apply_async((self.number,), link=play_dmx_ring.s())
+        create_call_file.apply_async((self.number,))
 
 
 @app.task(bind=True, base=AbortableTask)
