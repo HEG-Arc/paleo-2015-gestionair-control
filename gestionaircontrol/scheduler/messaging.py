@@ -43,8 +43,6 @@ def send_amqp_message(message, routing):
     with connections[connection_broker].acquire(block=True) as connection:
         exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
         exchange.declare()
-        queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
-        queue.declare()
         publisher = Producer(channel=connection, exchange=exchange)
         publisher.publish(message, routing_key=routing)
         publisher.close()

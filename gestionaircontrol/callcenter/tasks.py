@@ -53,31 +53,6 @@ from gestionaircontrol.callcenter.models import Game, Player, Answer, Department
 URL = 'http://192.168.1.1:8088'
 AUTH = ('paleo', 'paleo7top')
 
-import pysimpledmx
-import Queue
-from threading import Thread
-
-# COM_PORT = '/dev/ttyUSB0'
-#
-# q = Queue.Queue()
-#
-# def send_dmx_scene():
-#     mydmx = pysimpledmx.DMXConnection(COM_PORT)
-#     while True:
-#         # scene = [(1, 200), (3, 150), ...]
-#         scene = q.get()
-#         print "New scene %s" % scene
-#         for channel in scene:
-#             mydmx.setChannel(*channel)
-#             print "Channel (%s, %s)" % channel
-#         mydmx.render()
-#         print "Done!"
-#         q.task_done()
-#
-# t = Thread(target=send_dmx_scene)
-# t.daemon = True
-# t.start()
-
 
 @app.task
 def create_call_file(phone):
@@ -105,10 +80,9 @@ def create_call_file(phone):
         cf = CallFile(c, x)
         cf.spool()
         subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
-        send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
+        send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "simulation")
     else:
         pass
-    play_dmx_ring.apply_async((phone,))
 
 
 def compute_player_score(player, languages_queryset):
@@ -183,7 +157,7 @@ def init_simulation(self):
                     'orientation': phone.orientation} for phone in phones]
     message = {'type': 'GAME_START', 'endTime': (game_start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
-    send_amqp_message(message, "simulation.control")
+    send_amqp_message(message, "simulation")
     print "Message GAME_START sent"
 
     while not self.is_aborted() and game_start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
@@ -193,14 +167,14 @@ def init_simulation(self):
             print "Simulation state -> %s" % game_status
             #play_intro_task_id = play_sound('intro', 'center')
             cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         # 37 : Call center
         elif game_status == 'INTRO' and game_start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             loop_task = callcenter_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         # 217 : Powerdown
         elif game_status == 'CALL' and game_start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             #play_powerdown_task_id = play_sound('powerdown', 'center')
@@ -208,17 +182,18 @@ def init_simulation(self):
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             loop_task.abort()
+            send_amqp_message({"game": game_status, "type": "GAME_END"}, "simulation")
             # Compute score
             print "Computing results..."
             scores = compute_scores(game_id)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
-            send_amqp_message(message, "simulation.control")
+            send_amqp_message(message, "simulation")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game_start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+            send_amqp_message('{"game": "%s"}' % game_status, "simulation")
             cache.delete('callcenter_loop')
             game = Game.objects.get(pk=game_id)
             game.end_time = timezone.now()
@@ -229,7 +204,7 @@ def init_simulation(self):
         game_status = 'STOP'
         print "Simulation state -> %s" % game_status
         cache.set('callcenter', game_status)
-        send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
+        send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         # Delete cache
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
     else:
@@ -253,7 +228,7 @@ def init_simulation(self):
         cache.set('callcenter', game_status)
         scores = []
         message = {"game": game_status, "type": "GAME_END", "scores": scores}
-        send_amqp_message(message, "simulation.caller")
+        send_amqp_message(message, "simulation")
         cache.delete_many(['game_start_time', 'current_game'])
 
 
@@ -342,7 +317,7 @@ def agi_question(player_number, phone_number):
                     'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
         message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
                    'type': 'PLAYER_ANSWERING'}
-        send_amqp_message(message, "simulation.control")
+        send_amqp_message(message, "simulation")
     else:
         translation = draw_question()
         response = {'question': translation.question.number, 'response': translation.question.department.number,
@@ -365,16 +340,7 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
         new_answer.save()
         #dmx_phone_answer_scene.apply_async(phone.number, correct)
         response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': int(correct), 'number': phone.number}
-        send_amqp_message(response, "simulation.control")
-
-
-@app.task
-def dmx_phone_answer_scene(phone_number, correct):
-    phone = Phone.objects.get(number=phone_number)
-    if correct:
-        scene = "GREEN"
-    else:
-        scene = "RED"
+        send_amqp_message(response, "simulation")
 
 
 @app.task(bind=True, base=AbortableTask)
@@ -454,7 +420,7 @@ class Endpoint:
             print "Start cooldown %s " % self.number
             self.state = Endpoint.COOLDOWN
             self.cooldown_start = timezone.now()
-            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation.control")
+            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation")
         if ringing:
             self.state = Endpoint.RINGING
             print "Ringing phone with number %s " % self.number
@@ -589,7 +555,7 @@ def callcenter_stop():
     cache.set('callcenter', game_status)
     scores = []
     message = {"game": "STOP", "type": "GAME_END", "scores": scores}
-    send_amqp_message(message, "simulation.caller")
+    send_amqp_message(message, "simulation")
     success = True
     message = "Game was stopped"
     return {'success': success, 'message': message, }
