@@ -43,7 +43,7 @@ from django.db.models import F, Count
 # Third-party app imports
 
 # paleo2015 imports
-from gestionaircontrol.callcenter.tasks import create_call_file, callcenter_start, get_gestionair_status, demo_start, callcenter_stop, play_sound
+from gestionaircontrol.callcenter.tasks import create_call_file, callcenter_start, get_gestionair_status, demo_start, callcenter_stop
 from .messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
@@ -78,7 +78,7 @@ def ring(request, number):
 
 @login_required()
 def call(request):
-    play_sound('call', 'front')
+    #play_sound('call', 'front')
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
@@ -87,7 +87,7 @@ def call(request):
 
 @login_required()
 def ambiance(request):
-    play_sound('ambiance', 'front')
+    #play_sound('ambiance', 'front')
     success = True
     message = "Ambiance was started"
     result = {'success': success, 'message': message}
