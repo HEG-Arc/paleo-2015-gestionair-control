@@ -166,7 +166,7 @@ def init_simulation(self):
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation")
-        elif game_status == 'CALL' and game_start_time >= timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
+        elif game_status == 'CALL' and timezone.now() - game_start_time >= datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
             print "call loop"
             callcenter_loop(local_endpoints_states, [len(players_list)])
         # 217 : Powerdown
