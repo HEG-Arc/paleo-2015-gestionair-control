@@ -406,8 +406,10 @@ class Endpoint:
             print "Ringing phone with number %s " % self.number
 
     def call(self):
-        print "New phone call %s" % self.number
-        create_call_file.apply_async((self.number,))
+        callcenter = cache.get('callcenter', 'STOP')
+        if callcenter == 'CALL':
+            print "New phone call %s" % self.number
+            create_call_file.apply_async((self.number,))
 
 
 def callcenter_loop(phones, nb_players):
