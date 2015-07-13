@@ -283,13 +283,14 @@ CELERY_TASK_RESULT_EXPIRES = 600
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ['application/json']
 
+
 BROKER_URL = os.environ.get('BROKER_URL','')
 if not BROKER_URL:
     BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
         user=os.environ.get('RABBIT_ENV_USER', 'guest'),
         password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'guest'),
-        hostname=RABBIT_HOSTNAME,
-        vhost=os.environ.get('RABBIT_ENV_VHOST', 'localhost'))
+        hostname=os.environ.get('RABBIT_HOSTNAME', '127.0.0.1'),
+        vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
 
 # We don't want to have dead connections stored on rabbitmq, so we have to negotiate using heartbeats
 BROKER_HEARTBEAT = '?heartbeat=30'
