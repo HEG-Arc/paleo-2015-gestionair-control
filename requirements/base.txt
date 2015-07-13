@@ -47,4 +47,11 @@ pycall==2.2
 websocket==0.2.1
 
 # Lightshow
+pyusb==1.0.0b2
+pyserial==2.7
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi.pyftdi
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi.serialext
 pysimpledmx==0.1.0
+
+flower==0.8.2

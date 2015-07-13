@@ -24,13 +24,10 @@
 import datetime
 import os
 import random
-import pyglet
-#import pygame
 import subprocess
 from pycall import CallFile, Call, Application, Context
 import signal
 import random
-import ari
 import time
 
 
