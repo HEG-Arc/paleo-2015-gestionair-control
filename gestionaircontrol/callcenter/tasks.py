@@ -108,7 +108,7 @@ def create_call_file(phone):
         send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
     else:
         pass
-    play_dmx_scene.apply_async()
+    return phone
 
 
 def compute_player_score(player, languages_queryset):
@@ -461,7 +461,8 @@ class Endpoint:
 
     def call(self):
         print "New phone call %s" % self.number
-        create_call_file(self.number)
+        create_call_file.apply_async((self.number,), link=play_dmx_ring.s())
+
 
 @app.task(bind=True, base=AbortableTask)
 def callcenter_loop(self, nb_players):
@@ -595,9 +596,8 @@ def callcenter_stop():
 
 
 @app.task
-def play_dmx_scene():
-    scene = [(1, 99)]
-    print "DMX: %s" % scene
+def play_dmx_ring(phone):
+    print "DMX: RING %s" % phone
     # q.put(scene)
     # time.sleep(5)
     # scene = [(1, 0)]
