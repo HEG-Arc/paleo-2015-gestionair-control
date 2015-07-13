@@ -23,8 +23,12 @@
 # Stdlib imports
 import celery
 from kombu import Producer, Queue, Exchange
+from kombu import Connection
+from kombu.pools import connections
+
 
 # Core Django imports
+from django.conf import settings
 
 # Third-party app imports
 
@@ -32,14 +36,14 @@ from kombu import Producer, Queue, Exchange
 
 AMPQ_EXCHANGE = 'gestionair'
 
-
+connection_broker = Connection(settings.BROKER_URL)
 
 def send_amqp_message(message, routing):
-    connection = celery.current_app.pool.acquire()
-    exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
-    exchange.declare()
-    queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
-    queue.declare()
-    publisher = Producer(channel=connection, exchange=exchange)
-    publisher.publish(message, routing_key=routing)
-    publisher.close()
+    with connections[connection_broker].acquire(block=True) as connection:
+        exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
+        exchange.declare()
+        queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
+        queue.declare()
+        publisher = Producer(channel=connection, exchange=exchange)
+        publisher.publish(message, routing_key=routing)
+        publisher.close()
