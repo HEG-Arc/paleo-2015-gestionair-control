@@ -182,7 +182,7 @@ def init_simulation(self):
                     'orientation': phone.orientation} for phone in phones]
     message = {'type': 'GAME_START', 'endTime': (game_start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
-    send_amqp_message(message, "simulation.caller")
+    send_amqp_message(message, "simulation.control")
 
     while not self.is_aborted() and game_start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
@@ -207,13 +207,10 @@ def init_simulation(self):
             cache.set('callcenter', game_status)
             loop_task.abort()
             # Compute score
-            game = Game.objects.get(pk=game_id)
-            game.end_time = timezone.now()
-            game.save()
             print "Computing results..."
             scores = compute_scores(game_id)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
-            send_amqp_message(message, "simulation.caller")
+            send_amqp_message(message, "simulation.control")
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game_start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
@@ -221,6 +218,9 @@ def init_simulation(self):
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
             cache.delete('callcenter_loop')
+            game = Game.objects.get(pk=game_id)
+            game.end_time = timezone.now()
+            game.save()
 
     if not self.is_aborted():
         # Game is over!
@@ -333,11 +333,10 @@ def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER:
         current_game_id = get_current_game()
-        game = Game.objects.get(pk=current_game_id)
-        player = Player.objects.get(game=game, number=player_number)
+        player = Player.objects.get(game_id=current_game_id, number=player_number)
         translation = draw_question(player.id)
         response = {'question': translation.question.number, 'response': translation.question.department.number,
-                    'player': player.id, 'game': game.id, 'phone': phone_number, 'translation': translation.id,
+                    'player': player.id, 'game': current_game_id, 'phone': phone_number, 'translation': translation.id,
                     'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
         message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
                    'type': 'PLAYER_ANSWERING'}

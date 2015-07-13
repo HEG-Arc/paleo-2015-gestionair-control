@@ -36,13 +36,10 @@ AMPQ_EXCHANGE = 'gestionair'
 
 def send_amqp_message(message, routing):
     connection = celery.current_app.pool.acquire()
-
     exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
     exchange.declare()
     queue = Queue(name="simulator", exchange=exchange, routing_key='#', channel=connection)
     queue.declare()
-
     publisher = Producer(channel=connection, exchange=exchange)
-
     publisher.publish(message, routing_key=routing)
     publisher.close()
