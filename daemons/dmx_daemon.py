@@ -9,8 +9,6 @@ COM_PORT = '/dev/ttyUSB0'
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
 
-
-
 def send_dmx_scene(scene):
     for channel in scene:
         mydmx.setChannel(*channel)

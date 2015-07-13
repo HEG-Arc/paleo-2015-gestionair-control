@@ -25,6 +25,7 @@ import celery
 from kombu import Producer, Queue, Exchange
 from kombu import Connection
 from kombu.pools import connections
+from threading import Thread
 
 
 # Core Django imports
@@ -39,11 +40,14 @@ AMPQ_EXCHANGE = 'gestionair'
 connection_broker = Connection(settings.BROKER_URL)
 
 def send_amqp_message(message, routing):
-    print "New message: %s" % message
-    with connections[connection_broker].acquire(block=True) as connection:
-        exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
-        exchange.declare()
-        publisher = Producer(channel=connection, exchange=exchange)
-        publisher.publish(message, routing_key=routing)
-        publisher.close()
-        print "Sent..."
+    def thread():
+        print "New message: %s" % message
+        with connections[connection_broker].acquire(block=True) as connection:
+            exchange = Exchange(name=AMPQ_EXCHANGE, type="topic", channel=connection)
+            exchange.declare()
+            publisher = Producer(channel=connection, exchange=exchange)
+            publisher.publish(message, routing_key=routing)
+            publisher.close()
+            print "Sent..."
+    t = Thread(target=thread)
+    t.start()

@@ -134,24 +134,16 @@ def compute_scores(game_id):
 
 @app.task(bind=True, base=AbortableTask)
 def init_simulation(self):
-    loop_task = None
-    play_intro_task_id = None
-    play_powerdown_task_id = None
-
     game_id = cache.get('current_game', '')
-
     game_start_time = cache.get('game_start_time', timezone.now())
-
-    game_duration = settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL+settings.GAME_PHASE_POWERDOWN
+    game_duration = settings.GAME_PHASE_INTRO + settings.GAME_PHASE_CALL + settings.GAME_PHASE_POWERDOWN
 
     print "NEW GAME: %s started at %s" % (game_id, game_start_time)
 
     game_status = 'INIT'
     print "Simulation state -> %s" % game_status
     players = Player.objects.filter(game_id=game_id)
-    players_list = []
-    for player in players:
-        players_list.append({'id': player.number, 'name': player.name})
+    players_list = [{'id': player.number, 'name': player.name} for player in players]
     phones = Phone.objects.filter(usage=Phone.CENTER)
     phones_list = [{'number': phone.number, 'x': phone.position_x, 'y': phone.position_y,
                     'orientation': phone.orientation} for phone in phones]
@@ -170,24 +162,26 @@ def init_simulation(self):
             send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         # 37 : Call center
         elif game_status == 'INTRO' and game_start_time < timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
-            loop_task = callcenter_loop.apply_async([len(players_list)])
             game_status = 'CALL'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation")
-        # 217 : Powerdown
         elif game_status == 'CALL' and game_start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
+            callcenter_loop([len(players_list)])
+        # 217 : Powerdown
+        elif game_status == 'CALL' and game_start_time <= timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             #play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
-            loop_task.abort()
             send_amqp_message({"game": game_status, "type": "GAME_END"}, "simulation")
             # Compute score
             print "Computing results..."
             scores = compute_scores(game_id)
             message = {"game": game_status, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation")
+            print "IT'S TIME TO CLEAN-UP!"
+            clean_callcenter()
         # 247 : The END ;-)
         elif game_status == 'POWERDOWN' and game_start_time < timezone.now() - datetime.timedelta(seconds=game_duration):
             game_status = 'END'
@@ -198,6 +192,7 @@ def init_simulation(self):
             game = Game.objects.get(pk=game_id)
             game.end_time = timezone.now()
             game.save()
+        time.sleep(0.5)
 
     if not self.is_aborted():
         # Game is over!
@@ -209,27 +204,14 @@ def init_simulation(self):
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
     else:
         # Task is aborted!
-        try:
-            loop_task.abort()
-        except:
-            pass
-        try:
-            play_intro_task = AbortableAsyncResult(play_intro_task_id)
-            play_intro_task.abort()
-        except:
-            pass
-        try:
-            play_powerdown_task = AbortableAsyncResult(play_powerdown_task_id)
-            play_powerdown_task.abort()
-        except:
-            pass
-
         game_status = 'STOP'
         cache.set('callcenter', game_status)
         scores = []
         message = {"game": game_status, "type": "GAME_END", "scores": scores}
         send_amqp_message(message, "simulation")
         cache.delete_many(['game_start_time', 'current_game'])
+        print "IT'S TIME TO CLEAN-UP! FROM STOP"
+        clean_callcenter()
 
 
 def get_departments_numbers():
@@ -304,7 +286,6 @@ def draw_question(player_id=None):
     return question
 
 
-@app.task
 def agi_question(player_number, phone_number):
     print "PLAYER: %s | PHONE: %s" % (phone_number, phone_number)
     phone = Phone.objects.get(number=phone_number)
@@ -326,7 +307,6 @@ def agi_question(player_number, phone_number):
     return response
 
 
-@app.task
 def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER:
@@ -343,43 +323,42 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
         send_amqp_message(response, "simulation")
 
 
-@app.task(bind=True, base=AbortableTask)
-def aplayer(self, card, soundfile):
-    player = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
-    while not self.is_aborted():
-        time.sleep(0.5)
-    print "APLAYER ABORTED!"
-    player.kill()
+#
+# def aplayer(self, card, soundfile):
+#     player = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
+#     while not self.is_aborted():
+#         time.sleep(0.5)
+#     print "APLAYER ABORTED!"
+#     player.kill()
 
 
-def play_sound(sound, area):
-    if sound == 'ambiance':
-        soundfile = 'ambiance.wav'
-    elif sound == 'call':
-        soundfile = 'call.wav'
-    elif sound == 'intro':
-        soundfile = 'intro.wav'
-    elif sound == 'powerdown':
-        soundfile = 'powerdown.wav'
-    else:
-        soundfile = False
+# def play_sound(sound, area):
+#     if sound == 'ambiance':
+#         soundfile = 'ambiance.wav'
+#     elif sound == 'call':
+#         soundfile = 'call.wav'
+#     elif sound == 'intro':
+#         soundfile = 'intro.wav'
+#     elif sound == 'powerdown':
+#         soundfile = 'powerdown.wav'
+#     else:
+#         soundfile = False
+#
+#     if area == 'front':
+#         card = 'DGX'
+#     elif area == 'center':
+#         card = 'system'
+#     else:
+#         card = False
+#
+#     if soundfile and area:
+#         audio_player = aplayer.apply_async([card, soundfile])
+#         cache.set('player_%s' % sound, audio_player.id)
+#         return audio_player.id
+#
+#     return False
 
-    if area == 'front':
-        card = 'DGX'
-    elif area == 'center':
-        card = 'system'
-    else:
-        card = False
 
-    if soundfile and area:
-        audio_player = aplayer.apply_async([card, soundfile])
-        cache.set('player_%s' % sound, audio_player.id)
-        return audio_player.id
-
-    return False
-
-
-@app.task
 def clean_callcenter():
     print "DELETING CALL FILES..."
     subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
@@ -430,45 +409,40 @@ class Endpoint:
         create_call_file.apply_async((self.number,))
 
 
-@app.task(bind=True, base=AbortableTask)
-def callcenter_loop(self, nb_players):
+def callcenter_loop(nb_players):
     min_phone_ringing = nb_players
     phones = {}
 
-    while not self.is_aborted():
-        # check active endpoints and create or update our local phones
-        endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
-        for endpoint in endpoints:
-            endpoint_number = int(endpoint['resource'])
-            # only callcenter numbers
-            # TODO: Do it from the database
-            if 1000 < endpoint_number < 1100:
-                if endpoint_number not in phones.keys():
-                    print "create phone %s" % endpoint_number
-                    phones[endpoint_number] = Endpoint(endpoint_number)
-                phones[endpoint_number].setOnline(endpoint['state'] == 'online')
+    # check active endpoints and create or update our local phones
+    endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
+    for endpoint in endpoints:
+        endpoint_number = int(endpoint['resource'])
+        # only callcenter numbers
+        # TODO: Do it from the database
+        if 1000 < endpoint_number < 1100:
+            if endpoint_number not in phones.keys():
+                print "create phone %s" % endpoint_number
+                phones[endpoint_number] = Endpoint(endpoint_number)
+            phones[endpoint_number].setOnline(endpoint['state'] == 'online')
 
-        # update phone states
-        open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
-        ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
-        print "ringing channels %s " % ringing_channels
-        for number, phone in phones.iteritems():
-            #trigger cooldown handling of phones
-            phone.update_cooldown()
-            phone.update_ringing(number in ringing_channels)
+    # update phone states
+    open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
+    ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
+    print "ringing channels %s " % ringing_channels
+    for number, phone in phones.iteritems():
+        #trigger cooldown handling of phones
+        phone.update_cooldown()
+        phone.update_ringing(number in ringing_channels)
 
-        # check if we need to call phones
-        ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
-        print "ringing_phones length %s " % len(ringing_phones)
-        if len(ringing_phones) < min_phone_ringing:
-            available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
-            print "available phones count %s " % len(available_phones)
-            if len(available_phones) > 0:
-                phone = random.choice(available_phones)
-                phone.call()
-        time.sleep(1)
-    print "IT'S TIME TO CLEAN-UP!"
-    clean_callcenter.apply_async()
+    # check if we need to call phones
+    ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
+    print "ringing_phones length %s " % len(ringing_phones)
+    if len(ringing_phones) < min_phone_ringing:
+        available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
+        print "available phones count %s " % len(available_phones)
+        if len(available_phones) > 0:
+            phone = random.choice(available_phones)
+            phone.call()
 
 
 def get_gestionair_status():
@@ -549,8 +523,8 @@ def callcenter_stop():
     try:
         task = AbortableAsyncResult(loop_id)
         task.abort()
-    except:
-        pass
+    except Exception as e:
+        print e
     game_status = 'STOP'
     cache.set('callcenter', game_status)
     scores = []
@@ -559,12 +533,3 @@ def callcenter_stop():
     success = True
     message = "Game was stopped"
     return {'success': success, 'message': message, }
-
-
-@app.task
-def play_dmx_ring(phone):
-    print "DMX: RING %s" % phone
-    # q.put(scene)
-    # time.sleep(5)
-    # scene = [(1, 0)]
-    # q.put(scene)
