@@ -191,7 +191,7 @@ def init_simulation(self):
         if game_status == 'INIT':
             game_status = 'INTRO'
             print "Simulation state -> %s" % game_status
-            play_intro_task_id = play_sound('intro', 'center')
+            #play_intro_task_id = play_sound('intro', 'center')
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 37 : Call center
@@ -203,7 +203,7 @@ def init_simulation(self):
             send_amqp_message('{"game": "%s"}' % game_status, "simulation.control")
         # 217 : Powerdown
         elif game_status == 'CALL' and game_start_time < timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
-            play_powerdown_task_id = play_sound('powerdown', 'center')
+            #play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
