@@ -1,0 +1,58 @@
+db:
+  image: postgres:9.4
+  env_file: .env
+redis:
+  image: redis:2.8.21
+
+rabbitmq:
+  build: rabbitmq/
+  ports:
+    - "15672:15672" # here, we can access rabbitmq management plugin
+web:
+  build: .
+  env_file: .env
+  environment:
+    - PYTHONUNBUFFERED=1
+    - BROKER_URL=amqp://guest:guest@rabbitmq//
+  command: bash -c "sleep 3 && python manage.py runserver_plus 0.0.0.0:8080" 
+  working_dir: /app
+  volumes:
+    - .:/app
+  ports:
+    - "8080:8080"
+  links:
+    - db:db
+    - rabbitmq:rabbitmq
+    - redis:redis
+worker:
+  build: .
+  env_file: .env
+  environment:
+    - PYTHONUNBUFFERED=1
+    - C_FORCE_ROOT=true
+    - BROKER_URL=amqp://guest:guest@rabbitmq//
+  command: bash -c "sleep 3 && celery -A config.celery worker" 
+  working_dir: /app
+  volumes:
+    - .:/app
+  links:
+    - db:db
+    - rabbitmq:rabbitmq
+    - redis:redis
+flower:
+  build: .
+  env_file: .env
+  environment:
+    - PYTHONUNBUFFERED=1
+    - C_FORCE_ROOT=true
+    - BROKER_URL=amqp://guest:guest@rabbitmq//
+  command: bash -c "sleep 3 && celery -A config.celery flower --port=5555" 
+  working_dir: /app
+  volumes:
+    - .:/app
+  ports:
+    - "5555:5555"    
+  links:
+    - db:db
+    - rabbitmq:rabbitmq
+    - redis:redis

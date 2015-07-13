@@ -267,9 +267,36 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+# Sensible settings for celery
+CELERY_ALWAYS_EAGER = False
+CELERY_ACKS_LATE = True
+CELERY_TASK_PUBLISH_RETRY = True
+CELERY_DISABLE_RATE_LIMITS = False
+# By default we will ignore result
+# If you want to see results and try out tasks interactively, change it to False
+# Or change this setting on tasks level
 CELERY_IGNORE_RESULT = True
+CELERY_SEND_TASK_ERROR_EMAILS = False
+CELERY_TASK_RESULT_EXPIRES = 600
 
+# Don't use pickle as serializer, json is much safer
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ['application/json']
+
+BROKER_URL = os.environ.get('BROKER_URL','')
+if not BROKER_URL:
+    BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
+        user=os.environ.get('RABBIT_ENV_USER', 'guest'),
+        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'guest'),
+        hostname=RABBIT_HOSTNAME,
+        vhost=os.environ.get('RABBIT_ENV_VHOST', 'localhost'))
+
+# We don't want to have dead connections stored on rabbitmq, so we have to negotiate using heartbeats
+BROKER_HEARTBEAT = '?heartbeat=30'
+if not BROKER_URL.endswith(BROKER_HEARTBEAT):
+    BROKER_URL += BROKER_HEARTBEAT
 BROKER_POOL_LIMIT = 20
+BROKER_CONNECTION_TIMEOUT = 10
 
 GAME_PHASE_INTRO = 37
 GAME_PHASE_CALL = 60

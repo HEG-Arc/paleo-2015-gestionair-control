@@ -30,10 +30,14 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND',
 
 # CACHING
 # ------------------------------------------------------------------------------
+
+REDIS_PORT_NUMBER = os.environ.get('REDIS_PORT_NUMBER', 6379)
+REDIS_DB = os.environ.get('REDIS_DB', 1)
+REDIS_HOST = os.environ.get('REDIS_PORT_6379_TCP_ADDR', '127.0.0.1')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://%s:%d/%d" % (REDIS_HOST, REDIS_PORT_NUMBER, REDIS_DB),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
