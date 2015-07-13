@@ -1,9 +1,8 @@
 from django.conf import settings
-import pysimpledmx
 import pika
 import json
 from gestionaircontrol.callcenter.models import Phone
-
+from gestionaircontrol.callcenter import pysimpledmx
 
 COM_PORT = '/dev/ttyUSB0'
 
