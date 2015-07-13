@@ -173,6 +173,7 @@ def init_simulation(self):
     print "NEW GAME: %s started at %s" % (game_id, game_start_time)
 
     game_status = 'INIT'
+    print "Simulation state -> %s" % game_status
     players = Player.objects.filter(game_id=game_id)
     players_list = []
     for player in players:
@@ -183,6 +184,7 @@ def init_simulation(self):
     message = {'type': 'GAME_START', 'endTime': (game_start_time + datetime.timedelta(seconds=game_duration)).isoformat(),
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation.control")
+    print "Message GAME_START sent"
 
     while not self.is_aborted() and game_start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
