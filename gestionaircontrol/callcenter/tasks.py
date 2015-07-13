@@ -151,7 +151,7 @@ def init_simulation(self):
                'players': players_list, 'phones': phones_list}
     send_amqp_message(message, "simulation")
     print "Message GAME_START sent"
-
+    local_endpoints_states = {}
     while not self.is_aborted() and game_start_time > timezone.now() - datetime.timedelta(seconds=game_duration + settings.GAME_PHASE_END):
         # 00 : Intro
         if game_status == 'INIT':
@@ -167,7 +167,8 @@ def init_simulation(self):
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         elif game_status == 'CALL' and game_start_time >= timezone.now() - datetime.timedelta(seconds=settings.GAME_PHASE_INTRO):
-            callcenter_loop([len(players_list)])
+            print "call loop"
+            callcenter_loop(local_endpoints_states, [len(players_list)])
         # 217 : Powerdown
         elif game_status == 'CALL' and game_start_time <= timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
             #play_powerdown_task_id = play_sound('powerdown', 'center')
@@ -409,9 +410,8 @@ class Endpoint:
         create_call_file.apply_async((self.number,))
 
 
-def callcenter_loop(nb_players):
+def callcenter_loop(phones, nb_players):
     min_phone_ringing = nb_players
-    phones = {}
 
     # check active endpoints and create or update our local phones
     endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
