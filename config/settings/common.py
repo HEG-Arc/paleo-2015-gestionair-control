@@ -312,3 +312,4 @@ MAX_PLAYERS = 6
 
 DMX_COM_PORT = '/dev/ttyUSB6'
 
+ALLOWED_HOSTS = ['*']
