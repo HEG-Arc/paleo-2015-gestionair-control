@@ -57,8 +57,8 @@ import pysimpledmx
 import Queue
 from threading import Thread
 
-COM_PORT = '/dev/ttyUSB6'
-
+# COM_PORT = '/dev/ttyUSB0'
+#
 # q = Queue.Queue()
 #
 # def send_dmx_scene():
