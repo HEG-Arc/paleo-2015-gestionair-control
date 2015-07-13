@@ -108,7 +108,7 @@ def create_call_file(phone):
         send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "asterisk.call")
     else:
         pass
-    play_dmx_scene.apply_async()
+    #play_dmx_scene.apply_async()
 
 
 def compute_player_score(player, languages_queryset):
