@@ -52,34 +52,33 @@ AUTH = ('paleo', 'paleo7top')
 @app.task
 def create_call_file(phone):
     callcenter = cache.get('callcenter', 'STOP')
-    if callcenter == 'CALL':
-        print "PHONE %s" % phone
-        type = Phone.objects.get(number=phone).usage
-        if type == Phone.PUBLIC:
-            wait = 20
-            extension = 6666
-            context = 'paleo-jukebox'
-        elif type == Phone.DEMO:
-            wait = 10
-            extension = 2001
-            context = 'paleo-callcenter'
-        elif type == Phone.CENTER:
-            wait = 10
-            extension = 2001
-            context = 'paleo-callcenter'
-        else:
-            context = None
-        print type
-        print context
-        if context:
-            c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
-            x = Context(context, str(extension), '1')
-            cf = CallFile(c, x)
-            cf.spool()
-            subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
-            send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "simulation")
-        else:
-            pass
+    print "PHONE %s" % phone
+    type = Phone.objects.get(number=phone).usage
+    if type == Phone.PUBLIC:
+        wait = 20
+        extension = 6666
+        context = 'paleo-jukebox'
+    elif type == Phone.DEMO:
+        wait = 10
+        extension = 2001
+        context = 'paleo-callcenter'
+    elif type == Phone.CENTER and callcenter == 'CALL':
+        wait = 10
+        extension = 2001
+        context = 'paleo-callcenter'
+    else:
+        context = None
+    print type
+    print context
+    if context:
+        c = Call('SIP/%s' % phone, wait_time=wait, retry_time=1, max_retries=1)
+        x = Context(context, str(extension), '1')
+        cf = CallFile(c, x)
+        cf.spool()
+        subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
+        send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "simulation")
+    else:
+        pass
 
 
 def compute_player_score(player, languages_queryset):

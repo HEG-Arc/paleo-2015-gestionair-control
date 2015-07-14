@@ -16,7 +16,7 @@ def send_dmx_scene(scene):
             mydmx.setChannel(*channel)
         mydmx.render()
 
-def set_dmx_color(scene, channel, r, g, b, w):
+def set_phone_color(scene, channel, r, g, b, w):
     if r:
         scene.append((1, 222))
         scene.append((2, 12))
@@ -38,12 +38,19 @@ def set_dmx_color(scene, channel, r, g, b, w):
     # scene.append((channel + 3, w))
 
 
+def set_dominator_color(scene, effect):
+    if effect == 'call':
+        scene.append((1, 120))
+    else:
+        scene.append((1, 0))
+
+
 def play_dmx_from_event(event):
     scene = []
     phones = {}
     # for debug
     phones = {'1001': 1, '1002': 5, '1003': 9, '1004': 13}
-    effects = {'strobe': 99, 'dominator': 333, 'par56': 222, 'par64': 444, 'd1': 111, 'd2': 112, 'd3': 113, 'd4': 114}
+    effects = {'strobe': 110, 'dominator': 100, 'par56': 222, 'par64': 120, 'd1': 141, 'd2': 142, 'd3': 143, 'd4': 144}
     # TODO: retrieve from DB
     #phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
     #for phone in phones_list:
@@ -51,30 +58,30 @@ def play_dmx_from_event(event):
 
     if event['type'] == 'GAME_START':
         for number, channel in phones.iteritems():
-            set_dmx_color(scene, channel, 0, 0, 0, 100)
+            set_phone_color(scene, channel, 0, 0, 0, 100)
     elif event['type'] == 'PHONE_RINGING':
         number = event['number']
         channel = phones[number]
-        set_dmx_color(scene, channel, 0, 0, 200, 0)
+        set_phone_color(scene, channel, 0, 0, 200, 0)
     elif event['type'] == 'PHONE_STOPRINGING':
         number = event['number']
         channel = phones[number]
-        set_dmx_color(scene, channel, 0, 0, 0, 0)
+        set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PLAYER_ANSWERING':
         number = event['number']
         channel = phones[number]
-        set_dmx_color(scene, channel, 0, 0, 100, 0)
+        set_phone_color(scene, channel, 0, 0, 100, 0)
     elif event['type'] == 'PLAYER_ANSWERED':
         number = event['number']
         channel = phones[number]
         correct = event['correct']
         if correct:
-            set_dmx_color(scene, channel, 0, 200, 0, 0)
+            set_phone_color(scene, channel, 0, 200, 0, 0)
         else:
-            set_dmx_color(scene, channel, 200, 0, 0, 0)
+            set_phone_color(scene, channel, 200, 0, 0, 0)
     elif event['type'] == 'GAME_END':
         for number, channel in phones.iteritems():
-            set_dmx_color(scene, channel, 0, 0, 0, 0)
+            set_phone_color(scene, channel, 0, 0, 0, 0)
     send_dmx_scene(scene)
 
 
