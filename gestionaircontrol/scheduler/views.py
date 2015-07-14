@@ -44,7 +44,7 @@ from django.db.models import F, Count
 
 # paleo2015 imports
 from gestionaircontrol.callcenter.tasks import create_call_file, callcenter_start, get_gestionair_status, demo_start, callcenter_stop
-from .messaging import send_amqp_message
+from gestionaircontrol.scheduler.messaging import send_amqp_message
 from .models import Timeslot, Booking, Game
 from .forms import TimeslotCreationForm, GameForm, PlayerFormSet
 
@@ -78,7 +78,7 @@ def ring(request, number):
 
 @login_required()
 def call(request):
-    #TODO send message {'type':'PLAY_SOUND', 'sound':'call', 'area':'front'}
+    send_amqp_message({'type': 'PLAY_SOUND', 'sound': 'call', 'area': 'front'}, "simulation")
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
@@ -87,7 +87,7 @@ def call(request):
 
 @login_required()
 def ambiance(request):
-    #TODO send message {'type':'PLAY_SOUND', 'sound':'ambiance', 'area':'front'}
+    send_amqp_message({'type': 'PLAY_SOUND', 'sound': 'ambiance', 'area': 'front'}, "simulation")
     success = True
     message = "Ambiance was started"
     result = {'success': success, 'message': message}
