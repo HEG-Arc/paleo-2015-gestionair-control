@@ -84,7 +84,6 @@ def call(request):
     result = {'success': success, 'message': message}
     return JsonResponse(result)
 
-
 @login_required()
 def ambiance(request):
     send_amqp_message({'type': 'PLAY_SOUND', 'sound': 'ambiance', 'area': 'front'}, "simulation")
@@ -93,6 +92,13 @@ def ambiance(request):
     result = {'success': success, 'message': message}
     return JsonResponse(result)
 
+@login_required()
+def sound_stop(request):
+    send_amqp_message({'type': 'STOP', 'area': 'front'}, "simulation")
+    success = True
+    message = "Sound was stopped"
+    result = {'success': success, 'message': message}
+    return JsonResponse(result)
 
 def status(request):
     status = get_gestionair_status()

@@ -34,6 +34,7 @@ from . import views
 urlpatterns = [
     url(r'^start/', views.start, name='start'),
     url(r'^status/', views.status, name='status'),
+    url(r'^stop/sound/', views.sound_stop, name='sound-stop'),
     url(r'^stop/', views.stop, name='stop'),
     url(r'^demo/', views.demo, name='demo'),
     url(r'^call/', views.call, name='call'),
