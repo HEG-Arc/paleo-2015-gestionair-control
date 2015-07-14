@@ -22,19 +22,14 @@
 
 # Stdlib imports
 import datetime
-import os
-import random
 import subprocess
-from pycall import CallFile, Call, Application, Context
-import signal
 import random
 import time
+
+from pycall import CallFile, Call, Context
 import requests
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
-import pytz
-import pysimpledmx
-import Queue
-from threading import Thread
+
 
 
 # Core Django imports
@@ -47,7 +42,7 @@ from django.utils import timezone
 # paleo-2015-gestionair-control imports
 from config.celery import app
 from gestionaircontrol.scheduler.messaging import send_amqp_message
-from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Question, Translation, Phone
+from gestionaircontrol.callcenter.models import Game, Player, Answer, Department, Language, Translation, Phone
 
 
 URL = 'http://192.168.1.1:8088'
