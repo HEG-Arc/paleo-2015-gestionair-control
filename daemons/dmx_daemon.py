@@ -1,9 +1,9 @@
 import json
-
 import pika
-
-from gestionaircontrol.callcenter.models import Phone
 import pysimpledmx
+
+#from gestionaircontrol.callcenter.models import Phone
+
 
 COM_PORT = '/dev/ttyUSB0'
 
@@ -38,26 +38,29 @@ def set_dmx_color(scene, channel, r, g, b, w):
 def play_dmx_from_event(event):
     scene = []
     phones = {}
-    phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
-    for phone in phones_list:
-        phones[phone.number] = phone.dmx_channel
+    # for debug
+    phones = {'1001': 1, '1002': 5, '1003': 9, '1004': 13}
+    # TODO: retrieve from DB
+    #phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
+    #for phone in phones_list:
+    #    phones[phone.number] = phone.dmx_channel
 
-    if event['type']=='GAME_START':
+    if event['type'] == 'GAME_START':
         for number, channel in phones.iteritems():
             set_dmx_color(scene, channel, 0, 0, 0, 100)
-    elif event['type']=='PHONE_RINGING':
+    elif event['type'] == 'PHONE_RINGING':
         number = event['number']
         channel = phones[number]
         set_dmx_color(scene, channel, 0, 0, 200, 0)
-    elif event['type']=='PHONE_STOPRINGING':
+    elif event['type'] == 'PHONE_STOPRINGING':
         number = event['number']
         channel = phones[number]
         set_dmx_color(scene, channel, 0, 0, 0, 0)
-    elif event['type']=='PLAYER_ANSWERING':
+    elif event['type'] == 'PLAYER_ANSWERING':
         number = event['number']
         channel = phones[number]
         set_dmx_color(scene, channel, 0, 0, 100, 0)
-    elif event['type']=='PLAYER_ANSWERED':
+    elif event['type'] == 'PLAYER_ANSWERED':
         number = event['number']
         channel = phones[number]
         correct = event['correct']
@@ -65,7 +68,7 @@ def play_dmx_from_event(event):
             set_dmx_color(scene, channel, 0, 200, 0, 0)
         else:
             set_dmx_color(scene, channel, 200, 0, 0, 0)
-    elif event['type']=='GAME_END':
+    elif event['type'] == 'GAME_END':
         for number, channel in phones.iteritems():
             set_dmx_color(scene, channel, 0, 0, 0, 0)
 
