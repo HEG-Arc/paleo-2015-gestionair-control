@@ -78,7 +78,7 @@ def ring(request, number):
 
 @login_required()
 def call(request):
-    #play_sound('call', 'front')
+    #TODO send message {'type':'PLAY_SOUND', 'sound':'call', 'area':'front'}
     success = True
     message = "Call was started"
     result = {'success': success, 'message': message}
@@ -87,7 +87,7 @@ def call(request):
 
 @login_required()
 def ambiance(request):
-    #play_sound('ambiance', 'front')
+    #TODO send message {'type':'PLAY_SOUND', 'sound':'ambiance', 'area':'front'}
     success = True
     message = "Ambiance was started"
     result = {'success': success, 'message': message}

@@ -157,7 +157,6 @@ def init_simulation(self):
         if game_status == 'INIT':
             game_status = 'INTRO'
             print "Simulation state -> %s" % game_status
-            #play_intro_task_id = play_sound('intro', 'center')
             cache.set('callcenter', game_status)
             send_amqp_message('{"game": "%s"}' % game_status, "simulation")
         # 37 : Call center
@@ -171,7 +170,6 @@ def init_simulation(self):
             callcenter_loop(local_endpoints_states, [len(players_list)])
         # 217 : Powerdown
         elif game_status == 'CALL' and game_start_time <= timezone.now() - datetime.timedelta(seconds=(settings.GAME_PHASE_INTRO+settings.GAME_PHASE_CALL)):
-            #play_powerdown_task_id = play_sound('powerdown', 'center')
             game_status = 'POWERDOWN'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
@@ -188,7 +186,7 @@ def init_simulation(self):
             game_status = 'END'
             print "Simulation state -> %s" % game_status
             cache.set('callcenter', game_status)
-            send_amqp_message('{"game": "%s"}' % game_status, "simulation")
+            send_amqp_message('{"game": "%s", "type":"STOP"}' % game_status, "simulation")
             cache.delete('callcenter_loop')
             game = Game.objects.get(pk=game_id)
             game.end_time = timezone.now()
@@ -200,7 +198,7 @@ def init_simulation(self):
         game_status = 'STOP'
         print "Simulation state -> %s" % game_status
         cache.set('callcenter', game_status)
-        send_amqp_message('{"game": "%s"}' % game_status, "simulation")
+        send_amqp_message('{"game": "%s", "type":"STOP"}' % game_status, "simulation")
         # Delete cache
         cache.delete_many(['game_start_time', 'current_game', 'callcenter_loop'])
     else:
@@ -210,6 +208,7 @@ def init_simulation(self):
         scores = []
         message = {"game": game_status, "type": "GAME_END", "scores": scores}
         send_amqp_message(message, "simulation")
+        send_amqp_message({"type":"STOP"}, "simulation")
         cache.delete_many(['game_start_time', 'current_game'])
         print "IT'S TIME TO CLEAN-UP! FROM STOP"
         clean_callcenter()
@@ -319,45 +318,9 @@ def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_numb
         new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=loc_pickup_time,
                             hangup_time=timezone.now(), correct=correct)
         new_answer.save()
-        #dmx_phone_answer_scene.apply_async(phone.number, correct)
         response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': int(correct), 'number': phone.number}
         send_amqp_message(response, "simulation")
 
-
-#
-# def aplayer(self, card, soundfile):
-#     player = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
-#     while not self.is_aborted():
-#         time.sleep(0.5)
-#     print "APLAYER ABORTED!"
-#     player.kill()
-
-
-# def play_sound(sound, area):
-#     if sound == 'ambiance':
-#         soundfile = 'ambiance.wav'
-#     elif sound == 'call':
-#         soundfile = 'call.wav'
-#     elif sound == 'intro':
-#         soundfile = 'intro.wav'
-#     elif sound == 'powerdown':
-#         soundfile = 'powerdown.wav'
-#     else:
-#         soundfile = False
-#
-#     if area == 'front':
-#         card = 'DGX'
-#     elif area == 'center':
-#         card = 'system'
-#     else:
-#         card = False
-#
-#     if soundfile and area:
-#         audio_player = aplayer.apply_async([card, soundfile])
-#         cache.set('player_%s' % sound, audio_player.id)
-#         return audio_player.id
-#
-#     return False
 
 
 def clean_callcenter():
@@ -514,6 +477,8 @@ def demo_start():
     return {'success': success, 'message': message, }
 
 
+#TODO refactor callcenter_stop, clean, ...
+
 @app.task
 def callcenter_stop():
     game = Game.objects.get(pk=get_current_game())
@@ -532,6 +497,7 @@ def callcenter_stop():
     scores = []
     message = {"game": "STOP", "type": "GAME_END", "scores": scores}
     send_amqp_message(message, "simulation")
+    send_amqp_message({"type":"STOP"}, "simulation")
     success = True
     message = "Game was stopped"
     return {'success': success, 'message': message, }
