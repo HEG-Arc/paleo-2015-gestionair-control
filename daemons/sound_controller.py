@@ -30,25 +30,42 @@ from threading import Thread
 abort = {'front': False, 'center': False}
 
 
-def aplayer(card, soundfile):
+def aplayer(area, card, soundfile, loop=False, callback=None, volume=50):
     def thread():
         print "Playing: %s on %s" % (soundfile, card)
-        player = subprocess.Popen(['aplay', '-D',  'front:CARD=%s,DEV=0' % card,  '/home/gestionair/%s' % soundfile])
-        while not abort[card] and player.returncode is None:
+        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/home/gestionair/%s' % soundfile, '-volume', '%s' % volume]
+        if loop:
+            command.append('-loop')
+            command.append('0')
+        player = subprocess.Popen(command)
+        while not abort[area] and player.returncode is None:
             time.sleep(0.5)
             player.poll()
         if player.returncode is None:
             player.kill()
+        elif callback:
+            callback()
+
         print "APLAYER END: %s " % player.returncode
     t = Thread(target=thread)
     t.start()
 
 
 def play_sound(sound, area):
+    callback = None
+    loop = None
+    volume = 50
     if sound == 'ambiance':
         soundfile = 'ambiance.wav'
+        loop = 0
+        volume = 30
     elif sound == 'call':
         soundfile = 'call.wav'
+        abort[area] = True
+        time.sleep(0.6)
+        abort[area] = False
+        callback = lambda: play_sound('ambiance', area)
+        volume = 100
     elif sound == 'intro':
         soundfile = 'intro.wav'
     elif sound == 'powerdown':
@@ -57,14 +74,16 @@ def play_sound(sound, area):
         soundfile = False
 
     if area == 'front':
-        card = 'DGX'
+        card = '2'
     elif area == 'center':
-        card = 'system'
+        card = '0'
     else:
         card = False
 
     if soundfile and area:
-        aplayer(card, soundfile)
+        print "PLAYING %s %s" % (soundfile, area)
+        aplayer(area, card, soundfile, loop=loop, callback=callback, volume=volume)
+
 
 def play_sound_from_event(event):
     global abort
@@ -82,19 +101,22 @@ def play_sound_from_event(event):
     elif event['type']=='GAME_END':
         play_sound('powerdown', 'center')
     elif event['type'] == 'STOP':
-        abort['center'] = True
+        abort[event['area'] or 'center'] = True
     if event['type'] == 'PLAY_SOUND':
-        play_sound(event.sound, event.area)
+        play_sound(event['sound'], event['area'])
+
 
 
 def on_message(channel, method_frame, header_frame, body):
     try:
         message = json.loads(body)
         if 'type' in message:
+            print message
             play_sound_from_event(message)
-    except:
-        pass
+    except Exception as e:
+        print e
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
 
 parameters = pika.URLParameters('amqp://guest:guest@192.168.1.1:5672/%2F')
 connection = pika.BlockingConnection(parameters=parameters)
