@@ -11,10 +11,10 @@ mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
 
 def send_dmx_scene(scene):
-    for channel in scene:
-        mydmx.setChannel(*channel)
-        print "Channel (%s, %s)" % channel
-    mydmx.render()
+    if len(scene) > 0:
+        for channel in scene:
+            mydmx.setChannel(*channel)
+        mydmx.render()
 
 def set_dmx_color(scene, channel, r, g, b, w):
     if r:
@@ -29,6 +29,9 @@ def set_dmx_color(scene, channel, r, g, b, w):
     elif w:
         scene.append((1, 222))
         scene.append((2, 32))
+    else:
+        scene.append((1, 222))
+        scene.append((2, 222))
     # scene.append((channel + 0, r))
     # scene.append((channel + 1, g))
     # scene.append((channel + 2, b))
@@ -40,6 +43,7 @@ def play_dmx_from_event(event):
     phones = {}
     # for debug
     phones = {'1001': 1, '1002': 5, '1003': 9, '1004': 13}
+    effects = {'strobe': 99, 'dominator': 333, 'par56': 222, 'par64': 444, 'd1': 111, 'd2': 112, 'd3': 113, 'd4': 114}
     # TODO: retrieve from DB
     #phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
     #for phone in phones_list:
@@ -71,13 +75,15 @@ def play_dmx_from_event(event):
     elif event['type'] == 'GAME_END':
         for number, channel in phones.iteritems():
             set_dmx_color(scene, channel, 0, 0, 0, 0)
-
+    send_dmx_scene(scene)
 
 
 def on_message(channel, method_frame, header_frame, body):
     try:
         message = json.loads(body)
+        print message
         if 'type' in message:
+            print message['type']
             play_dmx_from_event(message)
     except Exception as e:
         print e
