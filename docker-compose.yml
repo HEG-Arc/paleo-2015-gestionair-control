@@ -8,7 +8,7 @@ redis:
   image: redis:2.8.21
 
 rabbitmq:
-  build: rabbitmq/
+  build: docker/rabbitmq/
   ports:
     - "15672:15672" # here, we can access rabbitmq management plugin
 web:
@@ -59,3 +59,14 @@ flower:
     - db:db
     - rabbitmq:rabbitmq
     - redis:redis
+gestionairtv:
+  build: docker/gestionairtv
+nginx:
+  build: docker/nginx
+  volumes_from:
+     - gestionairtv
+     - web
+  ports:
+    - "80:80"
+  links:
+    - web:web
