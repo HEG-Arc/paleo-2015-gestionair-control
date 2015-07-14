@@ -51,21 +51,27 @@ def aplayer(area, card, soundfile, loop=False, callback=None, volume=50):
     t.start()
 
 
-def play_sound(sound, area):
+def play_sound(sound, area, volume=None):
     callback = None
     loop = None
-    volume = 50
+    if volume is None:
+        volume = 30
     if sound == 'ambiance':
+        abort[area] = True
+        time.sleep(0.6)
+        abort[area] = False
         soundfile = 'ambiance.wav'
         loop = 0
-        volume = 30
+        if volume is None:
+              volume = 30
     elif sound == 'call':
         soundfile = 'call.wav'
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
         callback = lambda: play_sound('ambiance', area)
-        volume = 100
+        if volume is None:
+            volume = 100
     elif sound == 'intro':
         soundfile = 'intro.wav'
     elif sound == 'powerdown':
@@ -86,6 +92,9 @@ def play_sound(sound, area):
 
 
 def play_sound_from_event(event):
+    volume = 50
+    if 'volume' in event:
+        volume = event['volume']
     if event['type']=='GAME_START':
         abort['center'] = False
         play_sound('intro', 'center')
@@ -103,7 +112,7 @@ def play_sound_from_event(event):
         abort[event['area'] or 'center'] = True
     if event['type'] == 'PLAY_SOUND':
         abort[event['area']] = False
-        play_sound(event['sound'], event['area'])
+        play_sound(event['sound'], event['area'], volume=volume)
 
 
 
