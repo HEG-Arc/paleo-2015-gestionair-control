@@ -79,8 +79,8 @@ def on_message(channel, method_frame, header_frame, body):
         message = json.loads(body)
         if 'type' in message:
             play_dmx_from_event(message)
-    except:
-        pass
+    except Exception as e:
+        print e
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 parameters = pika.URLParameters('amqp://guest:guest@192.168.1.1:5672/%2F')
