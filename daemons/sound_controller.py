@@ -86,7 +86,6 @@ def play_sound(sound, area):
 
 
 def play_sound_from_event(event):
-    global abort
     if event['type']=='GAME_START':
         abort['center'] = False
         play_sound('intro', 'center')
@@ -103,6 +102,7 @@ def play_sound_from_event(event):
     elif event['type'] == 'STOP':
         abort[event['area'] or 'center'] = True
     if event['type'] == 'PLAY_SOUND':
+        abort[event['area']] = False
         play_sound(event['sound'], event['area'])
 
 
