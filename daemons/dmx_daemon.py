@@ -76,7 +76,7 @@ def powerdown_scene():
         time.sleep(1)
     # Black
     for number, channel in PHONES.iteritems():
-        set_phone_color(scene, channel, 0, 0, 250 - i * 50, 0)
+        set_phone_color(scene, channel, 0, 0, 0, 0)
     send_dmx_scene(scene)
 
 
@@ -96,19 +96,19 @@ def play_dmx_from_event(event):
             set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PHONE_RINGING':
         number = event['number']
-        channel = PHONES[number]
+        channel = PHONES['%s' % number]
         set_phone_color(scene, channel, 0, 0, 255, 0)
     elif event['type'] == 'PHONE_STOPRINGING':
         number = event['number']
-        channel = PHONES[number]
+        channel = PHONES['%s' % number]
         set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PLAYER_ANSWERING':
         number = event['number']
-        channel = PHONES[number]
+        channel = PHONES['%s' % number]
         set_phone_color(scene, channel, 0, 0, 100, 0)
     elif event['type'] == 'PLAYER_ANSWERED':
         number = event['number']
-        channel = PHONES[number]
+        channel = PHONES['%s' % number]
         correct = event['correct']
         if correct:
             set_phone_color(scene, channel, 0, 255, 0, 0)
