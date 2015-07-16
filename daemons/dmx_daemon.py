@@ -2,16 +2,16 @@ import json
 import pika
 import pysimpledmx
 import logging
+import time
 
 logging.basicConfig()
-
-#from gestionaircontrol.callcenter.models import Phone
-
 
 COM_PORT = '/dev/ttyUSB5'
 
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
+EFFECTS = {'strobe': 101}
+PHONES = {'1001': 1, '1002': 5, '1003': 9, '1004': 13, '1005': 17, '1006': 21, '1007': 25, '1008': 29, '1009': 33, '1010': 37}
 
 def send_dmx_scene(scene):
     if len(scene) > 0:
@@ -25,51 +25,77 @@ def set_phone_color(scene, channel, r, g, b, w):
     scene.append((channel + 2, b))
     scene.append((channel + 3, w))
 
+def powerdown_scene():
+    scene = []
+    # Strobe
+    scene.append((EFFECTS['strobe'], 255))  # CH1 intensité
+    scene.append((EFFECTS['strobe'] + 1, 255))  # CH2 vitesse
+    scene.append((EFFECTS['strobe'] + 6, 40))  # CH7 mode (35-69 zone 1-3)
+    # Tous téléphones bleu
+    for number, channel in PHONES.iteritems():
+        set_phone_color(scene, channel, 0, 0, 255, 0)
+    send_dmx_scene(scene)
+    scene = []
+    # Attendre 2 secondes
+    time.sleep(2)
+    # Stop le strobo
+    scene.append((EFFECTS['strobe'], 0))  # CH1 intensité
+    scene.append((EFFECTS['strobe'] + 6, 40))  # CH7 mode (35-69 zone 1-3)
+    send_dmx_scene(scene)
+    scene = []
+    # Fade out
+    for i in range(1, 5):
+        for number, channel in PHONES.iteritems():
+            set_phone_color(scene, channel, 0, 0, 250 - i * 50, 0)
+        send_dmx_scene(scene)
+        scene = []
+        time.sleep(1)
+    # Black
+    for number, channel in PHONES.iteritems():
+        set_phone_color(scene, channel, 0, 0, 250 - i * 50, 0)
+    send_dmx_scene(scene)
 
-def set_dominator_color(scene, effect):
-    if effect == 'call':
-        scene.append((1, 120))
-    else:
-        scene.append((1, 0))
+
+def stop_scene(scene):
+    for number, channel in PHONES.iteritems():
+        set_phone_color(scene, channel, 0, 0, 0, 0)
 
 
 def play_dmx_from_event(event):
     scene = []
-    phones = {}
-    # for debug
-    phones = {'1001': 1, '1002': 5, '1003': 9, '1004': 13}
-    effects = {'strobe': 110}
-    # TODO: retrieve from DB
-    #phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
-    #for phone in phones_list:
-    #    phones[phone.number] = phone.dmx_channel
 
     if event['type'] == 'GAME_START':
-        for number, channel in phones.iteritems():
-            set_phone_color(scene, channel, 0, 0, 0, 100)
+        for number, channel in PHONES.iteritems():
+            set_phone_color(scene, channel, 0, 0, 255, 0)
+    if event['type'] == 'GAME_START_PLAYING':
+        for number, channel in PHONES.iteritems():
+            set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PHONE_RINGING':
         number = event['number']
-        channel = phones[number]
-        set_phone_color(scene, channel, 0, 0, 200, 0)
+        channel = PHONES[number]
+        set_phone_color(scene, channel, 0, 0, 255, 0)
     elif event['type'] == 'PHONE_STOPRINGING':
         number = event['number']
-        channel = phones[number]
+        channel = PHONES[number]
         set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PLAYER_ANSWERING':
         number = event['number']
-        channel = phones[number]
+        channel = PHONES[number]
         set_phone_color(scene, channel, 0, 0, 100, 0)
     elif event['type'] == 'PLAYER_ANSWERED':
         number = event['number']
-        channel = phones[number]
+        channel = PHONES[number]
         correct = event['correct']
         if correct:
-            set_phone_color(scene, channel, 0, 200, 0, 0)
+            set_phone_color(scene, channel, 0, 255, 0, 0)
         else:
-            set_phone_color(scene, channel, 200, 0, 0, 0)
+            set_phone_color(scene, channel, 255, 0, 0, 0)
     elif event['type'] == 'GAME_END':
-        for number, channel in phones.iteritems():
-            set_phone_color(scene, channel, 0, 0, 0, 0)
+        # TODO: Détacher le proc
+        powerdown_scene()
+    elif event['type'] == 'STOP':
+        stop_scene(scene)
+
     send_dmx_scene(scene)
 
 
