@@ -26,6 +26,9 @@ import json
 import subprocess
 import time
 from threading import Thread
+import logging
+
+logging.basicConfig()
 
 abort = {'front': False, 'center': False}
 

@@ -1,11 +1,14 @@
 import json
 import pika
 import pysimpledmx
+import logging
+
+logging.basicConfig()
 
 #from gestionaircontrol.callcenter.models import Phone
 
 
-COM_PORT = '/dev/ttyUSB0'
+COM_PORT = '/dev/ttyUSB5'
 
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
@@ -17,25 +20,10 @@ def send_dmx_scene(scene):
         mydmx.render()
 
 def set_phone_color(scene, channel, r, g, b, w):
-    if r:
-        scene.append((1, 222))
-        scene.append((2, 12))
-    elif g:
-        scene.append((1, 222))
-        scene.append((2, 17))
-    elif b:
-        scene.append((1, 222))
-        scene.append((2, 22))
-    elif w:
-        scene.append((1, 222))
-        scene.append((2, 32))
-    else:
-        scene.append((1, 222))
-        scene.append((2, 222))
-    # scene.append((channel + 0, r))
-    # scene.append((channel + 1, g))
-    # scene.append((channel + 2, b))
-    # scene.append((channel + 3, w))
+    scene.append((channel + 0, r))
+    scene.append((channel + 1, g))
+    scene.append((channel + 2, b))
+    scene.append((channel + 3, w))
 
 
 def set_dominator_color(scene, effect):
@@ -50,7 +38,7 @@ def play_dmx_from_event(event):
     phones = {}
     # for debug
     phones = {'1001': 1, '1002': 5, '1003': 9, '1004': 13}
-    effects = {'strobe': 110, 'dominator': 100, 'par56': 222, 'par64': 120, 'd1': 141, 'd2': 142, 'd3': 143, 'd4': 144}
+    effects = {'strobe': 110}
     # TODO: retrieve from DB
     #phones_list = Phone.objects.filter(usage=Phone.CENTER).values('number', 'dmx_channel')
     #for phone in phones_list:
