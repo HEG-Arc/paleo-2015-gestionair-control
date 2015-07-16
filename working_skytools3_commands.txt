@@ -26,7 +26,7 @@ logfile = /var/log/skytools/pgqd.log
 pidfile = /var/run/skytools/pgqd.pid
 base_connstr = dbname=gestionaircontrol host=db port=5432 user=gestionaircontrol password=paleo7top
 
-#test pgqd -d /etc/skytools/pgqd.ini
+pgqd -d /etc/skytools/pgqd.ini
 
 
 #start sync
@@ -40,7 +40,7 @@ londiste3 /etc/skytools/gestionair_root.ini add-table --all --create
 ssh -f -N -T -L5433:localhost:5432 bfritsch@gestionair.ch -p 33
 
 === slave ===
-apt-get install skytools3 skytools-modules postgresql-9.4-pgq3
+apt-get install skytools3 postgresql-9.4-pgq3
 nano /etc/skytools/gestionair_leaf.ini
 
 [londiste3]
@@ -61,3 +61,15 @@ londiste3 /etc/skytools/gestionair_leaf.ini add-table --all --create
 
 
 londiste3 /etc/skytools/gestionair_root.ini node-status
+
+
+[londiste3]
+job_name = gestionair_leaf2
+db = dbname=gestionairweb host=192.168.59.103  port=5434  user=gestionairweb password=paleo7top
+queue_name = replika
+logfile = /var/log/skytools/gestionair_leaf2.log
+pidfile = /var/run/skytools/gestionair_leaf2.pid
+
+londiste3 /etc/skytools/gestionair_leaf2.ini create-leaf leaf2 "dbname=gestionairweb host=192.168.59.103  port=5434  user=gestionairweb password=paleo7top" --provider="dbname=gestionaircontrol host=db port=5432 user=gestionaircontrol password=paleo7top"
+londiste3 /etc/skytools/gestionair_leaf2.ini add-seq callcenter* --create
+londiste3 /etc/skytools/gestionair_leaf2.ini add-table callcenter* --create
