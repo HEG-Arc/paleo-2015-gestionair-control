@@ -44,8 +44,8 @@ def send_dmx_scene(scene):
         mydmx.render()
 
 def set_phone_color(scene, channel, r, g, b, w):
-    scene.append((channel + 0, r))
-    scene.append((channel + 1, g))
+    scene.append((channel + 1, r))
+    scene.append((channel + 0, g))
     scene.append((channel + 2, b))
     scene.append((channel + 3, w))
 
