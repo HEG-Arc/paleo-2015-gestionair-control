@@ -13,6 +13,8 @@ mydmx = pysimpledmx.DMXConnection(COM_PORT)
 EFFECTS = {'strobe': 101}
 PHONES = {'1001': 1, '1002': 5, '1003': 9, '1004': 13, '1005': 17, '1006': 21, '1007': 25, '1008': 29, '1009': 33, '1010': 37}
 
+print "DMX Controller Starting..."
+
 def send_dmx_scene(scene):
     if len(scene) > 0:
         for channel in scene:
