@@ -21,6 +21,7 @@
 # along with paleo2015. If not, see <http://www.gnu.org/licenses/>.
 
 # Stdlib imports
+import datetime
 
 # Core Django imports
 from django.db import models
@@ -78,6 +79,11 @@ class Timeslot(models.Model):
         free_slots = self.booking_availability - self.nb_bookings
         return free_slots
     free_slots = property(_free_slots)
+
+    def _end_time(self):
+        end_time = self.start_time + datetime.timedelta(minutes=self.duration)
+        return end_time
+    end_time = property(_end_time)
 
     class Meta:
         verbose_name = _('timeslot')

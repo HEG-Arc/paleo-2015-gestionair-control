@@ -44,16 +44,13 @@
 
     <div class="header navbar">
       <div class="container">
-        <a class="navbar-brand" href="/">Gestion'air Web controller</a>
+        <a class="navbar-brand" href="/">Gestion'air</a>
         <ul class="nav navbar-nav">
           {% if request.user.is_authenticated %}
-            <li><a href="{% url 'scheduler:timeslots-list' %}"><i class="fa fa-calendar"></i> Timeslots</a></li>
+            <li><a href="{% url 'scheduler:timeslots-free-list' %}"><i class="fa fa-calendar"></i> Timeslots</a></li>
             <li><a href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o"></i> Game Queue</a></li>
             <li><a href="{% url 'cc:game-search-view' %}"><i class="fa fa-gamepad"></i> Games List</a></li>
-            <li><a href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
-            <li><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
           {% else %}
-            <li><a href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a></li>
             <li><a href="{% url 'account_login' %}">{% trans "Log In" %}</a></li>
           {% endif %}
         </ul>

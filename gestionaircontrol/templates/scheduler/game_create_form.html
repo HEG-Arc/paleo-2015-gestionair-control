@@ -4,6 +4,7 @@
 {% block content %}
 
         <h1><i class="fa fa-users"></i> Add Team</h1>
+
         <form action="." method="post">
             {% csrf_token %}
             <div>
@@ -14,15 +15,12 @@
                 {{ player_form.management_form }}
                 {{ player_form.non_form_errors }}
                 {% for form in player_form %}
-                    {{ form|crispy }}
-                    <div class="inline {{ player_form.prefix }}">
-                        {{ form.description.errors }}
-                        {{ form.description.label_tag }}
-                        {{ form.description }}
+                    <div class="form-group">
+                        {{ form.id }}{{ form.name }}
                     </div>
                 {% endfor %}
             </fieldset>
-            <input type="submit" value="Add team" class="submit" />
+            <button type="submit" class="btn btn-success btn-lg"><i class="fa fa-check-square"></i> Save</button>
         </form>
 
 {% endblock content %}

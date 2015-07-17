@@ -1,14 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2><i class="fa fa-search"></i> Timeslot {{ object.start_time|date:"Y-m-d H:i" }}</h2>
-    <dl>
-        <dt>Duration</dt><dd>{{ object.duration }} minutes</dd>
-        <dt>Capacity</dt><dd>{{ object.booking_capacity }} slots</dd>
-        <dt>Availability</dt><dd>{{ object.booking_availability }} slots</dd>
-        <dt>Bookings</dt><dd>{{ object.nb_bookings }} slots</dd>
-        <dt>Free slots</dt><dd>{{ object.free_slots }} slots</dd>
-    </dl>
+    <h2><i class="fa fa-search"></i> Timeslot {{ object.start_time|date:"Y-m-d H:i" }}-{{ object.end_time|date:"H:i" }}</h2>
     <table class="table">
         <thead>
             <tr>
@@ -24,7 +17,7 @@
                 <td>{{ booking.booking_position }}</td>
                 <td>{{ booking.game.id }}</td>
                 <td>{{ booking.game.team }}</td>
-                <td><a class="btn btn-primary" href="{% url 'cc:game-detail-view' booking.game.id %}"><i class="fa fa-users"></i> View</a></td>
+                <td><a class="btn btn-primary btn-lg" href="{% url 'cc:game-detail-view' booking.game.id %}"><i class="fa fa-users"></i> View</a></td>
             </tr>
         {% empty %}
             <tr>
@@ -33,4 +26,5 @@
         {% endfor %}
         </tbody>
     </table>
+    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslots-free-list' %}"><i class="fa fa-calendar"></i> Timeslots</a>
 {% endblock %}

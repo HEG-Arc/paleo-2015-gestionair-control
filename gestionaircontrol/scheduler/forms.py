@@ -38,9 +38,9 @@ from gestionaircontrol.callcenter.models import Game, Player
 class TimeslotCreationForm(forms.Form):
     start_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
     end_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
-    duration = forms.IntegerField()
-    booking_capacity = forms.IntegerField()
-    booking_availability = forms.IntegerField()
+    duration = forms.IntegerField(initial=20)
+    booking_capacity = forms.IntegerField(initial=5)
+    booking_availability = forms.IntegerField(initial=3)
 
     def create_timeslots(self):
         start_time = self.cleaned_data['start_time']
@@ -66,6 +66,9 @@ class PlayerForm(ModelForm):
     class Meta:
         model = Player
         fields = ['name']
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "textinput textInput form-control"}),
+        }
 
 
 PlayerFormSet = inlineformset_factory(Game, Player, form=PlayerForm, min_num=6, max_num=6)

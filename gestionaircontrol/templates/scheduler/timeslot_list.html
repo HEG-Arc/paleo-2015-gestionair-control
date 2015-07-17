@@ -21,8 +21,8 @@
                 <td>{{ timeslot.nb_bookings }}</td>
                 <td>{{ timeslot.free_slots }}</td>
                 <td>
-                    <a class="btn btn-primary" href="{% url 'scheduler:timeslot-detail-view' timeslot.start_time|date:"Y-m-d H:i" %}"><i class="fa fa-search"></i> View</a>
-                    <a class="btn btn-primary" href="{% url 'scheduler:game-create' timeslot.start_time|date:"Y-m-d H:i" %}"><i class="fa fa-users"></i> Book</a>
+                    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslot-detail-view' timeslot.start_time|date:"Y-m-d H:i" %}"><i class="fa fa-search"></i> View</a>
+                    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:game-create' timeslot.start_time|date:"Y-m-d H:i" %}"><i class="fa fa-users"></i> Book</a>
                 </td>
             </tr>
         {% empty %}
