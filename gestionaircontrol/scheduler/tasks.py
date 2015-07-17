@@ -24,7 +24,7 @@
 import datetime
 
 # Core Django imports
-#from django.conf import settings
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
@@ -32,7 +32,8 @@ from django.utils import timezone
 
 # paleo-2015-gestionair-control imports
 from config.celery import app
-from gestionaircontrol.scheduler.models import Timeslot
+from gestionaircontrol.scheduler.models import Timeslot, Booking
+from gestionaircontrol.callcenter.models import Game
 
 
 @app.task
@@ -44,5 +45,10 @@ def schedule_availability():
         slot.booking_availability = slot.booking_capacity
         slot.save()
         updated = True
-    if updated:
-        return _('New slots available!')
+
+    late_bookings = Booking.objects.filter(timeslot__start_time__lte=timezone.now()+datetime.timedelta(minutes=settings.SLOT_DURATION))
+    for booking in late_bookings:
+        game = Game.objects.get(slot=booking)
+        game.canceled = True
+        game.save()
+

@@ -263,7 +263,7 @@ CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend'
 CELERYBEAT_SCHEDULE = {
     "schedule_availability": {
         "task": "gestionaircontrol.scheduler.tasks.schedule_availability",
-        "schedule": datetime.timedelta(minutes=1),
+        "schedule": datetime.timedelta(minutes=5),
     },
 }
 
