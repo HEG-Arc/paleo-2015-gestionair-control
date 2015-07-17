@@ -187,7 +187,7 @@ def init_simulation(self):
             game = Game.objects.get(pk=game_id)
             game.end_time = timezone.now()
             game.save()
-        time.sleep(0.5)
+        time.sleep(1)
 
     if not self.is_aborted():
         # Game is over!
