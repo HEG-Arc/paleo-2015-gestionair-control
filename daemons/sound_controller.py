@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2015 HES-SO//HEG Arc
 #
-# Author(s): Cédric Gaspoz <cedric.gaspoz@he-arc.ch>
+# Author(s): Cédric Gaspoz <cedric.gaspoz@he-arc.ch>, Boris Fritscher <boris.fritscher@he-arc.ch>
 #
 # This file is part of paleo-2015-gestionair-control.
 #
