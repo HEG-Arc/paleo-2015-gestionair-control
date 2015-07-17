@@ -64,7 +64,7 @@ def play_sound(sound, area, volume=None):
         time.sleep(0.6)
         abort[area] = False
         soundfile = 'ambiance.wav'
-        loop = 0
+        loop = True
         if volume is None:
               volume = 30
     elif sound == 'call':
