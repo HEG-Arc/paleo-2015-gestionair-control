@@ -49,7 +49,6 @@ URL = 'http://192.168.1.1:8088'
 AUTH = ('paleo', 'paleo7top')
 
 
-@app.task
 def create_call_file(phone):
     callcenter = cache.get('callcenter', 'STOP')
     print "PHONE %s" % phone
@@ -366,7 +365,7 @@ class Endpoint:
 
     def call(self):
         print "New phone call %s" % self.number
-        create_call_file.apply_async((self.number,))
+        create_call_file(self.number)
 
 
 def callcenter_loop(phones, nb_players):
