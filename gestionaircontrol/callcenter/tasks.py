@@ -172,7 +172,7 @@ def init_simulation(self):
             # Compute score
             print "Computing results..."
             scores = compute_scores(game_id)
-            message = {"game": game_status, "type": "GAME_END", "scores": scores}
+            message = {"game": game_id, "type": "GAME_END", "scores": scores}
             send_amqp_message(message, "simulation")
             print "IT'S TIME TO CLEAN-UP!"
             clean_callcenter()
