@@ -74,8 +74,8 @@ def create_call_file(phone):
         x = Context(context, str(extension), '1')
         cf = CallFile(c, x)
         cf.spool()
-        subprocess.call('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
         send_amqp_message({'type': 'PHONE_RINGING', 'number': int(phone)}, "simulation")
+        subprocess.Popen('/usr/bin/sudo chmod 660 /var/spool/asterisk/outgoing/*.call && /usr/bin/sudo chown asterisk:asterisk /var/spool/asterisk/outgoing/*.call', shell=True)
     else:
         pass
 
