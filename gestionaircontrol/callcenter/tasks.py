@@ -463,7 +463,7 @@ def demo_start():
         message = "Demo is already running"
         success = False
     else:
-        create_call_file.apply_async(['1201'])
+        create_call_file(1201)
         cache.set('demo', True, 8)
         success = True
         message = "Demo started"
