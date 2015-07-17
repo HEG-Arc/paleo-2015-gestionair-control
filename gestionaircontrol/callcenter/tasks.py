@@ -111,7 +111,7 @@ def compute_player_score(player, languages_queryset):
     score = int(score_languages*10 + score_duration*5 + score_correct*2)
     player.score = score
     player.save()
-    return {'name': player.name, 'score': score, 'languages': languages}
+    return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
 
 
 def compute_scores(game_id):
