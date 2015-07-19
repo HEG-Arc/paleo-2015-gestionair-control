@@ -61,8 +61,7 @@ def agi_submit(request):
     if request.method == 'POST':
             r = json.loads(request.body)
             print r
-            print "player : %s" % r['player_id']
-            agi_save(r['player_id'], r['translation_id'], r['answer'], r['pickup_time'], r['correct'], r['phone_number'])
+            agi_save(r['answer_id'], r['answer_key'], r['correct'])
             msg = "OK"
     else:
         msg = "GET calls are not allowed for this view!"
