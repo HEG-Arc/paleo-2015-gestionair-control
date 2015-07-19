@@ -282,7 +282,6 @@ def draw_question(player_id=None):
 
 
 def agi_question(player_number, phone_number):
-    print "PLAYER: %s | PHONE: %s" % (phone_number, phone_number)
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER:
         current_game_id = get_current_game()
@@ -305,6 +304,7 @@ def agi_question(player_number, phone_number):
 
 
 def agi_save(answer_key, correct, answer_id):
+    print "NEW ANSWER %s %s %s" % (answer_id, answer_key, correct)
     if answer_id:
         answer = Answer.objects.get(pk=answer_id)
         answer.answer = answer_key
