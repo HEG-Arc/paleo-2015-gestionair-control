@@ -122,9 +122,9 @@ class TimeslotListView(ListView):
         if self.kwargs['filter'] == 'all':
             time_slots = Timeslot.objects.prefetch_related('bookings').all()
         elif self.kwargs['filter'] == 'free':
-            time_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gte=timezone.now()-datetime.timedelta(hours=1))
+            time_slots = Timeslot.objects.prefetch_related('bookings').annotate(Count('bookings')).filter(bookings__count__lt=F('booking_availability')).filter(start_time__gt=timezone.now()-datetime.timedelta(minutes=settings.SLOT_DURATION))
         else:
-            time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=timezone.now()-datetime.timedelta(hours=1))
+            time_slots = Timeslot.objects.prefetch_related('bookings').filter(start_time__gte=timezone.now()-datetime.timedelta(minutes=settings.SLOT_DURATION))
         return time_slots
 
 
@@ -152,7 +152,7 @@ class TimeslotCreateView(FormView):
         return super(TimeslotCreateView, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('scheduler:timeslots-list')
+        return reverse('scheduler:timeslots-free-list')
 
 
 class CreateGame(CreateView):
@@ -195,4 +195,4 @@ class CreateGame(CreateView):
                                   player_form=player_form))
 
     def get_success_url(self):
-        return reverse('scheduler:timeslots-list')
+        return reverse('scheduler:timeslots-free-list')

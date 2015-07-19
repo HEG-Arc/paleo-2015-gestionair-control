@@ -2,5 +2,6 @@
 
 
 {% block content %}
-    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslots-list' %}"><i class="fa fa-calendar"></i> Timeslots</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslots-free-list' %}"><i class="fa fa-calendar"></i> Timeslots</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o"></i> Game Queue</a>
 {% endblock content %}
