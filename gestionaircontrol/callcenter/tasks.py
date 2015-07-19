@@ -99,16 +99,16 @@ def compute_player_score(player, languages_queryset):
 
     score_languages = 0
     for score in languages_scores:
-        score_languages += languages_scores[score]['correct']/languages_scores[score]['weight']
+        score_languages += languages_scores[score]['correct'] * 50 + languages_scores[score]['correct']/languages_scores[score]['weight'] * 30
     try:
-        score_duration = duration / correct
+        score_duration = correct / (duration*60)
     except ZeroDivisionError:
         score_duration = 0
     try:
         score_correct = correct / player.answers.count()
     except ZeroDivisionError:
         score_correct = 0
-    score = int(score_languages*10 + score_duration*5 + score_correct*2)
+    score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
     player.save()
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
