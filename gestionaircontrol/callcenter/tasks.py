@@ -288,32 +288,31 @@ def agi_question(player_number, phone_number):
         current_game_id = get_current_game()
         player = Player.objects.get(game_id=current_game_id, number=player_number)
         translation = draw_question(player.id)
-        response = {'question': translation.question.number, 'response': translation.question.department.number,
-                    'player': player.id, 'game': current_game_id, 'phone': phone_number, 'translation': translation.id,
-                    'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
         message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
                    'type': 'PLAYER_ANSWERING'}
         send_amqp_message(message, "simulation")
+        new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
+        new_answer.save()
+        response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
+                    'file': "%s-%s" % (translation.question.number, translation.language.code),
+                    'type': 'PLAYER_ANSWERING', 'answer_id': new_answer.id}
     else:
         translation = draw_question()
-        response = {'question': translation.question.number, 'response': translation.question.department.number,
-                    'player': 0, 'game': 0, 'phone': phone_number, 'translation': translation.id,
-                    'file': "%s-%s" % (translation.question.number, translation.language.code), 'type': 'PLAYER_ANSWERING'}
+        response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
+                    'file': "%s-%s" % (translation.question.number, translation.language.code),
+                    'type': 'PLAYER_ANSWERING', 'answer_id': None}
     return response
 
 
-def agi_save(player_id, translation_id, answer, pickup_time, correct, phone_number):
-    phone = Phone.objects.get(number=phone_number)
-    if phone.usage == Phone.CENTER:
-        player = Player.objects.get(pk=player_id)
-        translation = Translation.objects.get(pk=translation_id)
-        phone = Phone.objects.get(number=phone_number)
-        #loc_pickup_time = pickup_time.astimezone(pytz.timezone('Europe/Zurich'))
-        loc_pickup_time = pickup_time
-        new_answer = Answer(player=player, question=translation, phone=phone, answer=answer, pickup_time=loc_pickup_time,
-                            hangup_time=timezone.now(), correct=correct)
-        new_answer.save()
-        response = {'type': 'PLAYER_ANSWERED', 'playerId': player.number, 'correct': int(correct), 'number': phone.number}
+def agi_save(answer_key, correct, answer_id):
+    if answer_id:
+        answer = Answer.objects.get(pk=answer_id)
+        answer.answer = answer_key
+        answer.correct = correct
+        answer.hangup_time = timezone.now()
+        answer.save()
+        response = {'type': 'PLAYER_ANSWERED', 'playerId': answer.player.number, 'correct': int(correct),
+                    'number': answer.phone.number}
         send_amqp_message(response, "simulation")
 
 
