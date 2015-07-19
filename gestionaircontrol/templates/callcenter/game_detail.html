@@ -37,13 +37,13 @@
         </tbody>
     </table>
     {% if object.initialized %}
-        <a class="btn btn-primary btn-lg" href="#"><i class="fa fa-phone-square fa-2x"></i> Start demo</a>
         <a class="btn btn-warning btn-lg" href="{% url 'cc:game-cancel-redirectview' object.id %}"><i class="fa fa-reply fa-2x"></i> Cancel</a>
     {% else %}
-        <a class="btn btn-primary btn-lg" href="{% url 'cc:game-initialize-redirectview' object.id %}"><i class="fa fa-phone-square fa-2x"></i> Start game</a>
+        <a class="btn btn-success btn-lg" href="{% url 'cc:game-initialize-redirectview' object.id %}"><i class="fa fa-phone-square fa-2x"></i> Boarding</a>
         <a class="btn btn-warning btn-lg" href="{% url 'cc:game-update-view' object.id %}"><i class="fa fa-pencil-square-o fa-2x"></i> Edit team/players</a>
         <a class="btn btn-warning btn-lg" href="{% url 'cc:game-rebook-view' object.id %}"><i class="fa fa-clock-o fa-2x"></i> Rebook</a>
     {% endif %}
+        <a class="btn btn-primary btn-lg" href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o fa-2x"></i> Game Queue</a>
 
 
 {% endblock %}
