@@ -28,7 +28,7 @@ import time
 
 logging.basicConfig()
 
-COM_PORT = '/dev/ttyUSB5'
+COM_PORT = '/dev/ttyUSB0'
 
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
@@ -105,7 +105,7 @@ def play_dmx_from_event(event):
     elif event['type'] == 'PLAYER_ANSWERING':
         number = event['number']
         channel = PHONES['%s' % number]
-        set_phone_color(scene, channel, 0, 0, 100, 0)
+        set_phone_color(scene, channel, 100, 0, 100, 0)
     elif event['type'] == 'PLAYER_ANSWERED':
         number = event['number']
         channel = PHONES['%s' % number]
