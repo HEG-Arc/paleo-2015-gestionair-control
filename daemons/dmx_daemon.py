@@ -28,7 +28,7 @@ import time
 
 logging.basicConfig()
 
-COM_PORT = '/dev/ttyUSB5'
+COM_PORT = '/dev/ttyUSB0'
 
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
