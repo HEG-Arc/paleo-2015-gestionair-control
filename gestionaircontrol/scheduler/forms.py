@@ -39,8 +39,8 @@ class TimeslotCreationForm(forms.Form):
     start_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
     end_time = forms.DateTimeField(widget=DateTimePicker(options={"format": "YYYY-MM-DD H:m"}))
     duration = forms.IntegerField(initial=20)
-    booking_capacity = forms.IntegerField(initial=5)
-    booking_availability = forms.IntegerField(initial=3)
+    booking_capacity = forms.IntegerField(initial=10)
+    booking_availability = forms.IntegerField(initial=8)
 
     def create_timeslots(self):
         start_time = self.cleaned_data['start_time']
