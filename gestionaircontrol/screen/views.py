@@ -82,7 +82,8 @@ def scheduler(request):
                 display_team = {'team': booking.game.team, 'position': booking.booking_position, 'players': booking.game.players.count(), 'status': get_team_status(booking.game)}
                 next_teams_list.append(display_team)
         display_slot = {'slot': slot.start_time, 'teams': next_teams_list}
-        next_slots_list.append(display_slot)
+        if len(next_teams_list) > 1:
+            next_slots_list.append(display_slot)
 
     response = {'next_start_time': next_start_time, 'next_free_slot_start_time': next_free_slot_start_time,
                 'next_slots': next_slots_list, 'max_players': settings.MAX_PLAYERS}
