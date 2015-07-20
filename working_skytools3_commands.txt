@@ -2,7 +2,7 @@ http://yuan-software.blogspot.ch/2014/09/postgres-replication-with-skytools3.htm
 === master ===
 apt-get update
 
-apt-get -y install skytools3 skytools3-ticker postgresql-9.4-pgq3
+apt-get -y install skytools3 skytools3-ticker postgresql-9.3-pgq3
 nano /etc/skytools/gestionair_root.ini
 
 [londiste3]
@@ -13,7 +13,7 @@ logfile = /var/log/skytools/gestionair_root.log
 pidfile = /var/run/skytools/gestionair_root.pid
 
 #public address
-londiste3 /etc/skytools/gestionair_root.ini create-root root "dbname=gestionaircontrol host=db port=5432  user=gestionaircontrol password=paleo7top"
+londiste3 /etc/skytools/gestionair_root.ini create-root root "dbname=gestionaircontrol host=127.0.0.1 port=5432  user=gestionaircontrol password=toto"
 
 #run by service
 #test londiste3 -d /etc/skytools/gestionair_root.ini worker
@@ -31,7 +31,9 @@ pgqd -d /etc/skytools/pgqd.ini
 
 #start sync
 londiste3 /etc/skytools/gestionair_root.ini add-seq --all --create
-londiste3 /etc/skytools/gestionair_root.ini add-table --all --create
+londiste3 /etc/skytools/gestionair_root.ini add-
+
+table --all --create
 
 #reverse ssh tunnel
 #ssh -f -N -T -R5433:db:5432 bfritsch@gestionair.ch -p 33
@@ -51,7 +53,7 @@ logfile = /var/log/skytools/gestionair_leaf.log
 pidfile = /var/run/skytools/gestionair_leaf.pid
 
 
-londiste3 /etc/skytools/gestionair_leaf.ini create-leaf leaf "dbname=gestionaircontrol host=127.0.0.1  port=5433  user=gestionaircontrol password=paleo7top" --provider="dbname=gestionaircontrol host=db port=5432 user=gestionaircontrol password=paleo7top"
+londiste3 /etc/skytools/gestionair_leaf.ini create-leaf leaf "dbname=gestionairweb host=127.0.0.1  port=5433  user=gestionaircontrol password=paleo7top" --provider="dbname=gestionaircontrol host=127.0.0.1 port=5432 user=gestionaircontrol password=toto"
 
 londiste3 -d /etc/skytools/gestionair_leaf.ini worker
 
