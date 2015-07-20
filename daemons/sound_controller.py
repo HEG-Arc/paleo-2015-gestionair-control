@@ -83,7 +83,7 @@ def play_sound(sound, area, volume=None):
         soundfile = False
 
     if area == 'front':
-        card = '1'
+        card = '2'
     elif area == 'center':
         card = '0'
     else:
