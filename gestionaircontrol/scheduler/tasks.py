@@ -46,7 +46,7 @@ def schedule_availability():
         slot.save()
         updated = True
 
-    late_bookings = Booking.objects.filter(timeslot__start_time__lte=timezone.now()+datetime.timedelta(minutes=settings.SLOT_DURATION))
+    late_bookings = Booking.objects.filter(timeslot__start_time__lte=timezone.now()+datetime.timedelta(minutes=settings.SLOT_DURATION + 5))
     for booking in late_bookings:
         game = Game.objects.get(slot=booking)
         game.canceled = True
