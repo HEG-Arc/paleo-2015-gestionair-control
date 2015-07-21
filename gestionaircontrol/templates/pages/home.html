@@ -2,6 +2,23 @@
 
 
 {% block content %}
-    <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslots-free-list' %}"><i class="fa fa-calendar"></i> Timeslots</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o"></i> Game Queue</a>
+    <div class="row">
+        <div class="col-md-12">
+            <a class="btn btn-primary btn-lg" href="{% url 'scheduler:timeslots-free-list' %}"><i class="fa fa-calendar"></i> Timeslots</a>
+            <a class="btn btn-primary btn-lg" href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o"></i> Game Queue</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Remote Control</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2"><a class="btn btn-primary btn-lg" href="{% url 'scheduler:demo' %}"><i class="fa fa-phone-square fa-2x"></i> Demo</a></div>
+        <div class="col-md-2"><a class="btn btn-warning btn-lg" href="{% url 'scheduler:call' %}"><i class="fa fa-volume-up fa-2x"></i> Call</a></div>
+        <div class="col-md-2"><a class="btn btn-success btn-lg" href="{% url 'scheduler:start' %}"><i class="fa fa-play fa-2x"></i> Start</a></div>
+        <div class="col-md-2"><a class="btn btn-danger btn-lg" href="{% url 'scheduler:stop' %}"><i class="fa fa-stop fa-2x"></i> Stop</a></div>
+    </div>
+
+
 {% endblock content %}
