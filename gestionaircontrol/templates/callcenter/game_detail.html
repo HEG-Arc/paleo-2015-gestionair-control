@@ -44,4 +44,78 @@
         <a class="btn btn-warning btn-lg" href="{% url 'cc:game-rebook-view' object.id %}"><i class="fa fa-clock-o fa-2x"></i> Rebook</a>
     {% endif %}
         <a class="btn btn-primary btn-lg" href="{% url 'cc:game-queue-view' %}"><i class="fa fa-clock-o fa-2x"></i> Game Queue</a>
+
+
+    <script>
+    $(document).ready(function(){
+    $("#demo").click(function(){
+        $.ajax({
+            url: "/scheduler/demo/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            if(data.success == true) {
+                $("#demo").attr('disabled','disabled');
+            }
+        });
+    });
+    $("#call").click(function(){
+        $.ajax({
+            url: "/scheduler/call/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#call_status').text(data.success);
+        });
+    });
+    $("#start").click(function(){
+        $.ajax({
+            url: "/scheduler/start/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            if(data.success == true) {
+                $("#start").attr('disabled','disabled');
+            }
+        });
+    });
+    $("#stop").click(function(){
+        $.ajax({
+            url: "/scheduler/stop/",
+            dataType: "json"
+        })
+        .done(function (data) {
+            $('#stop_status').text(data.success);
+        });
+    });
+});
+var jqxhr = function() {
+    $.ajax({
+        url: "/scheduler/status/",
+        dataType: 'json'
+    })
+        .done(function (data) {
+                if (data.demo == false) {
+                    $("#demo").removeAttr('disabled');
+                }
+                if (data.callcenter == false) {
+                    $("#start").removeAttr('disabled');
+                }
+    });
+};
+setInterval('jqxhr()', 1000); // 1 second
+</script>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Remote Control</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2"><button class="btn btn-primary btn-lg" id="demo"><i class="fa fa-phone-square fa-2x"></i> Demo</div>
+        <div class="col-md-2"><button class="btn btn-warning btn-lg" id="call"><i class="fa fa-volume-up fa-2x"></i> Call</div>
+        <div class="col-md-2"><button class="btn btn-success btn-lg" id="start"><i class="fa fa-play fa-2x"></i> Start</div>
+        <div class="col-md-2"><button class="btn btn-danger btn-lg" id="stop"><i class="fa fa-stop fa-2x"></i> Stop</div>
+    </div>
+
 {% endblock %}
