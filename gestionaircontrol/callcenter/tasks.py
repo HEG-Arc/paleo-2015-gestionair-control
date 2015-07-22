@@ -246,9 +246,12 @@ def get_current_game():
         return cached
     else:
         # TODO: Add logging
-        game = Game.objects.filter(initialized=True, start_time__isnull=False, end_time__isnull=True).order_by('-start_time')[0]
-        cache.set('current_game', game.id)
-        return game.id
+        try:
+            game = Game.objects.filter(initialized=True, start_time__isnull=False, end_time__isnull=True).order_by('-start_time')[0]
+            cache.set('current_game', game.id)
+            return game.id
+        except IndexError:
+            return None
 
 
 def draw_question(player_id=None):
@@ -285,16 +288,22 @@ def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER:
         current_game_id = get_current_game()
-        player = Player.objects.get(game_id=current_game_id, number=player_number)
-        translation = draw_question(player.id)
-        message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
-                   'type': 'PLAYER_ANSWERING'}
-        send_amqp_message(message, "simulation")
-        new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
-        new_answer.save()
-        response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
-                    'file': "%s-%s" % (translation.question.number, translation.language.code),
-                    'type': 'PLAYER_ANSWERING', 'answer_id': new_answer.id}
+        if current_game_id:
+            player = Player.objects.get(game_id=current_game_id, number=player_number)
+            translation = draw_question(player.id)
+            message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
+                       'type': 'PLAYER_ANSWERING'}
+            send_amqp_message(message, "simulation")
+            new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
+            new_answer.save()
+            response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
+                        'file': "%s-%s" % (translation.question.number, translation.language.code),
+                        'type': 'PLAYER_ANSWERING', 'answer_id': new_answer.id}
+        else:
+            translation = draw_question()
+            response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
+                        'file': "%s-%s" % (translation.question.number, translation.language.code),
+                        'type': 'PLAYER_ANSWERING', 'answer_id': None}
     else:
         translation = draw_question()
         response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
@@ -473,7 +482,12 @@ def demo_start():
 
 @app.task
 def callcenter_stop():
-    game = Game.objects.get(pk=get_current_game())
+    current_game_id = get_current_game()
+    if current_game_id:
+        game = Game.objects.get(pk=current_game_id)
+    else:
+        game = None
+
     if game:
         game.start_time = None
         game.initialized = False
