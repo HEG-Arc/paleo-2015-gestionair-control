@@ -46,3 +46,26 @@ Pygame
 
 - http://stackoverflow.com/questions/17869101/unable-to-install-pygame-using-pip
 - http://www.pygame.org/wiki/CompileUbuntu
+
+
+## CUPS test
+
+apt-get install smbclient cups
+
++ enable initd cups
+
+./tmx-cups/install.sh
+
+docker:
+mv /usr/lib/cups/backend/parallel /usr/lib/cups/backend-available/ &&\
+    mv /usr/lib/cups/backend/serial /usr/lib/cups/backend-available/ &&\
+    mv /usr/lib/cups/backend/usb /usr/lib/cups/backend-available/ &&\
+    mv /usr/lib/cups/backend/gutenprint52+usb /usr/lib/cups/backend-available/
+
+lpadmin -p winprinter -v smb://WINDOWSNETBIOSNAME/printersharename -P tmx-cups/ppd/tm-ba-thermal-rastertotmt.ppd
+
+cupsaccept winprinter
+cupsenable winprinter
+lpstat -p
+
+lp -d winprinter test.pdf

@@ -1,0 +1,341 @@
+TM/BA Series Printer Driver for Linux
+TM Generic Impact Receipt ("TM Impact Receipt") Model Manual
+
+
+Contents
+1. Preface
+2. Overview
+3. Initial settings
+4. Setting values of printing options
+5. Paper size information
+6. Restrictions
+
+
+---------------------------------------------------------------------
+1. Preface
+---------------------------------------------------------------------
+
+This manual describes printing conditions you can specify depending 
+on the situation when printing on a TM Generic Impact Receipt Printer 
+with "TM/BA Series Printer Driver for Linux."
+
+Refer to the driver manual for information on "TM/BA Series Printer 
+Driver for Linux."
+
+
+---------------------------------------------------------------------
+2. Overview
+---------------------------------------------------------------------
+
+  TM Generic Impact Receipt is used when printing with a impact 
+  receipt type printer in "TM/BA Series Printer Driver for Linux."
+
+  -The model name to choose when adding a printer by CUPS WebAdmin:
+      "Epson TM Impact Receipt (rastertotmu) (en)"
+
+  -A corresponding PPD file:
+      tm-impact-receipt-rastertotmu.ppd
+
+  You can specify the following printing options for a TM Generic 
+  Impact Receipt Printer.
+  Each option is valid only when the function is supported.
+
+  Option                   | CUPS Admin display | Description
+---------------------------+--------------------+--------------------
+  PageSize                 | Media Size         | Paper size
+  TmxPaperReduction        | Paper Reduction    | Blank page saving
+  TmxPaperSource           | Paper Source       | Whether to cut or feed the
+                           |                    | paper
+  TmxPrinterType           | Printer Type       | Printer type
+  Resolution               | Resolution         | Output resolution
+  TmxFeedPitch             | Pitch of Feed      | Unit length of a paper feed
+  TmxMaxBandWidth          | Maximum Band Width | Maximum image width
+  TmxBandLines             | Band Lines         | Band Height for image command
+  TmxBidirectionalPrinting | Printing           | Bidirectional printing
+  TmxBuzzerControl         | Buzzer             | Whether to emit a beep
+  TmxSoundPattern          | Sound Pattern      | Beep pattern
+  TmxBuzzerRepeat          | Buzzer Repeat      | Beep repeat count
+  TmxBuzzerSelect          | Buzzer Select      | Buzzer control
+  TmxDrawerControl         | Cash Drawer        | Cash drawer control
+  TmxPulseOnTime           | Pulse On Time      | Pulse width of Cash drawer kick
+
+  Setting values of printing options can be changed from the GUI or 
+  the command line. For descriptions on setting values of each print 
+  option, see "4. Setting values of printing options."
+
+  Example) Specify the paper size to Roll paper (76 x 297 mm)
+           using an lp command.
+
+           $ lp -o Pagesize=RP76x297
+
+  Note)
+    ! You can also specify the number of copies using a CUPS' 
+      proprietary option.
+      Refer to the CUPS document for information on CUPS' proprietary
+      options.
+        http://localhost:631/help/
+
+
+---------------------------------------------------------------------
+3. Initial settings
+---------------------------------------------------------------------
+
+  The following describes the initial settings.
+
+  CUPS Admin display          | Initial setting
+------------------------------+--------------------------------------
+ [General]                    |
+  Media Size                  | Roll paper 76 x 297 mm
+  Paper Reduction             | Bottom margin
+  Paper Source                | Document [Feed, Cut]
+ [Printer Setting]            | 
+  Printer Type                | Impact receipt
+  Resolution                  | 160 x 144 dpi
+  Pitch of Feed               | 144 dpi
+  Maximum Band Width          | 400
+  Band Lines                  | 8
+  Printing                    | Bidirectional
+ [Buzzer Control]             | 
+  Buzzer                      | Not used
+  Sound Pattern               | Internal buzzer
+  Buzzer Repeat               | 1
+  Buzzer Select               | TM-U230
+ [Cash Drawer Control]        | 
+  Cash Drawer                 | Don't open drawers
+  Pulse On Time               | 20 msec
+
+
+---------------------------------------------------------------------
+4. Setting values of printing options
+---------------------------------------------------------------------
+
+  The following settings are available in printing options.
+  Each option is valid only when the function is supported.
+
+[General]
+
+Media Size: Specify the paper size
+
+  Setting value | CUPS Admin display        | Description
+----------------+---------------------------+--------------------------
+  RP82.5nx297   | Roll paper 82.5n x 297 mm | Roll paper (82.5 x 297 mm)
+  RP76x297      | Roll paper 76 x 297 mm    | Roll paper (76 x 297 mm)
+  RP70x297      | Roll paper 70 x 297 mm    | Roll paper (70 x 297 mm)
+  RP58nx297     | Roll paper 58n x 297 mm   | Roll paper (58 x 297 mm)
+  A4            | A4                        | A4
+  LT            | LT                        | Letter
+
+
+Paper Reduction: Specify whether to save blank pages
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  Off           | None                    | Do not save blank pages
+  Top           | Top margin              | Save blank at the top
+  Bottom        | Bottom margin           | Save blank at the bottom
+  Both          | Top & Bottom margins    | Save blank at the top and 
+                |                         | bottom
+
+
+Paper Source: Specify whether to cut or feed the paper
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  DocFeedCut     | Document [Feed, Cut]    | Partially cut after 
+                 |                         | feeding
+  DocFeedNoCut   | Document [Feed, NoCut]  | Feed to the manual cut 
+                 |                         | position without cutting
+  DocNoFeedCut   | Document [NoFeed, Cut]  | Partially cut immediately
+                 |                         | without feeding
+  DocNoFeedNoCut | Document [NoFeed, NoCut]| Do nothing
+  PageFeedCut    | Page [Feed, Cut]        | Partially cut every page 
+                 |                         | after feeding
+  PageFeedNoCut  | Page [Feed, NoCut]      | Feed every page to the 
+                 |                         | manual cut position
+                 |                         | without cutting
+  PageNoFeedCut  | Page [NoFeed, Cut]      | Partially cut every page 
+                 |                         | immediately without 
+                 |                         | feeding
+
+
+[Printer Setting]
+
+Printer Type: Specify the printer type
+
+  Setting value   | CUPS Admin display    | Description
+------------------+-----------------------+--------------------------
+  ImpactReceipt   | Impact receipt        | Impact receipt type
+
+
+Resolution: Specify the output resolution
+
+  Setting value  | CUPS Admin display           | Description
+-----------------+------------------------------+--------------------------
+  80x72dpi       | 80 x 72 dpi                  | Output at 80 x 72 dpi
+  84x72dpi       | 84 x 72 dpi                  | Output at 84 x 72 dpi
+  160x144dpi     | 160 x 144 dpi                | Output at 160 x 144 dpi
+  168x144dpi     | 168 x 144 dpi                | Output at 168 x 144 dpi
+  144x130dpi     | [90%/160x144dpi]             | 90% reduced (160x144dpi)
+  128x115dpi     | [80%/160x144dpi]             | 80% reduced (160x144dpi)
+  112x101dpi     | [70%/160x144dpi]             | 70% reduced (160x144dpi)
+  96x86dpi       | [60%/160x144dpi]             | 60% reduced (160x144dpi)
+  82x73dpi       | [50%/160x144dpi]             | 50% reduced (160x144dpi)
+  64x58dpi       | [40%/160x144dpi]             | 40% reduced (160x144dpi)
+  53x48dpi       | [33%(A4 to 80mm)/160x144dpi] | 33% reduced(A4 to 80mm) (160x144dpi)
+  151x130dpi     | [90%/168x144dpi]             | 90% reduced (168x144dpi)
+  134x115dpi     | [80%/168x144dpi]             | 80% reduced (168x144dpi)
+  118x101dpi     | [70%/168x144dpi]             | 70% reduced (168x144dpi)
+  101x86dpi      | [60%/168x144dpi]             | 60% reduced (168x144dpi)
+  86x73dpi       | [50%/168x144dpi]             | 50% reduced (168x144dpi)
+  67x58dpi       | [40%/168x144dpi]             | 40% reduced (168x144dpi)
+  55x48dpi       | [33%(A4 to 80mm)/168x144dpi] | 33% reduced(A4 to 80mm) (168x144dpi)
+
+
+Pitch of Feed: Specify the unit length of a paper feed
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  144.0         | 144 dpi                 | Paper feed at 144 dpi
+
+
+Maximum Band Width: Specify the maximum image width
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  300           | 300                     | 300 dots
+  360           | 360                     | 360 dots
+  400           | 400                     | 400 dots
+  420           | 420                     | 420 dots
+  450           | 450                     | 450 dots
+
+
+Band Lines: Specify the band height for image command
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  8             | 8                       | Output band by 8 lines
+
+
+Printing: Specify whether to print bidirectionally
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  Bidirectional  | Bidirectional           | Print bidirectionally
+  Unidirectional | Unidirectional          | Print unidirectionally
+
+
+[Buzzer Control]
+
+Buzzer: Specify whether to emit a beep
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  Off            | Not used                | Do not emit a beep
+  Before         | Sounds before printing  | Emit a beep before 
+                 |                         | printing
+  After          | Sounds after printing   | Emit a beep after 
+                 |                         | printing
+
+
+Sound Pattern: Specify the beep pattern
+
+  Setting value  | CUPS Admin display         | Description
+-----------------+----------------------------+----------------------
+  Internal       | Internal buzzer            | Select the internal 
+                 |                            | buzzer
+
+
+Buzzer Repeat: Specify the number of beeps
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  1              | 1                       | Beep once
+  2              | 2                       | Beep twice
+  3              | 3                       | Beep three times
+  5              | 5                       | Beep five times
+
+
+Buzzer Select: Specify the way of control buzzer
+
+  Setting value  | CUPS Admin display        | Description
+-----------------+---------------------------+-------------------------
+  0              | None                      | Do not select
+  4              | TM-U230                   | Use the TM-U230 internal 
+                 |                           | buzzer
+
+
+[Cash Drawer Control]
+
+Cash Drawer: Specify the operation of cash drawer
+
+  Setting value   | CUPS Admin display             | Description
+------------------+--------------------------------+-------------------------
+  None            | Don't open drawers             | Do not open the drawer
+  Drawer#1,Before | Open drawer #1 BEFORE printing | Open drawer #1 before 
+                  |                                | printing
+  Drawer#1,After  | Open drawer #1 AFTER printing  | Open drawer #1 after 
+                  |                                | printing
+  Drawer#2,Before | Open drawer #2 BEFORE printing | Open drawer #2 before 
+                  |                                | printing
+  Drawer#2,After  | Open drawer #2 AFTER printing  | Open drawer #2 after 
+                  |                                | printing
+
+
+Pulse On Time: Specify the pulse width of drawer kick
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  20,10,100      | 20 msec                 | On:20 msec, Off:200 msec
+  40,20,100      | 40 msec                 | On:40 msec, Off:200 msec
+  60,30,120      | 60 msec                 | On:60 msec, Off:240 msec
+  80,40,160      | 80 msec                 | On:80 msec, Off:320 msec
+  100,50,200     | 100 msec                | On:100 msec, Off:400 msec
+  120,60,240     | 120 msec                | On:120 msec, Off:480 msec
+
+
+---------------------------------------------------------------------
+5. Paper size information
+---------------------------------------------------------------------
+
+  Paper size name           | Input size     | Margin               | Output paper size
+   (CUPS Admin display)     | Width Length   | Left Right Top Bottom| Width   Length
+                            |            (mm)|                  (mm)|            (mm)
+----------------------------+----------------+----------------------+------------------
+  Roll paper 82.5n x 297 mm |  71.4   297.0  |   0.0  0.0  0.0  0.0 |  71.4   297.0
+  Roll paper 76 x 297 mm    |  63.5   297.0  |   0.0  0.0  0.0  0.0 |  63.5   297.0
+  Roll paper 70 x 297 mm    |  57.1   297.0  |   0.0  0.0  0.0  0.0 |  57.1   297.0
+  Roll paper 58n x 297 mm   |  47.6   297.0  |   0.0  0.0  0.0  0.0 |  47.6   297.0
+  A4                        | 202.0   289.0  |   0.0  0.0  0.0  0.0 | 202.0   289.0
+  LT                        | 207.9   271.4  |   0.0  0.0  0.0  0.0 | 207.9   271.4
+
+  This driver allows you to specify the paper size using CUPS' 
+  options.
+
+    Example) Print a file to 60 x 200 mm in size.
+
+             $ lp -o media=Custom.60x200mm file
+
+  The paper size can be specified within the following range.
+    Paper width:    25.4 - 63.5 mm (or 71.4mm; Depending on the using model) 
+    Paper length:   25.4 - 2,000 mm
+
+
+---------------------------------------------------------------------
+6. Restrictions
+---------------------------------------------------------------------
+
+* You cannot specify printing conditions for each page.
+
+
+---------------------------------------------------------------------
+Copyright (C) 2013 Seiko Epson Corporation. All rights reserved.
+
+Linux is the registered trademark or trademark of Linus Torvalds in 
+the U.S.A. and other countries.
+
+CUPS and the CUPS logo are trademarks of Apple Inc. registered in the
+U.S.A. and other countries.
+
+Other product names in this document are trademarks or registered
+trademarks of respective companies.
+

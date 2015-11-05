@@ -1,0 +1,407 @@
+TM/BA Series Printer Driver for Linux
+TM-T20II Model Manual
+
+
+Contents
+1. Preface
+2. Overview
+3. Initial settings
+4. Setting values of printing options
+5. Paper size information
+6. Printer configuration on using buzzer and/or cash drawer
+7. Restrictions
+
+
+---------------------------------------------------------------------
+1. Preface
+---------------------------------------------------------------------
+
+This manual describes printing conditions you can specify when 
+printing on a TM-T20II with "TM/BA Series Printer Driver for 
+Linux."
+
+Refer to the driver manual for information on "TM/BA Series Printer 
+Driver for Linux."
+
+
+---------------------------------------------------------------------
+2. Overview
+---------------------------------------------------------------------
+
+  The TM-T20II uses the "TM BA Thermal" of the TM generic model.
+
+  -The model name to choose when adding a printer by CUPS WebAdmin:
+      "Epson TM BA Thermal (rastertotmt) (en,en,zh_CN)"
+
+  -A corresponding PPD file:
+      tm-ba-thermal-rastertotmt.ppd
+
+  You can specify the following printing options for the TM-T20II.
+
+  Option            | CUPS Admin display | Description
+--------------------+--------------------+---------------------------
+  PageSize          | Media Size         | Paper size
+  TmxSpeed          | Printing Speed     | Printing speed
+  TmxPaperReduction | Paper Reduction    | Blank page saving
+  TmxPaperSource    | Paper Source       | Whether to cut or feed the
+                    |                    | paper
+  TmxPrinterType    | Printer Type       | Printer type
+  Resolution        | Resolution         | Output resolution
+  TmxFeedPitch      | Pitch of Feed      | Unit length of a paper feed
+  TmxMaxBandWidth   | Maximum Band Width | Maximum image width
+  TmxBandLines      | Band Lines         | Band Height for image command
+  TmxSpeedControl   | Speed Control      | Printing speed control
+  TmxBuzzerControl  | Buzzer             | Whether to emit a beep
+  TmxSoundPattern   | Sound Pattern      | Beep pattern
+  TmxBuzzerRepeat   | Buzzer Repeat      | Beep repeat count
+  TmxDrawerControl  | Cash Drawer        | Cash drawer control
+  TmxPulseOnTime    | Pulse On Time      | Pulse width of Cash drawer kick
+
+  Setting values of printing options can be changed from the GUI or 
+  the command line. For descriptions on setting values of each print 
+  option, see "4. Setting values of printing options."
+
+  Example) Specify the paper size to Roll paper (80 x 297 mm)
+           using an lp command.
+
+           $ lp -o Pagesize=RP80x297
+
+  Note)
+    ! You can also specify the number of copies using a CUPS' 
+      proprietary option.
+      Refer to the CUPS document for information on CUPS' proprietary
+      options.
+        http://localhost:631/help/
+
+
+---------------------------------------------------------------------
+3. Initial settings
+---------------------------------------------------------------------
+
+  Initial settings of the printer options are as follows. 
+  The mark (*) shows a different option from the initial value of 
+  a driver. 
+  Please be careful on setting the option marked with (*).
+
+  CUPS Admin display          | Initial setting
+------------------------------+--------------------------------------
+ [General]                    |
+  Media Size                  | Roll paper 80 x 297 mm
+  Printing Speed              | Use the printer settings
+  Paper Reduction             | Bottom margin
+  Paper Source                | Document [Feed, Cut]
+ [Printer Setting]            | 
+  Printer Type                | Thermal receipt
+  Resolution                  | 203 x 203 dpi (*)
+  Pitch of Feed               | 406 dpi (*)
+  Maximum Band Width          | 576 (*)
+  Band Lines                  | 256
+  Speed Control               | Max. level 13
+ [Buzzer Control]             | 
+  Buzzer                      | Not used
+  Sound Pattern               | Option buzzer (Pattern A) (*)
+  Buzzer Repeat               | 1
+ [Cash Drawer Control]        | 
+  Cash Drawer                 | Don't open drawers
+  Pulse On Time               | 20 msec
+
+
+---------------------------------------------------------------------
+4. Setting values of printing options
+---------------------------------------------------------------------
+
+  The following settings are available in printing options.
+
+[General]
+
+Media Size: Specify the paper size
+
+  Setting value | CUPS Admin display        | Description
+----------------+---------------------------+---------------------------
+  RP82.5x297    | Roll paper 82.5 x 297 mm  | <Unselectable>
+  RP80x297      | Roll paper 80 x 297 mm    | Roll paper (80 x 297 mm)
+  RP60x297      | Roll paper 60 x 297 mm    | <Unselectable>
+  RP58x297      | Roll paper 58 x 297 mm    | Roll paper (58 x 297 mm)
+  A4            | A4                        | A4
+  LT            | LT                        | Letter
+
+
+Printing Speed: Specify the printing speed
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  Auto          | Use the printer settings| Use the default value of 
+                |                         | the printer
+  1             | 1st (Fast)              | Print at the fastest speed
+  2             | 2nd                     | Print at the second 
+                |                         | fastest speed
+  3             | 3rd                     | Print at the third 
+                |                         | fastest speed
+  4             | 4th (Slow)              | Print at the slowest speed
+
+
+Paper Reduction: Specify whether to save blank pages
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  Off           | None                    | Do not save blank pages
+  Top           | Top margin              | Save blank at the top
+  Bottom        | Bottom margin           | Save blank at the bottom
+  Both          | Top & Bottom margins    | Save blank at the top and 
+                |                         | bottom
+
+
+Paper Source: Specify whether to cut or feed the paper
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  DocFeedCut     | Document [Feed, Cut]    | Partially cut after 
+                 |                         | feeding
+  DocFeedNoCut   | Document [Feed, NoCut]  | Feed to the manual cut 
+                 |                         | position without cutting
+  DocNoFeedCut   | Document [NoFeed, Cut]  | Partially cut immediately
+                 |                         | without feeding
+  DocNoFeedNoCut | Document [NoFeed, NoCut]| Do nothing
+  PageFeedCut    | Page [Feed, Cut]        | Partially cut every page 
+                 |                         | after feeding
+  PageFeedNoCut  | Page [Feed, NoCut]      | Feed every page to the 
+                 |                         | manual cut position
+                 |                         | without cutting
+  PageNoFeedCut  | Page [NoFeed, Cut]      | Partially cut every page 
+                 |                         | immediately without 
+                 |                         | feeding
+
+
+[Printer Setting]
+
+Printer Type: Specify the printer type
+
+  Setting value   | CUPS Admin display    | Description
+------------------+-----------------------+--------------------------
+  ThermalReceipt  | Thermal receipt       | Thermal receipt type
+
+
+Resolution: Specify the output resolution
+
+  Setting value  | CUPS Admin display       | Description
+-----------------+-------------------- -----+--------------------------
+  180x180dpi     | 180 x 180 dpi            | <Unselectable>
+  203x203dpi     | 203 x 203 dpi            | Output at 203 x 203 dpi
+  162x162dpi_180 | [90%/180dpi]             | <Unselectable>
+  144x144dpi_180 | [80%/180dpi]             | <Unselectable>
+  126x126dpi_180 | [70%/180dpi]             | <Unselectable>
+  108x108dpi_180 | [60%/180dpi]             | <Unselectable>
+  90x90dpi_180   | [50%/180dpi]             | <Unselectable>
+  72x72dpi_180   | [40%/180dpi]             | <Unselectable>
+  61x61dpi_180   | [33%(A4 to 80mm)/180dpi] | <Unselectable>
+  182x182dpi_203 | [90%/203dpi]             | 90% reduced (203dpi)
+  162x162dpi_203 | [80%/203dpi]             | 80% reduced (203dpi)
+  142x142dpi_203 | [70%/203dpi]             | 70% reduced (203dpi)
+  121x121dpi_203 | [60%/203dpi]             | 60% reduced (203dpi)
+  102x102dpi_203 | [50%/203dpi]             | 50% reduced (203dpi)
+  81x81dpi_203   | [40%/203dpi]             | 40% reduced (203dpi)
+  68x68dpi_203   | [33%(A4 to 80mm)/203dpi] | 33% reduced(A4 to 80mm) (203dpi)
+
+
+Pitch of Feed: Specify the unit length of a paper feed
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  180.0         | 180 dpi                 | <Unselectable>
+  203.2         | 203 dpi                 | <Unselectable>
+  360.0         | 360 dpi                 | <Unselectable>
+  406.4         | 406 dpi                 | Paper feed at 406 dpi
+
+
+Maximum Band Width: Specify the maximum image width
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  360           | 360                     | <Unselectable>
+  384           | 384                     | <Unselectable>
+  416           | 416                     | <Unselectable>
+  420           | 420                     | 420 dots
+  512           | 512                     | <Unselectable>
+  576           | 576                     | 576 dots
+  640           | 640                     | <Unselectable>
+
+
+Band Lines: Specify the band height for image command
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  256           | 256                     | Output band by 256 lines
+
+
+Speed Control: Specify the way of control to printing speed
+
+  Setting value | CUPS Admin display      | Description
+----------------+-------------------------+--------------------------
+  0,0,0,0       | None                    | <Unselectable>
+  -1,-1,-1,-1   | BA-T series             | <Unselectable>
+  9,7,4,1       | Max. level 9            | <Unselectable>
+  11,8,4,1      | Max. level 11           | <Unselectable>
+  13,9,5,1      | Max. level 13           | Maximum speed is level 13
+
+
+[Buzzer Control]
+
+Note)
+  ! When using buzzer, printer configuration may be required depending 
+    on the combination of options.
+    Please refer to "6. Printer configuration on using buzzer and/or cash 
+    drawer" for details.
+
+Buzzer: Specify whether to emit a beep
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  Off            | Not used                | Do not emit a beep
+  Before         | Sounds before printing  | Emit a beep before 
+                 |                         | printing
+  After          | Sounds after printing   | Emit a beep after 
+                 |                         | printing
+
+
+Sound Pattern: Specify the beep pattern
+
+  Setting value  | CUPS Admin display         | Description
+-----------------+----------------------------+----------------------
+  Internal       | Internal buzzer            | <Unselectable>
+  A              | Option buzzer (Pattern A)  | Beep pattern A
+  B              | Option buzzer (Pattern B)  | Beep pattern B
+  C              | Option buzzer (Pattern C)  | Beep pattern C
+  D              | Option buzzer (Pattern D)  | Beep pattern D
+  E              | Option buzzer (Pattern E)  | Beep pattern E
+
+
+Buzzer Repeat: Specify the number of beeps
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  1              | 1                       | Beep once
+  2              | 2                       | Beep twice
+  3              | 3                       | Beep three times
+  5              | 5                       | Beep five times
+
+
+[Cash Drawer Control]
+
+Note)
+  ! When using cash drawer, printer configuration may be required depending 
+    on the combination of options.
+    Please refer to "6. Printer configuration on using buzzer and/or cash 
+    drawer" for details.
+
+Cash Drawer: Specify the operation of cash drawer
+
+  Setting value   | CUPS Admin display             | Description
+------------------+--------------------------------+-------------------------
+  None            | Don't open drawers             | Do not open the drawer
+  Drawer#1,Before | Open drawer #1 BEFORE printing | Open drawer #1 before 
+                  |                                | printing
+  Drawer#1,After  | Open drawer #1 AFTER printing  | Open drawer #1 after 
+                  |                                | printing
+  Drawer#2,Before | Open drawer #2 BEFORE printing | Open drawer #2 before 
+                  |                                | printing
+  Drawer#2,After  | Open drawer #2 AFTER printing  | Open drawer #2 after 
+                  |                                | printing
+
+
+Pulse On Time: Specify the pulse width of drawer kick
+
+  Setting value  | CUPS Admin display      | Description
+-----------------+-------------------------+-------------------------
+  20,10,100      | 20 msec                 | On:20 msec, Off:200 msec
+  40,20,100      | 40 msec                 | On:40 msec, Off:200 msec
+  60,30,120      | 60 msec                 | On:60 msec, Off:240 msec
+  80,40,160      | 80 msec                 | On:80 msec, Off:320 msec
+  100,50,200     | 100 msec                | On:100 msec, Off:400 msec
+  120,60,240     | 120 msec                | On:120 msec, Off:480 msec
+
+
+---------------------------------------------------------------------
+5. Paper size information
+---------------------------------------------------------------------
+
+  Paper size name        | Input size    | Margin               | Output paper size
+   (CUPS Admin display)  | Width Length  | Left Right Top Bottom| Width   Length
+                         |          (mm) |                  (mm)|            (mm)
+-------------------------+---------------+----------------------+------------------
+  Roll paper 80 x 297 mm |   72.0  297.0 |  0.0  0.0  0.0  0.0  |    72.0  297.0
+  Roll paper 58 x 297 mm |   50.8  297.0 |  0.0  0.0  0.0  0.0  |    50.8  297.0
+  A4                     |  202.0  289.0 |  0.0  0.0  0.0  0.0  |   202.0  289.0
+  LT                     |  207.9  271.4 |  0.0  0.0  0.0  0.0  |   207.9  271.4
+
+  This driver allows you to specify the paper size using CUPS' 
+  options.
+
+    Example) Print a file to 80 x 297 mm in size.
+
+             $ lp -o media=Custom.72x297mm file
+
+  The paper size can be specified within the following range.
+    Paper width:    25.4 - 72 mm
+    Paper length:   25.4 - 2,000 mm
+
+
+---------------------------------------------------------------------
+6. Printer configuration on using buzzer and/or cash drawer
+---------------------------------------------------------------------
+
+  When using buzzer and/or cash drawer, printer configuration may be 
+required depending on the combination of options.
+  Referring the following table, please set the customize value written 
+in the same column where the option status is matching.
+
+  +-----------------+-----------------------------------+
+  | Option          | Status                            |
+  +-----------------+--------+--------+--------+--------+
+  | Option buzzer   | Nonuse | Nonuse | Nonuse |  Use   |
+  | Drawer #1       | Nonuse |  Use   | Nonuse | Nonuse |
+  | Drawer #2       | Nonuse | Nonuse |  Use   | Nonuse |
+  +-----------------+--------+--------+--------+--------+
+  | Value name      | Value to set (*=Don't care)       |
+  +-----------------+--------+--------+--------+--------+
+  | BuzzerSelect    |    *   |    0   |    0   |    1   |
+  +-----------------+--------+--------+--------+--------+
+  Note)
+  - BuzzerSelect    : 0=Use drawer, 1=Use external option buzzer
+  - External buzzer and any drawers can't be used together.
+
+  For setting the printer, please use the port setting tool tmpcsconfig 
+in the command line of the terminal. Before setting the printer, it 
+should be connected correctly, and the port should be set correctly. 
+You need root privileges for the setting.
+
+  # tmpcsconfig set PortID ValueName Value
+
+Example)
+  For the printer connected to the port ESDPRT001, let's set 
+  BuzzerSelect=1.
+
+  # tmpcsconfig set esdprt001 buzzerselect 1
+
+  The shortened form of the above-mentioned is as follows:
+
+  # tmpcsconfig s 1 bu 1
+
+
+---------------------------------------------------------------------
+7. Restrictions
+---------------------------------------------------------------------
+
+* You cannot specify printing conditions for each page.
+
+
+---------------------------------------------------------------------
+Copyright (C) 2013 Seiko Epson Corporation. All rights reserved.
+
+Linux is the registered trademark or trademark of Linus Torvalds in 
+the U.S.A. and other countries.
+
+CUPS and the CUPS logo are trademarks of Apple Inc. registered in the
+U.S.A. and other countries.
+
+Other product names in this document are trademarks or registered
+trademarks of respective companies.
