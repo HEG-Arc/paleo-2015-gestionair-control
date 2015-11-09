@@ -3,7 +3,7 @@ db:
   env_file: .env
   ports:
     - "5432:5432"
-    
+
 redis:
   image: redis:2.8.21
 
@@ -17,7 +17,7 @@ web:
   environment:
     - PYTHONUNBUFFERED=1
     - BROKER_URL=amqp://guest:guest@rabbitmq//
-  command: bash -c "while true; do sleep 3; python manage.py runserver_plus 0.0.0.0:8080; done" 
+  command: bash -c "while true; do sleep 3; python manage.py runserver_plus 0.0.0.0:8080; done"
   working_dir: /app
   volumes:
     - .:/app
@@ -34,7 +34,7 @@ worker:
     - PYTHONUNBUFFERED=1
     - C_FORCE_ROOT=true
     - BROKER_URL=amqp://guest:guest@rabbitmq//
-  command: bash -c "while true; do sleep 3; celery -A config.celery worker; done" 
+  command: bash -c "while true; do sleep 3; celery -A config.celery worker; done"
   working_dir: /app
   volumes:
     - .:/app
@@ -49,22 +49,19 @@ flower:
     - PYTHONUNBUFFERED=1
     - C_FORCE_ROOT=true
     - BROKER_URL=amqp://guest:guest@rabbitmq//
-  command: bash -c "while true; do sleep 3; celery -A config.celery flower --port=5555; done" 
+  command: bash -c "while true; do sleep 3; celery -A config.celery flower --port=5555; done"
   working_dir: /app
   volumes:
     - .:/app
   ports:
-    - "5555:5555"    
+    - "5555:5555"
   links:
     - db:db
     - rabbitmq:rabbitmq
     - redis:redis
-gestionairtv:
-  build: docker/gestionairtv
 nginx:
   build: docker/nginx
   volumes_from:
-     - gestionairtv
      - web
   ports:
     - "80:80"
