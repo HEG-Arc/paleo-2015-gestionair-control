@@ -23,25 +23,10 @@
 # Stdlib imports
 
 # Core Django imports
-from django.conf.urls import *
-from django.views.generic import TemplateView
 
 # Third-party app imports
 
 # paleo-2015-gestionair-control imports
-from . import views
 
 urlpatterns = [
-    url(r'^game/queue/$', views.GameQueueListView.as_view(), name='game-queue-view'),
-    url(r'^game/(?P<pk>\d+)/$', views.GameDetailView.as_view(), name='game-detail-view'),
-    url(r'^game/(?P<pk>\d+)/edit/$', views.GameUpdateView.as_view(), name='game-update-view'),
-    url(r'^game/(?P<pk>\d+)/initialize/$', views.GameInitializeRedirectView.as_view(), name='game-initialize-redirectview'),
-    url(r'^game/(?P<pk>\d+)/cancel/$', views.GameCancelRedirectView.as_view(), name='game-cancel-redirectview'),
-    url(r'^game/(?P<pk>\d+)/rebook/(?P<timeslot>\d{4}-\d{2}-\d{2} \d{2}:\d{2})/$', views.GameRebookRedirectView.as_view(), name='game-rebook-redirectview'),
-    url(r'^game/(?P<pk>\d+)/rebook/$', views.GameRebookListView.as_view(), name='game-rebook-view'),
-    url(r'^game/(?P<pk>\d+)/results/$', views.game_results_view, name='game-results-view'),
-    url(r'^game/(?P<game>\d+)/delete/(?P<pk>\d+)/$', views.PlayerDeleteView.as_view(), name='player-delete-view'),
-    url(r'^search/$', views.GameSearchView.as_view(), name='game-search-view'),
-    url(r'^agi/(?P<player>\d+)/(?P<phone>\d+)/$', views.agi_request, name='ami-request'),
-    url(r'^agi/$', views.agi_submit, name='ami-submit'),
 ]

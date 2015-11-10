@@ -26,66 +26,6 @@ import datetime
 # Core Django imports
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
-
-# Third-party app imports
-
-# paleo2015 imports
-
-
-def int_to_cust(i):
-    chrs = '123456789ABCDEFGHJKLMNPQRSTUVWXYZ'
-    l = len(chrs)
-    result = ''
-    while i:
-        result = chrs[i % l] + result
-        i = i // l
-    if not result:
-        result = chrs[0]
-    return result
-
-
-class Game(models.Model):
-    code = models.CharField(verbose_name=_("code"), max_length=5, blank=True,
-                            help_text=_("The identification code of the game"))
-    team = models.CharField(verbose_name=_("team"), max_length=100,
-                            help_text=_("The name of the team (this field is not unique!)"))
-    start_time = models.DateTimeField(verbose_name=_("start time"), blank=True, null=True,
-                                      help_text=_("The start time of the game"))
-    end_time = models.DateTimeField(verbose_name=_("end time"), blank=True, null=True,
-                                    help_text=_("The end time of the game"))
-    canceled = models.BooleanField(verbose_name=_("canceled"), default=False, blank=True,
-                                   help_text=_("A game is canceled in the case of a no-show (time slot + grace period"))
-    initialized = models.BooleanField(verbose_name=_("initialized"), default=False, blank=True,
-                                      help_text=_("A game is initialized when the team is ready to play"))
-
-    @property
-    def is_late(self):
-        if self.slot.timeslot.start_time < timezone.now() - datetime.timedelta(minutes=20):
-            return True
-        return False
-
-    def initialize_game(self):
-        init_list = Game.objects.filter(initialized=True, start_time__isnull=True)
-        for game in init_list:
-            game.initialized = False
-            game.save()
-        self.initialized = True
-        self.save()
-        i = 1
-        for player in self.players.all():
-            player.number = i
-            player.save()
-            i += 1
-
-    def cancel_game(self):
-        self.initialized = False
-        self.save()
-
-    def save(self, *args, **kwargs):
-        if not self.code and self.id:
-            self.code = int_to_cust(self.id)
-        super(Game, self).save(*args, **kwargs)
 
 
 class Player(models.Model):
@@ -95,10 +35,11 @@ class Player(models.Model):
                             help_text=_("The name of the player"))
     score = models.IntegerField(verbose_name=_("player's score"), blank=True, null=True,
                                 help_text=_("The final score of the player (computed at game end)"))
-    # Foreign keys
-    game = models.ForeignKey('Game', verbose_name=_('game'), related_name=_('players'),
-                             help_text=_("The game in which the player takes part"))
 
+
+# TODO states
+# registered --[ print ] --> codeprinted -- [ dial code] x N--> playing --- limite reached [ compute_score ] ->  limitreached -- [ scan_code ] --> ended (+know price)
+# saves languages information? or recompute?
     class Meta:
         verbose_name = _("player")
         verbose_name_plural = _("players")
@@ -242,32 +183,3 @@ class Phone(models.Model):
     def __unicode__(self):
         return "%s (%s)" % (self.number, self.get_usage_display())
 
-
-class Phonelog(models.Model):
-    AVAILABLE = 0
-    RESERVED = 1
-    OFF_HOOK = 2
-    DIALED = 3
-    RINGING = 4
-    REMOTE = 5
-    UP = 6
-    BUSY = 7
-    CHANNEL_STATUS = (
-        (AVAILABLE, _('Channel is down and available')),
-        (RESERVED, _('Channel is down, but reserved')),
-        (OFF_HOOK, _('Channel is off hook')),
-        (DIALED, _('Digits (or equivalent) have been dialed')),
-        (RINGING, _('Line is ringing')),
-        (REMOTE, _('Remote end is ringing')),
-        (UP, _('Line is up')),
-        (BUSY, _('Line is busy')),
-    )
-
-    status = models.IntegerField(verbose_name=_("status of the channel"),
-                                 choices=CHANNEL_STATUS, default=0,
-                                 help_text=_("The current status of this channel"))
-    timestamp = models.DateTimeField(verbose_name=_("timestamp"), auto_now_add=True,
-                                     help_text=_("The timestamp of the log entry"))
-    # Foreign keys
-    phone = models.ForeignKey('Phone', verbose_name=_('phone'), related_name=_('logs'),
-                              help_text=_("The related phone"))

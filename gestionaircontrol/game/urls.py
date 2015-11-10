@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
-# celery.py
+# urls.py
 #
-# Copyright (C) 2014 HES-SO//HEG Arc
+# Copyright (C) 2015 HES-SO//HEG Arc
 #
 # Author(s): Cédric Gaspoz <cedric.gaspoz@he-arc.ch>
 #
@@ -21,26 +21,28 @@
 # along with paleo-2015-gestionair-control. If not, see <http://www.gnu.org/licenses/>.
 
 # Stdlib imports
-from __future__ import absolute_import
-import os
 
 # Core Django imports
-from django.conf import settings
+from django.conf.urls import *
+from django.views.generic import TemplateView
 
-# Third-party app imports
-from celery import Celery
+# start callcenter_game_instance
+
 
 # paleo-2015-gestionair-control imports
+from . import views
 
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-
-
-app = Celery('settings')
-app.config_from_object('django.conf:settings')
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
-
-
-@app.task(bind=True)
-def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
+urlpatterns = [
+    url(r'^agi/(?P<player>\d+)/(?P<phone>\d+)/$', views.agi_request, name='ami-request'),
+    url(r'^agi/$', views.agi_submit, name='ami-submit'),
+    url(r'^start', views.start_game, name='game-start'),
+    url(r'^status', views.game_state, name='game-status')
+]
+# start/init game
+# stop/pause? game
+# get status
+# get scores
+# register_new_player
+# print_code
+# playing == ami-submit && ami-request #  --- handle in ami-request limite reached [ compute_score ] ->  limitreached -- 
+# scan_code == wheel[ scan_code ] --> ended (+know price)#

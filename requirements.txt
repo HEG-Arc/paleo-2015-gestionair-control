@@ -1,5 +1,36 @@
-# This file is here because many Platforms as a Service look for
-#	requirements.txt in the root directory of a project.
-# pylibmc==1.4.2
-# django-heroku-memcacheify==0.8
--r requirements/local.txt
+django==1.8.6
+psycopg2==2.6.1
+djangorestframework==3.3.1
+django-cors-headers==1.1.0
+django-environ==0.4.0
+
+# make request to asterisk api with simple http
+requests==2.8.1
+
+# Asterisk other
+pycall==2.2
+
+# Messaging rabbitmq in django/celeray
+kombu==3.0.29
+# Messaging rabbitmq in daemon
+pika==0.10.0
+
+
+# Cache backend
+django-redis==4.3.0
+django-celery==3.1.17
+
+
+# Images for flags
+Pillow==3.0.0
+
+# Lightshow
+pyusb==1.0.0b2
+pyserial==2.7
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi.pyftdi
+git+https://github.com/eblot/pyftdi.git#egg=pyftdi.serialext
+pysimpledmx==0.1.0
+
+flower==0.8.2
+reportlab==3.2.0
