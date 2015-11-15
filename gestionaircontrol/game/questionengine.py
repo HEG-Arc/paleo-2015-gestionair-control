@@ -4,7 +4,6 @@ from django.core.cache import cache
 from django.utils import timezone
 from messaging import send_amqp_message
 
-
 def compute_player_score(player):
     languages_queryset = Language.objects.values('code', 'weight')
     languages = []
@@ -73,10 +72,11 @@ def pick_next_question(player=None):
 def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER and len(player_number) == 3:
+        #TODO more filtering in query state <> WON?
         player = Player.objects.filter(id__endswith=player_number).order_by('-id').first()
         translation = pick_next_question(player)
-        message = {'playerId': player.number, 'number': phone_number, 'flag': translation.language.code,
-                   'type': 'PLAYER_ANSWERING'}
+        message = {'playerId': player.id, 'number': phone_number, 'flag': translation.language.code,
+                   'type': 'PLAYER_ANSWERING', 'timestamp': timezone.now()}
         send_amqp_message(message, "simulation")
         new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
         new_answer.save()
@@ -100,7 +100,7 @@ def agi_save(answer_id, answer_key, correct):
         answer.correct = correct
         answer.hangup_time = timezone.now()
         answer.save()
-        response = {'type': 'PLAYER_ANSWERED', 'playerId': answer.player.number, 'correct': int(correct),
+        response = {'type': 'PLAYER_ANSWERED', 'playerId': answer.player.id, 'correct': int(correct),
                     'number': answer.phone.number}
         send_amqp_message(response, "simulation")
 
