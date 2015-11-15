@@ -14,7 +14,7 @@ import environ
 import os
 import datetime
 
-ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
+ROOT_DIR = environ.Path(__file__) - 2  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('gestionaircontrol')
 
 env = environ.Env()
@@ -44,6 +44,7 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
     'gestionaircontrol.callcenter',
     'gestionaircontrol.game',
+    'gestionaircontrol.print',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
