@@ -40,9 +40,14 @@ urlpatterns = [
 ]
 # start/init game
 # stop/pause? game
+
 # get status
 # get scores
+
 # register_new_player
 # print_code
-# playing == ami-submit && ami-request #  --- handle in ami-request limite reached [ compute_score ] ->  limitreached -- 
+
+# playing == ami-submit && ami-request #  --- handle in ami-request limite reached [ compute_score ] ->  limitreached --
+
 # scan_code == wheel[ scan_code ] --> ended (+know price)#
+    # -> print labels
