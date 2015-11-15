@@ -26,28 +26,17 @@
 from django.conf.urls import *
 from django.views.generic import TemplateView
 
-# start callcenter_game_instance
-
-
-# paleo-2015-gestionair-control imports
 from . import views
 
 urlpatterns = [
     url(r'^agi/(?P<player>\d+)/(?P<phone>\d+)/$', views.agi_request, name='ami-request'),
     url(r'^agi/$', views.agi_submit, name='ami-submit'),
     url(r'^start', views.start_game, name='game-start'),
-    url(r'^status', views.game_state, name='game-status')
+    url(r'^status', views.game_status, name='game-status'),
+
+    url(r'^status', views.game_state, name='game-state'),
+    url(r'^status', views.game_state, name='create-player'),
+    url(r'^status', views.game_state, name='printing-player'),
+    url(r'^status', views.game_state, name='scan-code'),
+    url(r'^status', views.game_state, name='bumper'),
 ]
-# start/init game
-# stop/pause? game
-
-# get status
-# get scores
-
-# register_new_player
-# print_code
-
-# playing == ami-submit && ami-request #  --- handle in ami-request limite reached [ compute_score ] ->  limitreached --
-
-# scan_code == wheel[ scan_code ] --> ended (+know price)#
-    # -> print labels

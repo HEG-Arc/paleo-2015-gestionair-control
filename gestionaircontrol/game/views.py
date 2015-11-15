@@ -23,26 +23,137 @@
 
 # Stdlib imports
 import json
+
+from gestionaircontrol.game.messaging import send_amqp_message
+
+# Start CallCenter loop here instanitate once by django
 from loop import CallCenter
 CALL_CENTER = CallCenter()
 
 # Core Django imports
-
+from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 
 from questionengine import agi_question, agi_save
-
+from gestionaircontrol.callcenter.models import Player
+from gestionaircontrol.game.pdf import label, ticket
+from gestionaircontrol.printing.models import Printer
+from gestionaircontrol.game.models import Config
 
 def start_game(request):
     CALL_CENTER.game_status = "TEST"
     return HttpResponse("OK")
 
 
-def game_state(request):
+def game_status(request):
     return HttpResponse(CALL_CENTER.game_status)
 
+# start/init game
+# stop/pause? game
+
+def game_state(request):
+    return HttpResponse("TODO send all players info")
+
+def register_player(request):
+    player = Player()
+    player.name = request.body.name
+    player.npa = request.body.npa
+    player.email = request.body.email
+    player.state = 'CREATED'
+    player.attempts = 0
+    player.score = 0
+    player.start_time = timezone.now()
+    player.save()
+
+    #TODO player to json
+    message = {'played': {}, 'type': 'PLAYER_CREATED'}
+    send_amqp_message(message, "simulation")
+
+    return  JsonResponse({'id': player.id, 'code': player.code})
+
+def print_player(request):
+     #FIX
+     player = Player.get(id=request.body.id)
+     player.state = 'PRINTED'
+     player.print_time = timezone.now()
+     player.save()
+
+     #get client ip from request
+     #if match in Printer.uri  print to this printer
+     #else get default printer name from config
+     printer = Printer
+     config = Config(key='default...')
+     printer.print_file( ticket( player.name, player.code, config.url . player.id ) )
+
+     message = {'type': 'PLAYER_PRINTED',
+                'playerId': player.id,
+                'timestamp': player.print_time}
+     send_amqp_message(message, "simulation")
+     return HttpResponse("")
+
+
+def scan_code(request):
+
+    #eval paramerts to get player
+    #FIX
+    player = Player.get(id=request.body.id)
+
+    message = {'type': 'PLAYER_SCANNED',
+               'playerId': player.id,
+               'state': player.state,
+               'score': player.score}
+
+
+    # handle player who is at rate state, for the other forwards as is to client for error display
+    if(player.state == 'LIMIT_REACHED'):
+        # TODO: get score limit from Config
+
+        message['languages'] = player.languages
+        player.scan_time = timezone.now()
+        message['timezone'] = player.scan_time
+
+        #print label FIX
+        printer = Printer.get(name='label')
+        #TOOD: fix give right params/ data
+        printer.print_file( label( player ) )
+
+        if(player.score < 3):
+            # TODO: get default small price from prizes or config??
+            message['prize'] = {
+                    'name': 'Stylo',
+                    'src': ''
+                  }
+            message['state'] = 'SCANNED_PEN'
+            player.state = 'WON'
+        else:
+            message['state'] = 'SCANNED_WHEEL'
+            player.state = 'SCANNED_WHEEL'
+            message['prizes'] = [], # TODO get prizes and orientation for wheel from prizes?! or config
+            #cache current player at wheel
+            CALL_CENTER.wheel_player = player
+
+
+    send_amqp_message(message, "simulation")
+    return HttpResponse("")
+
+
+def bumper(request):
+    #FIX
+     player = CALL_CENTER.wheel_player
+     #TODO Handle error? or other states
+     player.state = 'PRINTED'
+     player.wheel_time = timezone.now()
+     player.save()
+    #TODO handle prize choice!
+     CALL_CENTER.wheel_player = None
+     message = {'type': 'WHEEL_START',
+                'playerId': player.id,
+                'prize': 1,  #index of prize?
+                'wheel_duration': 2000, # TODO from config? + add some randomness
+                'timestamp':player.wheel_time}
+     send_amqp_message(message, "simulation")
 
 def agi_request(request, player, phone):
     agi = agi_question(player, phone)

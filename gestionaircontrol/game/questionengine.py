@@ -43,6 +43,10 @@ def compute_player_score(player):
 def pick_next_question(player=None):
     if player:
         # TODO if number of attempts > X compute score and other message!
+        #send limit event and save state in player db p.state = 'LIMIT_REACHED';
+        #  type: 'PLAYER_LIMIT_REACHED',
+        #        playerId: p.id,
+        #        timestamp: new Date()
         answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
         departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
         languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']

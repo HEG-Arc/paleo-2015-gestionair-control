@@ -44,7 +44,7 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
     'gestionaircontrol.callcenter',
     'gestionaircontrol.game',
-    'gestionaircontrol.print',
+    'gestionaircontrol.printing',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

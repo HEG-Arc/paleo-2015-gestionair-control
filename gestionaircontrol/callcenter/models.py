@@ -37,8 +37,24 @@ class Player(models.Model):
                                 help_text=_("The final score of the player (computed at game end)"))
 
 
+
 # TODO states
-# registered --[ print ] --> codeprinted -- [ dial code] x N--> playing --- limite reached [ compute_score ] ->  limitreached -- [ scan_code ] --> ended (+know price)
+# registered --[ printing ] --> codeprinted -- [ dial code] x N--> playing --- limite reached [ compute_score ] ->  limitreached -- [ scan_code ] --> ended (+know price)
+#
+#id,           name           npa,
+#            email, state,
+#             attempts,
+#             score,
+#             languages,
+#             start_time,
+#             print_time,
+#             lastplay_time,
+#             limit_time,
+#            scan_time,
+#            wheel_time
+#
+
+    ## TODO: implent code property which retunrs last three digits or even store it in db for faster lookup?
 # saves languages information? or recompute?
     class Meta:
         verbose_name = _("player")
