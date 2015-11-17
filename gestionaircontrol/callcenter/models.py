@@ -29,12 +29,12 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Player(models.Model):
-    REGISTERED = 10
-    CODEPRINTED = 20
-    PLAYING = 30
-    LIMITREACHED = 40
-    SCANNED = 50
-    END = 60
+    REGISTERED = 'REGISTERED'
+    CODEPRINTED = 'CODEPRINTED'
+    PLAYING = 'PLAYING'
+    LIMITREACHED = 'LIMITREACHED'
+    SCANNED = 'SCANNED'
+    END = 'END'
     PLAYER_STATE = (
         (REGISTERED, _('Registered')),
         (CODEPRINTED, _('Code printed')),
@@ -53,9 +53,9 @@ class Player(models.Model):
                                help_text=_("Depending on the configuration, we ask for the zip or not"))
     score = models.IntegerField(verbose_name=_("player's score"), blank=True, null=True,
                                 help_text=_("The final score of the player (computed at game end)"))
-    state = models.IntegerField(verbose_name=_("player state"),
-                                choices=PLAYER_STATE, default=REGISTERED,
-                                help_text=_("The current state of the player in the game"))
+    state = models.CharField(verbose_name=_("player state"), max_length=20,
+                             choices=PLAYER_STATE, default=REGISTERED,
+                             help_text=_("The current state of the player in the game"))
     register_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     print_time = models.DateTimeField(blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)

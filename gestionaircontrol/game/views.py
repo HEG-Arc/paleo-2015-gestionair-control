@@ -34,6 +34,9 @@ CALL_CENTER = CallCenter()
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
 
 
 from questionengine import agi_question, agi_save
@@ -41,6 +44,7 @@ from gestionaircontrol.callcenter.models import Player
 from gestionaircontrol.game.pdf import label, ticket
 from gestionaircontrol.printing.models import Printer
 from gestionaircontrol.game.models import Config
+
 
 def start_game(request):
     CALL_CENTER.game_status = "TEST"
@@ -53,45 +57,50 @@ def game_status(request):
 # start/init game
 # stop/pause? game
 
+
 def game_state(request):
     return HttpResponse("TODO send all players info")
 
+
 def register_player(request):
-    player = Player()
-    player.name = request.body.name
-    player.npa = request.body.npa
-    player.email = request.body.email
-    player.state = 'CREATED'
-    player.attempts = 0
-    player.score = 0
-    player.start_time = timezone.now()
+    try:
+        new_player = json.loads(request.body)
+    except ValueError:
+        new_player = None
+
+    if new_player:
+        player = Player()
+        player.name = new_player['name']
+        player.npa = new_player['npa']
+        player.email = new_player['email']
+        player.state = Player.REGISTERED
+        player.save()
+
+        player_json = serializers.serialize("json", player)
+        message = {'player': player_json, 'type': 'PLAYER_CREATED'}
+        send_amqp_message(message, "simulation")
+        return JsonResponse({'id': player.id, 'code': player.code})
+    else:
+        return HttpResponseBadRequest('Unable to decode JSON')
+
+
+def print_player(request, player_id):
+    player = get_object_or_404(Player, pk=player_id)
+    player.state = Player.CODEPRINTED
+    player.print_time = timezone.now()
     player.save()
 
-    #TODO player to json
-    message = {'played': {}, 'type': 'PLAYER_CREATED'}
-    send_amqp_message(message, "simulation")
-
-    return  JsonResponse({'id': player.id, 'code': player.code})
-
-def print_player(request):
-     #FIX
-     player = Player.get(id=request.body.id)
-     player.state = 'PRINTED'
-     player.print_time = timezone.now()
-     player.save()
-
-     #get client ip from request
-     #if match in Printer.uri  print to this printer
-     #else get default printer name from config
-     printer = Printer
-     config = Config(key='default...')
-     printer.print_file( ticket( player.name, player.code, config.url . player.id ) )
-
-     message = {'type': 'PLAYER_PRINTED',
+    #get client ip from request
+    #if match in Printer.uri  print to this printer
+    #else get default printer name from config
+    printer = Printer
+    config = Config(key='default...')
+    printer.print_file( ticket( player.name, player.code, config.url . player.id ) )
+    message = {'type': player.state,
                 'playerId': player.id,
                 'timestamp': player.print_time}
-     send_amqp_message(message, "simulation")
-     return HttpResponse("")
+    send_amqp_message(message, "simulation")
+    return HttpResponse("")
 
 
 def scan_code(request):
