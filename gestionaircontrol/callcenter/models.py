@@ -29,33 +29,50 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Player(models.Model):
+    REGISTERED = 10
+    CODEPRINTED = 20
+    PLAYING = 30
+    LIMITREACHED = 40
+    SCANNED = 50
+    END = 60
+    PLAYER_STATE = (
+        (REGISTERED, _('Registered')),
+        (CODEPRINTED, _('Code printed')),
+        (PLAYING, _('Playing')),
+        (LIMITREACHED, _('Limit reached')),
+        (SCANNED, _('Scanned')),
+        (END, _('End')),
+    )
     number = models.IntegerField(verbose_name=_("player's number"), blank=True, null=True,
                                  help_text=_("The identification number of the player"))
     name = models.CharField(verbose_name=_("player's name"), max_length=100, blank=True, null=True,
                             help_text=_("The name of the player"))
+    email = models.CharField(verbose_name=_("email address"), max_length=100, blank=True, null=True,
+                             help_text=_("Depending on the configuration, we ask for the email or not"))
+    zipcode = models.CharField(verbose_name=_("zip code"), max_length=10, blank=True, null=True,
+                               help_text=_("Depending on the configuration, we ask for the zip or not"))
     score = models.IntegerField(verbose_name=_("player's score"), blank=True, null=True,
                                 help_text=_("The final score of the player (computed at game end)"))
+    state = models.IntegerField(verbose_name=_("player state"),
+                                choices=PLAYER_STATE, default=REGISTERED,
+                                help_text=_("The current state of the player in the game"))
+    register_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    print_time = models.DateTimeField(blank=True, null=True)
+    start_time = models.DateTimeField(blank=True, null=True)
+    last_answer_time = models.DateTimeField(blank=True, null=True)
+    limit_time = models.DateTimeField(blank=True, null=True)
+    scan_time = models.DateTimeField(blank=True, null=True)
+    wheel_time = models.DateTimeField(blank=True, null=True)
 
+    def _code(self):
+        if len(str(self.id)) > 3:
+            code = int(str(self.id)[-3:])
+        else:
+            code = self.id
+        return code
+    code = property(_code)
 
-
-# TODO states
-# registered --[ printing ] --> codeprinted -- [ dial code] x N--> playing --- limite reached [ compute_score ] ->  limitreached -- [ scan_code ] --> ended (+know price)
-#
-#id,           name           npa,
-#            email, state,
-#             attempts,
-#             score,
-#             languages,
-#             start_time,
-#             print_time,
-#             lastplay_time,
-#             limit_time,
-#            scan_time,
-#            wheel_time
-#
-
-    ## TODO: implent code property which retunrs last three digits or even store it in db for faster lookup?
-# saves languages information? or recompute?
+    # TODO: saves languages information? or recompute?
     class Meta:
         verbose_name = _("player")
         verbose_name_plural = _("players")
