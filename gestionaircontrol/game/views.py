@@ -62,6 +62,7 @@ def game_state(request):
     return HttpResponse("TODO send all players info")
 
 
+@csrf_exempt
 def register_player(request):
     try:
         new_player = json.loads(request.body)
@@ -90,11 +91,13 @@ def print_player(request, player_id):
     player.print_time = timezone.now()
     player.save()
 
-    #get client ip from request
-    #if match in Printer.uri  print to this printer
-    #else get default printer name from config
-    printer = Printer
-    config = Config(key='default...')
+    ip = request.META.get('REMOTE_ADDR')
+
+    printer = Printer.objects.get(uri__contains=str(ip))
+    if not printer:
+        default_printer = Config(key='default...')
+        printer = Printer.objects.get(name=default_printer)
+    # TODO printer name and url from config
     printer.print_file( ticket( player.name, player.code, config.url . player.id ) )
     message = {'type': player.state,
                 'playerId': player.id,

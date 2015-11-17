@@ -36,7 +36,7 @@ urlpatterns = [
 
     url(r'^status', views.game_state, name='game-state'),
     url(r'^api/register-player', views.register_player, name='register-player'),
-    url(r'^status', views.game_state, name='printing-player'),
+    url(r'^api/print-player/(?P<player_id>\d+)', views.print_player, name='print-player'),
     url(r'^status', views.game_state, name='scan-code'),
     url(r'^status', views.game_state, name='bumper'),
 ]
