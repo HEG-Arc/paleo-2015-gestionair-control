@@ -95,10 +95,10 @@ def print_player(request, player_id):
 
     printer = Printer.objects.get(uri__contains=str(ip))
     if not printer:
-        default_printer = Config(key='default...')
-        printer = Printer.objects.get(name=default_printer)
-    # TODO printer name and url from config
-    printer.print_file( ticket( player.name, player.code, config.url . player.id ) )
+        default_printer = Config.objects.get(key='default_ticket_printer')
+        printer = Printer.objects.get(name=default_printer.value)
+
+    printer.print_file(ticket(player.name, player.code, Config.objects.get(key='ticket_url').name . player.id))
     message = {'type': player.state,
                 'playerId': player.id,
                 'timestamp': player.print_time}

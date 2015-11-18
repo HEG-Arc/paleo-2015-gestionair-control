@@ -8,3 +8,7 @@ class Config(models.Model):
 
     def __unicode__(self):
         return str(self.key)
+
+    # default_printer_ticket
+    # ticket_url
+
