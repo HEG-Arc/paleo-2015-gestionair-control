@@ -44,7 +44,7 @@ from gestionaircontrol.callcenter.models import Player
 from gestionaircontrol.game.pdf import label, ticket
 from gestionaircontrol.printing.models import Printer
 from gestionaircontrol.game.models import get_config_value
-from gestionaircontrol.wheel.models import Prize, get_current_wheel
+from gestionaircontrol.wheel.models import Prize, get_current_wheel, get_random_prize
 
 def start_game(request):
     CALL_CENTER.game_status = "TEST"
@@ -125,7 +125,7 @@ def scan_player(request, player_id):
                'score': player.score}
 
     # handle player who is at rate state, for the other forwards as is to client for error display
-    if player.state == Player.LIMITREACHED:
+    if player.state == Player.LIMITREACHED or (player.state == Player.SCANNED and player.wheel_time is None):
 
         message['languages'] = player.languages
         player.scan_time = timezone.now()
@@ -148,13 +148,14 @@ def scan_player(request, player_id):
                     'src': prize.picture.url
                   }
             message['state'] = 'SCANNED_PEN'
-            player.state = 'WON'
+            player.state = Player.WON
         else:
             message['state'] = 'SCANNED_WHEEL'
-            player.state = 'SCANNED_WHEEL'
+            player.state = Player.SCANNED
             message['prizes'] = get_current_wheel()
             # cache current player at wheel
-            CALL_CENTER.wheel_player = player
+            CALL_CENTER.wheel_player = player.id
+
         player.save()
 
     send_amqp_message(message, "simulation")
@@ -162,20 +163,22 @@ def scan_player(request, player_id):
 
 
 def bumper(request):
-    #FIX
-     player = CALL_CENTER.wheel_player
-     #TODO Handle error? or other states
-     player.state = 'PRINTED'
-     player.wheel_time = timezone.now()
-     player.save()
-    #TODO handle prize choice!
-     CALL_CENTER.wheel_player = None
-     message = {'type': 'WHEEL_START',
-                'playerId': player.id,
-                'prize': 1,  #index of prize?
-                'wheel_duration': 2000, # TODO from config? + add some randomness
-                'timestamp':player.wheel_time}
-     send_amqp_message(message, "simulation")
+    player_id = CALL_CENTER.wheel_player
+    player = Player.objects.get(pk=player_id)
+
+    # TODO Handle error? or other states
+    player.state = Player.WON
+    player.wheel_time = timezone.now()
+    player.save()
+
+    # TODO handle prize choice!
+    CALL_CENTER.wheel_player = None
+    message = {'type': 'WHEEL_START',
+               'playerId': player.id,
+               'prize': get_random_prize(),
+               'wheel_duration': int(get_config_value('wheel_duration')),
+               'timestamp': player.wheel_time}
+    send_amqp_message(message, "simulation")
 
 
 def agi_request(request, player, phone):

@@ -21,14 +21,16 @@
 # along with appagoo.  If not, see <http://www.gnu.org/licenses/>.
 
 # Stdlib imports
+from random import randrange
 
 # Core Django imports
 from django.db import models
+from django.core.cache import cache
 
 # Third-party app imports
 
 # Gestionair imports
-from gestionaircontrol.game.models import get_config_value
+# from gestionaircontrol.game.models import get_config_value
 
 
 def get_current_wheel():
@@ -46,6 +48,44 @@ def get_current_wheel():
                  'src': prize.picture.url}
         prizes_dict.append(prize)
     return prizes_dict
+
+
+def get_random_prize():
+    last_prize_id = cache.get('last_prize_id')
+
+    if last_prize_id:
+        prizes_list = Prize.objects.filter(stock__gt=0).exclude(pk=last_prize_id)
+    else:
+        prizes_list = Prize.objects.filter(stock__gt=0)
+
+    # We build a dict with all available prizes
+    prizes_dict = {}
+    total_weight = 0
+    fill_prizes = 0
+    for prize in prizes_list:
+        prizes_dict[prize.id] = prize.percentage
+        if prize.percentage != 100:
+            total_weight += prize.percentage
+        else:
+            fill_prizes += 1
+
+    # We build a list with all prizes
+    weighted_prizes_list = []
+    for p in prizes_dict:
+        if prizes_dict[p] != 100:
+            for i in range(0, prizes_dict[p]):
+                weighted_prizes_list.append(p)
+        else:
+            for i in range(0, (100-total_weight)/fill_prizes):
+                weighted_prizes_list.append(p)
+
+    # We randomly choose one prize in the list
+    prize_id = weighted_prizes_list[randrange(len(weighted_prizes_list))]
+    prize = Prize.objects.get(pk=prize_id)
+    cache.set('last_prize_id', prize.id)
+    prize.stock -= 1
+    prize.save()
+    return prize.id
 
 
 class Prize(models.Model):

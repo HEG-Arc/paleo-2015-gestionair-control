@@ -34,14 +34,14 @@ class Player(models.Model):
     PLAYING = 'PLAYING'
     LIMITREACHED = 'LIMITREACHED'
     SCANNED = 'SCANNED'
-    END = 'END'
+    WON = 'WON'
     PLAYER_STATE = (
         (REGISTERED, _('Registered')),
         (CODEPRINTED, _('Code printed')),
         (PLAYING, _('Playing')),
         (LIMITREACHED, _('Limit reached')),
         (SCANNED, _('Scanned')),
-        (END, _('End')),
+        (WON, _('Won')),
     )
     number = models.IntegerField(verbose_name=_("player's number"), blank=True, null=True,
                                  help_text=_("The identification number of the player"))

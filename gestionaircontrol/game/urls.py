@@ -39,5 +39,5 @@ urlpatterns = [
     url(r'^api/print-player/(?P<player_id>\d+)', views.print_player, name='print-player'),
     url(r'^api/scan-code/(?P<player_id>\d+)', views.scan_player, name='scan-code'),
     url(r'^api/scan-code/[A](?P<code>\d+)', views.scan_code, name='scan-code'),
-    url(r'^status', views.game_state, name='bumper'),
+    url(r'^api/bumper', views.bumper, name='bumper'),
 ]

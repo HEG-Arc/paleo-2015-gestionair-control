@@ -26,4 +26,5 @@ class Config(models.Model):
     # ticket_url
     # minimum_score
     # number_wheel_prizes
+    # wheel_duration
 
