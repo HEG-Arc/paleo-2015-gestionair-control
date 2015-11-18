@@ -45,6 +45,7 @@ LOCAL_APPS = (
     'gestionaircontrol.callcenter',
     'gestionaircontrol.game',
     'gestionaircontrol.printing',
+    'gestionaircontrol.wheel',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
