@@ -43,8 +43,8 @@ from questionengine import agi_question, agi_save
 from gestionaircontrol.callcenter.models import Player
 from gestionaircontrol.game.pdf import label, ticket
 from gestionaircontrol.printing.models import Printer
-from gestionaircontrol.game.models import Config
-
+from gestionaircontrol.game.models import get_config_value
+from gestionaircontrol.wheel.models import Prize, get_current_wheel
 
 def start_game(request):
     CALL_CENTER.game_status = "TEST"
@@ -95,57 +95,67 @@ def print_player(request, player_id):
 
     printer = Printer.objects.get(uri__contains=str(ip))
     if not printer:
-        default_printer = Config.objects.get(key='default_ticket_printer')
-        printer = Printer.objects.get(name=default_printer.value)
+        default_printer = get_config_value('default_ticket_printer')
+        if default_printer:
+            printer = Printer.objects.get(name=default_printer)
+        else:
+            printer = None
 
-    printer.print_file(ticket(player.name, player.code, Config.objects.get(key='ticket_url').name . player.id))
-    message = {'type': player.state,
-                'playerId': player.id,
-                'timestamp': player.print_time}
-    send_amqp_message(message, "simulation")
-    return HttpResponse("")
+    if printer:
+        printer.print_file(ticket(player.name, player.code, get_config_value('ticket_url') . player.id))
+        message = {'type': player.state,
+                   'playerId': player.id,
+                   'timestamp': player.print_time}
+        send_amqp_message(message, "simulation")
+        return HttpResponse("OK - Printed on %s" % printer.name)
+    else:
+        return HttpResponseBadRequest('Unable to find a printer')
 
 
-def scan_code(request):
+def scan_code(request, code):
+    pass
 
-    #eval paramerts to get player
-    #FIX
-    player = Player.get(id=request.body.id)
+
+def scan_player(request, player_id):
+    player = get_object_or_404(Player, pk=player_id)
 
     message = {'type': 'PLAYER_SCANNED',
                'playerId': player.id,
                'state': player.state,
                'score': player.score}
 
-
     # handle player who is at rate state, for the other forwards as is to client for error display
-    if(player.state == 'LIMIT_REACHED'):
-        # TODO: get score limit from Config
+    if player.state == Player.LIMITREACHED:
 
         message['languages'] = player.languages
         player.scan_time = timezone.now()
         message['timezone'] = player.scan_time
 
-        #print label FIX
-        printer = Printer.get(name='label')
-        #TOOD: fix give right params/ data
-        printer.print_file( label( player ) )
+        label_printer = get_config_value('label_printer')
+        if label_printer:
+            printer = Printer.objects.get(name=label_printer)
+        else:
+            printer = None
 
-        if(player.score < 3):
-            # TODO: get default small price from prizes or config??
+        if printer:
+            #TODO: fix give right params/ data
+            printer.print_file(label(player))
+
+        if player.score < int(get_config_value('minimum_score')):
+            prize = Prize.objects.filter(free=True)[0]
             message['prize'] = {
-                    'name': 'Stylo',
-                    'src': ''
+                    'name': prize.label,
+                    'src': prize.picture.url
                   }
             message['state'] = 'SCANNED_PEN'
             player.state = 'WON'
         else:
             message['state'] = 'SCANNED_WHEEL'
             player.state = 'SCANNED_WHEEL'
-            message['prizes'] = [], # TODO get prizes and orientation for wheel from prizes?! or config
-            #cache current player at wheel
+            message['prizes'] = get_current_wheel()
+            # cache current player at wheel
             CALL_CENTER.wheel_player = player
-
+        player.save()
 
     send_amqp_message(message, "simulation")
     return HttpResponse("")
@@ -166,6 +176,7 @@ def bumper(request):
                 'wheel_duration': 2000, # TODO from config? + add some randomness
                 'timestamp':player.wheel_time}
      send_amqp_message(message, "simulation")
+
 
 def agi_request(request, player, phone):
     agi = agi_question(player, phone)
