@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from messaging import send_amqp_message
 
+
 def compute_player_score(player):
     languages_queryset = Language.objects.values('code', 'weight')
     languages = []

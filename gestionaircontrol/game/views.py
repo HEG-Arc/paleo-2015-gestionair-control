@@ -126,8 +126,11 @@ def scan_player(request, player_id):
 
     # handle player who is at rate state, for the other forwards as is to client for error display
     if player.state == Player.LIMITREACHED or (player.state == Player.SCANNED and player.wheel_time is None):
-
-        message['languages'] = player.languages
+        languages = []
+        for answer in player.answers.all():
+            if answer.pickup_time and answer.hangup_time:
+                languages.append({'lang': answer.question.language.code, 'correct': answer.correct})
+        message['languages'] = languages
         player.scan_time = timezone.now()
         message['timezone'] = player.scan_time
 
@@ -138,7 +141,6 @@ def scan_player(request, player_id):
             printer = None
 
         if printer:
-            #TODO: fix give right params/ data
             printer.print_file(label(player))
 
         if player.score < int(get_config_value('minimum_score')):
@@ -171,7 +173,6 @@ def bumper(request):
     player.wheel_time = timezone.now()
     player.save()
 
-    # TODO handle prize choice!
     CALL_CENTER.wheel_player = None
     message = {'type': 'WHEEL_START',
                'playerId': player.id,
