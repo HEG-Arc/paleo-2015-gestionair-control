@@ -84,7 +84,7 @@ def agi_question(player_number, phone_number):
         last = False
         if player.state == Player.LIMITREACHED:
             response_code = None
-            response_file = None
+            response_file = get_config_value('agi_over_file')
             answer_id = None
             over = True
         else:
