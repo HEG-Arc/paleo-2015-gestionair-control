@@ -1,0 +1,34 @@
+=========================================================
+Changes to Zebra Technologies CUPS Driver - 12/08/2010
+=========================================================
+
+---------------------------------------------------------
+Added Support for the following Non-ZPL Kiosk Printers:
+---------------------------------------------------------
+TTP20x0 
+TTP2130 
+TTP7030 
+TTP8200
+KR203
+
+* Added filter/rastertozebrakiosk.c to enable the above printers
+* Updated the filter/Makefile to include rastertozebrakiosk.c
+* Added respective ppd files for the above printers
+* Updated ppd/Makefile to support new ppd files
+11/19/10
+* Corrected the filter conversion of last pixel in line
+* Corrected the PaperDimension for the KR203
+* Changed the min Eject length to 20 mm
+12/08/10
+* Fixed BUG05710, Present Now, Cut Now should only be sent when the ZPL print mode is Kiosk  
+* Fixed BUG05711 Invalid Presenter Loop length in CUPS Driver  
+* Added control for paper eject in the Zebra.ppd
+
+---------------------------------------------------------
+Added Support for the following ZPL Kiosk Printers:
+---------------------------------------------------------
+KR403
+
+* Updated filter/rastertolabel.c to support the KR403 specific options (see line
+  603/604 in rastertolabel.c for the specific options added)
+* Updated respective ppd files for the above printer
