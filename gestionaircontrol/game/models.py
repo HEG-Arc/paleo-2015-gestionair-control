@@ -3,11 +3,16 @@ from django.core.cache import cache
 from django.utils.translation import ugettext_lazy as _
 
 
-def get_config_value(key):
+def get_config():
     cached = cache.get('current_config')
     if not cached:
         cached = dict(Config.objects.values_list('key', 'value'))
         cache.set('current_config', cached, 300)
+    return cached
+
+
+def get_config_value(key):
+    cached = get_config()
     if key in cached:
         return cached[key]
     return None

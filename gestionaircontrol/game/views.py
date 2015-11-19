@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest; JsonResponse
 from django.shortcuts import get_object_or_404
 
 
@@ -43,7 +43,7 @@ from questionengine import agi_question, agi_save
 from gestionaircontrol.callcenter.models import Player
 from gestionaircontrol.game.pdf import label, ticket
 from gestionaircontrol.printing.models import Printer
-from gestionaircontrol.game.models import get_config_value
+from gestionaircontrol.game.models import get_config_value, get_config
 from gestionaircontrol.wheel.models import Prize, get_current_wheel, get_random_prize
 
 def start_game(request):
@@ -180,6 +180,10 @@ def bumper(request):
                'wheel_duration': int(get_config_value('wheel_duration')),
                'timestamp': player.wheel_time}
     send_amqp_message(message, "simulation")
+
+
+def load_config(request):
+    return JsonResponse(get_config())
 
 
 def agi_request(request, player, phone):
