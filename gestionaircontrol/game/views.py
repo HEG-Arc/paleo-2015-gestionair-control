@@ -32,11 +32,11 @@ CALL_CENTER = CallCenter()
 
 # Core Django imports
 from django.utils import timezone
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
-from django.http import HttpResponseBadRequest; JsonResponse
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
 
 
 from questionengine import agi_question, agi_save
@@ -72,13 +72,13 @@ def register_player(request):
     if new_player:
         player = Player()
         player.name = new_player['name']
-        player.npa = new_player['npa']
+        player.zipcode = new_player['npa']
         player.email = new_player['email']
         player.state = Player.REGISTERED
         player.save()
 
-        player_json = serializers.serialize("json", player)
-        message = {'player': player_json, 'type': 'PLAYER_CREATED'}
+        player_dict = model_to_dict(player)
+        message = {'player': player_dict, 'type': 'PLAYER_CREATED'}
         send_amqp_message(message, "simulation")
         return JsonResponse({'id': player.id, 'code': player.code})
     else:
@@ -93,8 +93,9 @@ def print_player(request, player_id):
 
     ip = request.META.get('REMOTE_ADDR')
 
-    printer = Printer.objects.get(uri__contains=str(ip))
-    if not printer:
+    try:
+        printer = Printer.objects.get(uri__contains=str(ip))
+    except Printer.DoesNotExist:
         default_printer = get_config_value('default_ticket_printer')
         if default_printer:
             printer = Printer.objects.get(name=default_printer)
@@ -189,7 +190,7 @@ def load_config(request):
 def players_list(request):
     # TODO: Filter e-mail and zip if not requested by an admin
     players = serializers.serialize('json', Player.objects.all())
-    return HttpResponse(players)
+    return JsonResponse([{p['pk']: dict(p['fields'], id=p['pk'])} for p in json.loads(players)], safe=False)
 
 
 def agi_request(request, player, phone):
