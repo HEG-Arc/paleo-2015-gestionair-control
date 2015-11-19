@@ -27,4 +27,5 @@ class Config(models.Model):
     # minimum_score
     # number_wheel_prizes
     # wheel_duration
+    # max_answers
 

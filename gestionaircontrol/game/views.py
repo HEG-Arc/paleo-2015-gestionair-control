@@ -129,7 +129,7 @@ def scan_player(request, player_id):
         languages = []
         for answer in player.answers.all():
             if answer.pickup_time and answer.hangup_time:
-                languages.append({'lang': answer.question.language.code, 'correct': answer.correct})
+                languages.append({'lang': answer.question.language.code, 'correct': int(answer.correct)})
         message['languages'] = languages
         player.scan_time = timezone.now()
         message['timezone'] = player.scan_time

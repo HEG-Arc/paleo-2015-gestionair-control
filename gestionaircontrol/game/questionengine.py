@@ -3,6 +3,7 @@ from gestionaircontrol.callcenter.models import Player, Answer, Translation, Pho
 from django.core.cache import cache
 from django.utils import timezone
 from messaging import send_amqp_message
+from gestionaircontrol.game.models import get_config_value
 
 
 def compute_player_score(player):
@@ -13,7 +14,7 @@ def compute_player_score(player):
     correct = 0
     for l in languages_queryset:
         languages_scores[l['code']] = {'weight': l['weight'], 'correct': 0}
-    for answer in player.answers.all():
+    for answer in Answer.objects.prefetch_related('question').filter(player_id=player.id):
         correct_answer = False
         if answer.pickup_time and answer.hangup_time:
             if answer.correct:
@@ -37,18 +38,19 @@ def compute_player_score(player):
     score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
     player.save()
-    #TODO maybe save languages string in player for easy retrieval?
+    # TODO maybe save languages string in player for easy retrieval?
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
 
 
 def pick_next_question(player=None):
+    last = False
+
     if player:
-        # TODO if number of attempts > X compute score and other message!
-        #send limit event and save state in player db p.state = 'LIMIT_REACHED';
-        #  type: 'PLAYER_LIMIT_REACHED',
-        #        playerId: p.id,
-        #        timestamp: new Date()
         answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
+
+        if len(answers) == int(get_config_value('max_answers')) - 1:
+            last = True
+
         departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
         languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']
         departments = []
@@ -71,43 +73,65 @@ def pick_next_question(player=None):
     else:
         translations_list = Translation.objects.all()
         question = random.choice(translations_list)
-    return question
+    return question, last
 
 
 def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER and len(player_number) == 3:
-        #TODO more filtering in query state <> WON?
         player = Player.objects.filter(id__endswith=player_number).order_by('-id').first()
-        translation = pick_next_question(player)
-        message = {'playerId': player.id, 'number': phone_number, 'flag': translation.language.code,
-                   'type': 'PLAYER_ANSWERING', 'timestamp': timezone.now()}
-        send_amqp_message(message, "simulation")
-        new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
-        new_answer.save()
-        response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
-                    'file': "%s-%s" % (translation.question.number, translation.language.code),
-                    'type': 'PLAYER_ANSWERING', 'answer_id': new_answer.id}
+        over = False
+        last = False
+        if player.state == Player.LIMITREACHED:
+            response_code = None
+            response_file = None
+            answer_id = None
+            over = True
+        else:
+            translation, last = pick_next_question(player)
+            message = {'playerId': player.id, 'number': phone_number, 'flag': translation.language.code,
+                       'type': 'PLAYER_ANSWERING', 'timestamp': timezone.now()}
+            send_amqp_message(message, "simulation")
+            new_answer = Answer(player=player, question=translation, phone=phone, pickup_time=timezone.now())
+            new_answer.save()
+            response_code = translation.question.department.number
+            response_file = "%s-%s" % (translation.question.number, translation.language.code)
+            answer_id = new_answer.id
+        response = {'response': response_code, 'phone_usage': phone.usage,
+                    'file': response_file,
+                    'type': 'PLAYER_ANSWERING', 'answer_id': answer_id, 'last': last, 'over': over}
     else:
-        translation = pick_next_question()
+        translation, last = pick_next_question()
         response = {'response': translation.question.department.number, 'phone_usage': phone.usage,
                     'file': "%s-%s" % (translation.question.number, translation.language.code),
-                    'type': 'PLAYER_ANSWERING', 'answer_id': None}
+                    'type': 'PLAYER_ANSWERING', 'answer_id': None, 'last': None, 'over': None}
 
     return response
 
 
 def agi_save(answer_id, answer_key, correct):
-    print "NEW ANSWER %s %s %s" % (answer_id, answer_key, correct)
     if answer_id:
         answer = Answer.objects.get(pk=answer_id)
         answer.answer = answer_key
         answer.correct = correct
         answer.hangup_time = timezone.now()
         answer.save()
-        response = {'type': 'PLAYER_ANSWERED', 'playerId': answer.player.id, 'correct': int(correct),
+        player = Player.objects.get(pk=answer.player.id)
+        response = {'type': 'PLAYER_ANSWERED', 'playerId': player.id, 'correct': int(correct),
                     'number': answer.phone.number}
         send_amqp_message(response, "simulation")
+
+        answers = Answer.objects.filter(player_id=player.id)
+        if len(answers) >= int(get_config_value('max_answers')):
+            player.state = Player.LIMITREACHED
+            player.limit_time = timezone.now()
+            player.save()
+
+            # TODO: move in a celery task
+            player_score = compute_player_score(player)
+            response = {'playerId': player.id, 'languages': player_score['languages'], 'score': player_score['score'],
+                        'type': 'PLAYER_LIMIT_REACHED', 'timestamp': player.limit_time}
+            send_amqp_message(response, "simulation")
 
 
 def get_departments_numbers():
