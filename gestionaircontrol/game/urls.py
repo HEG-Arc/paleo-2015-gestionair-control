@@ -41,4 +41,5 @@ urlpatterns = [
     url(r'^api/scan-code/[A](?P<code>\d+)', views.scan_code, name='scan-code'),
     url(r'^api/bumper', views.bumper, name='bumper'),
     url(r'^api/load-config', views.load_config, name='load-config'),
+    url(r'^api/players-list', views.players_list, name='players-list'),
 ]

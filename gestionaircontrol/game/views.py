@@ -186,6 +186,12 @@ def load_config(request):
     return JsonResponse(get_config())
 
 
+def players_list(request):
+    # TODO: Filter e-mail and zip if not requested by an admin
+    players = serializers.serialize('json', Player.objects.all())
+    return HttpResponse(players)
+
+
 def agi_request(request, player, phone):
     agi = agi_question(player, phone)
     return JsonResponse(agi)
