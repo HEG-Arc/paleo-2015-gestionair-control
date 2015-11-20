@@ -43,7 +43,7 @@ def get_current_wheel():
         if index + 1 == nb_prizes:
             end_angle = 360
         else:
-            end_angle = (index + 1) * 360/nb_prizes
+            end_angle = ((index + 1) * 360/nb_prizes) - 1
         prize = {'id': prize.id, 'name': prize.label, 'startAngle': start_angle, 'endAngle': end_angle,
                  'src': prize.picture.url}
         prizes_dict.append(prize)

@@ -53,7 +53,7 @@ CAPSCODES = {
 
 READER_DEVICE = "Datalogic Scanning, Inc. Handheld Barcode Scanner"
 
-API_URL = 'http://127.0.0.1/game/api/scan-code/'
+API_URL = 'http://192.168.1.1/game/api/scan-code/'
 
 
 def get_device():
@@ -66,11 +66,13 @@ def get_device():
 
 
 while True:
+    print "Starting"
     logging.info("Getting the device...")
     dev = get_device()
 
     if dev:
         logging.info("We got the device...")
+        print "We got the device..."
         dev.grab()
         logging.info("Starting the Barcode Reader daemon...")
         while True:
@@ -96,13 +98,15 @@ while True:
                             if data.scancode == 28:
                                 # Enter event
                                 logging.info("Scan: %s" % barcode)
+                                print "Scan: %s" % barcode
                                 # We have a Barcode (http://gestion.he-arc.ch/quiz/128374A4/)
                                 try:
-                                    code = barcode.split('/')[-1:]
+                                    code = barcode.split('/')[-1]
                                 except IndexError:
                                     code = "0"
                                 logging.info("Scanned code: %s" % code)
-                                url = API_URL + str(code)
+                                url = "%s%s" % (API_URL, code)
+                                print url
                                 r = requests.get(url)
                                 # TODO: Do something with the response code
 

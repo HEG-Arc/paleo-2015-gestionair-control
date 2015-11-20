@@ -29,10 +29,10 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Player(models.Model):
-    REGISTERED = 'REGISTERED'
-    CODEPRINTED = 'CODEPRINTED'
+    REGISTERED = 'CREATED'
+    CODEPRINTED = 'PRINTED'
     PLAYING = 'PLAYING'
-    LIMITREACHED = 'LIMITREACHED'
+    LIMITREACHED = 'LIMIT_REACHED'
     SCANNED = 'SCANNED'
     WON = 'WON'
     PLAYER_STATE = (

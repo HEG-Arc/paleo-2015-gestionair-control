@@ -8,6 +8,7 @@ import random
 import time
 from gestionaircontrol.callcenter.models import Phone
 from messaging import send_amqp_message
+from threading import Thread
 
 from config.celery import app
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
@@ -27,26 +28,26 @@ class CallCenter:
 
     def __init__(self):
         self.is_running = False
-        self.game_status = 'INIT'
         self.start_time = None
-        self.gameloop_id = None
+        self.loop = Thread(target=game_loop, args=(self,))
+        self.loop.start()
+        self.start_game()
 
     def start_game(self):
         if self.is_running:
             return
         self.start_time = timezone.now()
-        #create loop
-        self.gameloop_id = game_loop.apply_async(self)
+        self.is_running = True
 
-    def stop(self):
-        self.game_status = 'STOP'
+    def stop_game(self):
+        self.is_running = False
         self.clean()
         try:
             task = AbortableAsyncResult(self.gameloop_id)
             task.abort()
         except Exception as e:
             print e
-        # STOP loop
+
 
     def clean(self):
         logger.debug("DELETING CALL FILES...")
@@ -56,6 +57,7 @@ class CallCenter:
         for channel in open_channels:
             if int(channel['caller']['number']) < 1100:
                 requests.delete(URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
+        #TODO: send stop ringing for all phones
 
     def call_number(self, phone_number):
         logger.debug("Call phone number:  %s" % phone_number)
@@ -68,13 +70,14 @@ class CallCenter:
             wait = 10
             extension = 2001
             context = 'paleo-callcenter'
-        elif phone_type == Phone.CENTER and self.game_status == 'CALL': #TODO check
+        elif phone_type == Phone.CENTER:
             wait = 10
             extension = 2001
             context = 'paleo-callcenter'
         else:
             context = None
         if context:
+            logger.debug('call_asterisk')
             asterisk.call_phone_number(phone_number, wait, extension, context)
         else:
             pass
@@ -102,7 +105,7 @@ class Endpoint(object):
 
     def update_cooldown(self):
         if self.state == Endpoint.COOLDOWN:
-            if timezone.now() - datetime.timedelta(seconds=COOLDOWN_TIME) > self.cooldown_start:
+            if timezone.now() - datetime.timedelta(seconds = Endpoint.COOLDOWN_TIME) > self.cooldown_start:
                 logger.debug("END cooldown %s " % self.number)
                 self.state = Endpoint.AVAILABLE
 
@@ -122,12 +125,14 @@ class Endpoint(object):
 
 
 
-@app.task(bind=True, base=AbortableTask)
-def game_loop(self, callcenter):
+def game_loop(callcenter):
+    logger.debug('game loop started')
+    print 'game loop start'
     min_phone_ringing = 1 # TODO move config
     phones = {}
-    while not self.is_aborted():
+    while True:
         # check active endpoints and create or update our local phones
+      if callcenter.is_running:
         endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
         for endpoint in endpoints:
             endpoint_number = int(endpoint['resource'])
@@ -157,4 +162,4 @@ def game_loop(self, callcenter):
             if len(available_phones) > 0:
                 phone = random.choice(available_phones)
                 phone.call()
-        time.sleep(1)
+      time.sleep(1)

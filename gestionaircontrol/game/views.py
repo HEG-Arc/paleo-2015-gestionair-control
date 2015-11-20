@@ -37,6 +37,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
+from django.core.exceptions import ObjectDoesNotExist
 
 
 from questionengine import agi_question, agi_save
@@ -47,19 +48,16 @@ from gestionaircontrol.game.models import get_config_value, get_config
 from gestionaircontrol.wheel.models import Prize, get_current_wheel, get_random_prize
 
 def start_game(request):
-    CALL_CENTER.game_status = "TEST"
+    CALL_CENTER.start_game()
     return HttpResponse("OK")
 
+def stop_game(request):
+    CALL_CENTER.stop_game()
+    return HttpResponse("OK")
 
-def game_status(request):
-    return HttpResponse(CALL_CENTER.game_status)
-
-# start/init game
-# stop/pause? game
-
-
-def game_state(request):
-    return HttpResponse("TODO send all players info")
+def call_phone(request, number):
+    CALL_CENTER.call_number(number)
+    return HttpResponse("OK")
 
 
 @csrf_exempt
@@ -95,7 +93,7 @@ def print_player(request, player_id):
 
     try:
         printer = Printer.objects.get(uri__contains=str(ip))
-    except Printer.DoesNotExist:
+    except ObjectDoesNotExist:
         default_printer = get_config_value('default_ticket_printer')
         if default_printer:
             printer = Printer.objects.get(name=default_printer)
@@ -103,10 +101,10 @@ def print_player(request, player_id):
             printer = None
 
     if printer:
-        printer.print_file(ticket(player.name, player.code, get_config_value('ticket_url') . player.id))
-        message = {'type': player.state,
+        printer.print_file(ticket(player.name, player.code, "%s%s" % (get_config_value('ticket_url'), player.id)))
+        message = {'type': 'PLAYER_PRINTED',
                    'playerId': player.id,
-                   'timestamp': player.print_time}
+                   'timestamp': player.print_time.isoformat()}
         send_amqp_message(message, "simulation")
         return HttpResponse("OK - Printed on %s" % printer.name)
     else:
@@ -133,7 +131,7 @@ def scan_player(request, player_id):
                 languages.append({'lang': answer.question.language.code, 'correct': int(answer.correct)})
         message['languages'] = languages
         player.scan_time = timezone.now()
-        message['timezone'] = player.scan_time
+        message['timezone'] = player.scan_time.isoformat()
 
         label_printer = get_config_value('label_printer')
         if label_printer:
@@ -179,7 +177,7 @@ def bumper(request):
                'playerId': player.id,
                'prize': get_random_prize(),
                'wheel_duration': int(get_config_value('wheel_duration')),
-               'timestamp': player.wheel_time}
+               'timestamp': player.wheel_time.isoformat()}
     send_amqp_message(message, "simulation")
 
 
@@ -190,13 +188,17 @@ def load_config(request):
 def players_list(request):
     # TODO: Filter e-mail and zip if not requested by an admin
     players = serializers.serialize('json', Player.objects.all())
-    return JsonResponse([{p['pk']: dict(p['fields'], id=p['pk'])} for p in json.loads(players)], safe=False)
+    return JsonResponse(dict([(p['pk'], dict(p['fields'], id=p['pk'])) for p in json.loads(players)]), safe=False)
 
 
 def agi_request(request, player, phone):
     agi = agi_question(player, phone)
     return JsonResponse(agi)
 
+
+def agi_public_request(request):
+    agi = agi_question(None, None)
+    return JsonResponse(agi)
 
 @csrf_exempt
 def agi_submit(request):

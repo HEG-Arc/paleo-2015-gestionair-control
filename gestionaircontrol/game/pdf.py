@@ -49,7 +49,7 @@ def label(data):
     parts.append(Paragraph('gestionair.ch', normal2))
     parts.append(Paragraph('code: %s' % data['game'], normal2))
     doc.build(parts)
-
+    return pdf_file_name
 
 def ticket(name, number, qrcode_value):
     pdf_file_name = tempfile.mktemp(".pdf")
@@ -77,3 +77,4 @@ def ticket(name, number, qrcode_value):
     parts.append(Paragraph(str(number), h1))
     parts.append(Paragraph("TODO more text", normal))
     doc.build(parts)
+    return pdf_file_name
