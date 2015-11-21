@@ -85,7 +85,7 @@ def get_random_prize():
     cache.set('last_prize_id', prize.id)
     prize.stock -= 1
     prize.save()
-    return prize.id
+    return prize.id, prize.big
 
 
 class Prize(models.Model):

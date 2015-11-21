@@ -183,9 +183,15 @@ def bumper(request):
     player.save()
 
     CALL_CENTER.wheel_player = None
+    prize_id, prize_big = get_random_prize()
+    if prize_big:
+        prize_size = 'big'
+    else:
+        prize_size = 'small'
     message = {'type': 'WHEEL_START',
                'playerId': player.id,
-               'prize': get_random_prize(),
+               'prize': prize_id,
+               'size': prize_size,
                'wheel_duration': int(get_config_value('wheel_duration')),
                'timestamp': player.wheel_time.isoformat()}
     send_amqp_message(message, "simulation")

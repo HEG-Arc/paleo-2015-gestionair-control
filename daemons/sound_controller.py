@@ -36,7 +36,7 @@ abort = {'front': False, 'center': False}
 def aplayer(area, card, soundfile, loop=False, callback=None, volume=50):
     def thread():
         print "Playing: %s on %s" % (soundfile, card)
-        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/home/gestionair/%s' % soundfile, '-volume', '%s' % volume]
+        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/var/gestionair/control/gestionaircontrol/static/%s' % soundfile, '-volume', '%s' % volume]
         if loop:
             command.append('-loop')
             command.append('0')
@@ -63,16 +63,33 @@ def play_sound(sound, area, volume=None):
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
-        soundfile = 'ambiance.wav'
+        volume = 30
+        soundfile = 'pick-up.wav'
         loop = True
         if volume is None:
               volume = 30
     elif sound == 'call':
-        soundfile = 'call.wav'
+        soundfile = 'hes-so.wav'
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
-        #callback = lambda: play_sound('ambiance', area)
+        callback = lambda: play_sound('ambiance', area)
+        if volume is None:
+            volume = 100
+    elif sound == 'wheel-small':
+        soundfile = 'wheel-small.wav'
+        abort[area] = True
+        time.sleep(0.6)
+        abort[area] = False
+        callback = lambda: play_sound('ambiance', area)
+        if volume is None:
+            volume = 100
+    elif sound == 'wheel-big':
+        soundfile = 'wheel-big.wav'
+        abort[area] = True
+        time.sleep(0.6)
+        abort[area] = False
+        callback = lambda: play_sound('ambiance', area)
         if volume is None:
             volume = 100
     elif sound == 'intro':
@@ -111,6 +128,11 @@ def play_sound_from_event(event):
         pass
     elif event['type']=='GAME_END':
         play_sound('powerdown', 'center')
+    elif event['type'] == 'WHEEL_START':
+        if event['size'] == 'big':
+            play_sound('wheel-big', 'center')
+        else:
+            play_sound('wheel-small', 'center')
     elif event['type'] == 'STOP':
         abort[event['area'] or 'center'] = True
     if event['type'] == 'PLAY_SOUND':
