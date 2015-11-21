@@ -58,16 +58,16 @@ def play_sound(sound, area, volume=None):
     callback = None
     loop = None
     if volume is None:
-        volume = 30
+        volume = 10
     if sound == 'ambiance':
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
-        volume = 30
+        volume = 10
         soundfile = 'pick-up.wav'
         loop = True
         if volume is None:
-              volume = 30
+              volume = 10
     elif sound == 'call':
         soundfile = 'hes-so.wav'
         abort[area] = True
