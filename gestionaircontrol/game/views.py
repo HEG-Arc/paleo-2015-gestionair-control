@@ -112,7 +112,17 @@ def print_player(request, player_id):
 
 
 def scan_code(request, code):
-    pass
+    player = Player.objects.get(pk=1)
+    message = {'type': 'PLAYER_SCANNED',
+               'playerId': -1,
+               'state': 'SCANNED_WHEEL',
+               'score': 999,
+               'prizes': get_current_wheel()}
+    CALL_CENTER.wheel_player = player.id
+    player.score += 1
+    player.save()
+    send_amqp_message(message, "simulation")
+    return HttpResponse("")
 
 
 def scan_player(request, player_id):
