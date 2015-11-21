@@ -79,6 +79,14 @@ def powerdown_scene():
         set_phone_color(scene, channel, 0, 0, 0, 0)
     send_dmx_scene(scene)
 
+def start_wheel():
+    scene = []
+    # Strobe
+    scene.append((300, 255))  # CH1 intensité
+    scene.append((301, 255))  # CH1 intensité
+    scene.append((302, 255))  # CH1 intensité
+    scene.append((303, 255))  # CH1 intensité
+    send_dmx_scene(scene)
 
 def stop_scene(scene):
     for number, channel in PHONES.iteritems():
@@ -117,6 +125,8 @@ def play_dmx_from_event(event):
     elif event['type'] == 'GAME_END':
         # TODO: Détacher le proc
         powerdown_scene()
+    elif event['type'] == 'WHEEL_START':
+        start_wheel()
     elif event['type'] == 'STOP':
         stop_scene(scene)
 
