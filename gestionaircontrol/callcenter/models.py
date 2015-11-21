@@ -22,10 +22,13 @@
 
 # Stdlib imports
 import datetime
+import collections
 
 # Core Django imports
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
+from jsonfield import JSONField
 
 
 def get_player_languages(player):
@@ -71,6 +74,7 @@ class Player(models.Model):
     limit_time = models.DateTimeField(blank=True, null=True)
     scan_time = models.DateTimeField(blank=True, null=True)
     wheel_time = models.DateTimeField(blank=True, null=True)
+    languages = JSONField(load_kwargs={'object_pairs_hook': collections.OrderedDict})
 
     def _code(self):
         if len(str(self.id)) > 3:
