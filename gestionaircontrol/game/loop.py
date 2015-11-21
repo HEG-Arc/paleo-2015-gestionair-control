@@ -57,7 +57,9 @@ class CallCenter:
         for channel in open_channels:
             if int(channel['caller']['number']) < 1100:
                 requests.delete(URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
-        #TODO: send stop ringing for all phones
+        #TODO: dynamic all phones
+        for number in range(1001, 1011):
+            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': number}, "simulation")
 
     def call_number(self, phone_number):
         logger.debug("Call phone number:  %s" % phone_number)
