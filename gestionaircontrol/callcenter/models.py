@@ -28,6 +28,14 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
+def get_player_languages(player):
+    languages = []
+    for answer in Answer.objects.prefetch_related('question').filter(player_id=player.id, correct=1):
+        if answer.question.language.code not in languages:
+            languages.append(answer.question.language.code)
+    return languages
+
+
 class Player(models.Model):
     REGISTERED = 'CREATED'
     CODEPRINTED = 'PRINTED'

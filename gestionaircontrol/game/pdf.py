@@ -1,55 +1,47 @@
 import tempfile
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.graphics.shapes import Drawing, Rect
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.graphics import barcode
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.units import mm
+from reportlab.lib.colors import black, white
+from reportlab.pdfgen import canvas
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics import renderPDF
+
+from gestionaircontrol.callcenter.models import get_player_languages
 
 
-# TODO customize get string from db config?
-def label(data):
+# TODO: get string from db config?
+def label(player):
+    languages = get_player_languages(player)
+    if not languages:
+        languages = ['FR']
+
     pdf_file_name = tempfile.mktemp(".pdf")
-    styles = getSampleStyleSheet()
-    h1 = styles["h1"]
-    h1.alignment=TA_CENTER
-    h1.fontSize = 36
-    h1.spaceBefore = 10
-    h1.spaceAfter = 22
-    normal = styles["Normal"]
-    normal.alignment=TA_CENTER
-    normal.fontSize = 16
-    normal.spaceAfter = 18
+    c = canvas.Canvas(pdf_file_name, pagesize=(76*mm, 51*mm))
+    c.drawImage('/home/cgaspoz/hello.jpg', 0, 0, width=76*mm, height=51*mm)
 
-    normal2 = styles["BodyText"]
-    normal2.alignment=TA_CENTER
-    normal2.fontSize = 16
-    normal2.spaceAfter = 6
+    c.setFont('Helvetica-Bold', 36)
+    c.drawCentredString(38*mm, 27*mm, player.name)
 
-    doc = SimpleDocTemplate (pdf_file_name)
-    doc.pagesize = (8*cm, 29*cm)
-    doc.topMargin = 0
-    doc.leftMargin = 0
-    doc.rightMargin = 0
-    parts = list()
-    parts.append(Paragraph(data['name'], normal))
-    languages = list()
-    for lang in data['languages']:
-        if lang['correct'] and lang['lang'] not in languages:
-            languages.append(lang['lang'])
+    c.setFont('Helvetica-Bold', 17)
+    c.drawCentredString(38*mm, 17*mm, '   '.join(languages))
 
-    parts.append(Paragraph(' '.join(languages), normal))
+    qr_code = QrCodeWidget("https://gestionair.ch/#/s/%s" % player.id)
+    qr_code.barHeight = 13*mm
+    qr_code.barWidth = 13*mm
+    qr_code.barBorder = 0
+    d = Drawing(13*mm, 13*mm)
+    d.add(qr_code)
+    renderPDF.draw(d, c, 61*mm, 2*mm)
 
-    parts.append(Paragraph('%s' % data['score'], h1))
-
-    d = barcode.createBarcodeDrawing("QR", width=4*cm, height=4*cm, barBorder=0, value="http://gestionair.ch/#/score/%s" % data['game'])
-    d.hAlign = "CENTER"
-    d.vAlign = "TOP"
-    parts.append(d)
-
-    parts.append(Paragraph('gestionair.ch', normal2))
-    parts.append(Paragraph('code: %s' % data['game'], normal2))
-    doc.build(parts)
+    c.showPage()
+    c.save()
     return pdf_file_name
+
 
 def ticket(name, number, qrcode_value):
     pdf_file_name = tempfile.mktemp(".pdf")
