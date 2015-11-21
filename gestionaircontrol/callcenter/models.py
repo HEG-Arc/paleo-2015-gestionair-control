@@ -74,7 +74,7 @@ class Player(models.Model):
     limit_time = models.DateTimeField(blank=True, null=True)
     scan_time = models.DateTimeField(blank=True, null=True)
     wheel_time = models.DateTimeField(blank=True, null=True)
-    languages = JSONField(load_kwargs={'object_pairs_hook': collections.OrderedDict})
+    languages = JSONField(load_kwargs={'object_pairs_hook': collections.OrderedDict}, null=True)
 
     def _code(self):
         if len(str(self.id)) > 3:
