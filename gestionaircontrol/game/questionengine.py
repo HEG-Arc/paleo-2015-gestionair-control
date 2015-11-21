@@ -1,4 +1,5 @@
 import random
+import json
 from gestionaircontrol.callcenter.models import Player, Answer, Translation, Phone, Department, Language
 from django.core.cache import cache
 from django.utils import timezone
@@ -37,7 +38,7 @@ def compute_player_score(player):
         score_correct = 0
     score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
-    player.languages = languages
+    player.languages = json.dump(languages)
     player.save()
     # TODO maybe save languages string in player for easy retrieval?
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
