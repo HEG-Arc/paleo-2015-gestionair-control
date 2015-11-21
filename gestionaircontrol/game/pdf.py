@@ -22,7 +22,7 @@ def label(player):
 
     pdf_file_name = tempfile.mktemp(".pdf")
     c = canvas.Canvas(pdf_file_name, pagesize=(76*mm, 51*mm))
-    c.drawImage('/home/cgaspoz/hello.jpg', 0, 0, width=76*mm, height=51*mm)
+    c.drawImage('/var/gestionair/control/gestionaircontrol/static/hello.jpg', 0, 0, width=76*mm, height=51*mm)
 
     c.setFont('Helvetica-Bold', 36)
     c.drawCentredString(38*mm, 27*mm, player.name)
