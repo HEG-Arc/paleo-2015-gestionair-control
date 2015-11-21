@@ -81,6 +81,7 @@ def play_sound(sound, area, volume=None):
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
+        volume = 100
         callback = lambda: play_sound('ambiance', area)
         if volume is None:
             volume = 100
@@ -89,6 +90,7 @@ def play_sound(sound, area, volume=None):
         abort[area] = True
         time.sleep(0.6)
         abort[area] = False
+        volume = 100
         callback = lambda: play_sound('ambiance', area)
         if volume is None:
             volume = 100
