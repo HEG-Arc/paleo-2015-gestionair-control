@@ -89,7 +89,7 @@ def print_player(request, player_id):
     player.print_time = timezone.now()
     player.save()
 
-    ip = request.META.get('REMOTE_ADDR')
+    ip = request.META.get('HTTP_X_REAL_IP')
 
     try:
         printer = Printer.objects.get(uri__contains=str(ip))
