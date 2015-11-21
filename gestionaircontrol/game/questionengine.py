@@ -43,13 +43,13 @@ def compute_player_score(player):
 
 
 def pick_next_question(player=None):
-    last = False
+    last = "not"
 
     if player:
         answers = Answer.objects.prefetch_related('question').filter(player_id=player.id)
 
         if len(answers) == int(get_config_value('max_answers')) - 1:
-            last = True
+            last = "last"
 
         departments_list = get_departments_numbers()  # List like [1, 2, 3, 4]
         languages_list = get_languages_codes()  # List like ['fr', 'de', 'en']
@@ -80,13 +80,13 @@ def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER and len(player_number) == 3:
         player = Player.objects.filter(id__endswith=str(player_number)).order_by('-id').first()
-        over = False
-        last = False
+        over = "not"
+        last = "not"
         if player.state == Player.LIMITREACHED:
             response_code = None
             response_file = get_config_value('agi_over_file')
             answer_id = None
-            over = True
+            over = "over"
         else:
             translation, last = pick_next_question(player)
             message = {'playerId': player.id, 'number': phone_number, 'flag': translation.language.code,
