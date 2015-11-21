@@ -38,7 +38,8 @@ def get_current_wheel():
     # min_number_wheel_prizes = get_config_value('min_number_wheel_prizes')
     prizes = Prize.objects.filter(free=False)
     nb_prizes = len(prizes)
-    for index, prize in enumerate(Prize.objects.filter(free=False)):
+    for index, prize in enumerate(Prize.objects):
+        # TODO: filter free prizes
         start_angle = index * 360/nb_prizes
         if index + 1 == nb_prizes:
             end_angle = 360
