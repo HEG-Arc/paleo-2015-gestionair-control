@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import tempfile
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.graphics.shapes import Drawing, Rect
@@ -28,7 +29,8 @@ def label(player):
     c.drawCentredString(38*mm, 27*mm, player.name)
 
     c.setFont('Helvetica-Bold', 17)
-    c.drawCentredString(38*mm, 17*mm, '   '.join(languages))
+    lang = '   '.join(languages)
+    c.drawCentredString(38*mm, 17*mm, lang.upper())
 
     qr_code = QrCodeWidget("https://gestionair.ch/#/s/%s" % player.id)
     qr_code.barHeight = 13*mm
@@ -61,12 +63,15 @@ def ticket(name, number, qrcode_value):
     doc.rightMargin = 0
     parts = []
     normal.spaceAfter = 18
-    parts.append(Paragraph("TODO TEXT FROM DB?", normal))
+    parts.append(Paragraph("Gestion'air", normal))
+    parts.append(Paragraph("Votre code", normal))
     d = barcode.createBarcodeDrawing("QR", width=4*cm, height=4*cm, barBorder=0, value=qrcode_value)
     d.hAlign = "CENTER"
     d.vAlign = "TOP"
     parts.append(d)
     parts.append(Paragraph(str(number), h1))
-    parts.append(Paragraph("TODO more text", normal))
+    parts.append(Paragraph("Retrouvez la HEG Arc sur", normal))
+    parts.append(Paragraph("son stand au 1er étage de", normal))
+    parts.append(Paragraph("Campus Arc 2", normal))
     doc.build(parts)
     return pdf_file_name
