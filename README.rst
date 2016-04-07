@@ -1,6 +1,6 @@
 # Gestion'air Web controller
 
-Gestion'air is a web-based controller to run a call center simulation.
+Gestion'air is a web-based controller to run a call center simulation. You can visit our website http://gestionair.ch to see it in action.
 
 ## Web controller
 
