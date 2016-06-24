@@ -47,6 +47,10 @@ Pygame
 - http://stackoverflow.com/questions/17869101/unable-to-install-pygame-using-pip
 - http://www.pygame.org/wiki/CompileUbuntu
 
+## Printers windows:
+- install print driver EPSON Advanced Printer Drivers TM-T20II
+- check logo is on printer else add with drivers utility
+- share printer
 
 ## CUPS test
 
