@@ -1,0 +1,57 @@
+http://lgallardo.com/en/2013/05/06/daemontools-o-como-relanzar-un-proceso-si-muere/
+
+Daemontools or how to relaunch a process if it dies
+
+building-24220_150
+
+Maybe you have been in the situation where a process (program or service) in the system dies or ends abruptly and needs to be relaunched  no matter what. You can try to monitor the process from time to time and restart it if it’s not found, but it could be a little complicated because you have to make a cron rule to check the process existence, filter the prceoss, etc. What if there would be a way to relaunch a process if it dies?…There is a way, it’s called daemontools which basically scan the process and relaunch it if  it’s not detected.
+
+Here I’ll show you how to install and configure this tool on Linux.
+
+Installing daemontools
+On Debian you can install daemontools as root by typing this:
+
+root@raspberrypi: # aptitude install daemontools-run daemontools
+For Debain spin-off like Ubuntu would be the same. On Red Hat and alike you must check if there is a package for this tool.
+
+Setting daemontools
+You have to make a directory for the service (program) you want to monitor. In this example I would use qbittorrent-nox, a bittorrent client that runs on the background (nox = no for X environment):
+
+root@raspberrypi:~# mkdir /etc/service/qbittorrent-nox
+Then you have to write and script that start the process. It must be called “run“. Use your prefered text editor, for instance vi:
+
+root@raspberrypi:~# vi /etc/service/qbittorrent-nox/run
+And add the call to the program. In this case I wanted to launch qbitorrent-nox as the user pi, so I invoked it with sudo:
+
+#!/bin/sh
+
+sudo -u pi qbittorrent-nox
+Finally change permissions to make it executable:
+
+root@raspberrypi:~# chmod +x /etc/service/qbittorrent-nox/run
+Checking the process with ps
+You can check if the process is running the using ps command and filtering the output with grep:
+
+root@raspberrypi:~# ps ax | grep qbit
+3064 ? S 0:00 supervise qbittorrent-nox
+3068 ? S 0:00 sudo -u pi qbittorrent-nox
+3080 ? Sl 13:09 qbittorrent-nox
+9926 pts/0 S+ 0:00 grep qbit
+But there’s a better way to check  if the process is running, using daemontools. By the way, daemon-tools means tools for handling daemons (programs or services).
+
+Checking the process with daemontools
+If you want to check if the process is running and how lomg it ha been up, use the svtat command passing the service directory, as show next:
+
+root@raspberrypi:~# svstat /etc/service/qbittorrent-nox
+ /etc/service/qbittorrent-nox: up (pid 3066) 205846 seconds
+In this case, my qbittorrent-nox process (program/service) has been running for almost two days and a half.
+
+Stoping the scan
+If you need to stop scanning the process,  for instance if you need to stop it for a while to change a setting, use the svc command with the following option:
+
+root@raspberrypi:~# svc -d /etc/service/qbittorrent-nox
+After this, check it one more time:
+
+root@raspberrypi:~# svstat /etc/service/qbittorrent-nox
+ /etc/service/qbittorrent-nox: down 2 seconds, normally up
+Now the process won’t be checked for be relounched if it stops or dies.
