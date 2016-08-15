@@ -91,7 +91,7 @@ class Player(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
-        return str(self.name)
+        return u'%s' % self.name
 
 
 class Answer(models.Model):
@@ -152,7 +152,7 @@ class Translation(models.Model):
         ordering = ['question', 'language']
 
     def __unicode__(self):
-        return "%s (%s)" % (self.question, self.language.code)
+        return u"%s (%s)" % (self.question, self.language.code)
 
 
 class Language(models.Model):
@@ -226,5 +226,5 @@ class Phone(models.Model):
         ordering = ['number']
 
     def __unicode__(self):
-        return "%s (%s)" % (self.number, self.get_usage_display())
+        return u"%s (%s)" % (self.number, self.get_usage_display())
 
