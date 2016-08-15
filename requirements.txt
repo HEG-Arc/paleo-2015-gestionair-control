@@ -11,7 +11,7 @@ requests==2.8.1
 pycall==2.2
 
 # Messaging rabbitmq in django/celeray
-kombu==3.0.29
+kombu==3.0.35
 # Messaging rabbitmq in daemon
 pika==0.10.0
 
