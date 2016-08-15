@@ -113,10 +113,16 @@ class Answer(models.Model):
     phone = models.ForeignKey('Phone', verbose_name=_("phone"), related_name=_('answers'),
                               help_text=_("The identifier of the phone used for this answer"))
 
+    class Meta:
+        ordering = ['sequence']
+
     def save(self, *args, **kwargs):
         if not self.sequence:
             self.sequence = Answer.objects.filter(player=self.player).count() + 1
         super(Answer, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return u"%s %s %s" % (self.player, self.question, 'correct' if self.correct else 'wrong')
 
 
 class Question(models.Model):
