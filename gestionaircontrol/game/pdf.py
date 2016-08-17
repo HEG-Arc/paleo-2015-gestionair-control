@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import tempfile
+
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.graphics.shapes import Drawing, Rect
 from reportlab.lib.styles import getSampleStyleSheet
@@ -12,8 +13,9 @@ from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics import renderPDF
 
+from config.settings import APPS_DIR
 from gestionaircontrol.callcenter.models import get_player_languages
-
+import os
 
 # TODO: get string from db config?
 def label(player):
@@ -23,8 +25,7 @@ def label(player):
 
     pdf_file_name = tempfile.mktemp(".pdf")
     c = canvas.Canvas(pdf_file_name, pagesize=(76*mm, 51*mm))
-    c.drawImage('/var/gestionair/control/gestionaircontrol/static/hello.jpg', 0, 0, width=76*mm, height=51*mm)
-
+    c.drawImage(APPS_DIR.path('static/hello.jpg').__str__(), 0, 0, width=76*mm, height=51*mm)
     c.setFont('Helvetica-Bold', 36)
     c.drawCentredString(38*mm, 27*mm, player.name)
 
