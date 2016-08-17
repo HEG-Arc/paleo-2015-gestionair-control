@@ -1,0 +1,3 @@
+https://technet.microsoft.com/en-us/itpro/windows/manage/set-up-a-kiosk-for-windows-10-for-desktop-editions#sign-out-of-assigned-access
+
+netplwiz 
