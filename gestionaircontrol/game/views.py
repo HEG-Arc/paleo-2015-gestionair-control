@@ -24,6 +24,8 @@
 # Stdlib imports
 import json
 
+from django.core.files import File
+
 from gestionaircontrol.game.messaging import send_amqp_message
 
 # Start CallCenter loop here instanitate once by django
@@ -154,11 +156,12 @@ def scan_player(request, player_id):
             printer.print_file(label(player))
 
         if player.score < int(get_config_value('minimum_score')):
-            prize = Prize.objects.filter(free=True)[0]
-            message['prize'] = {
+            prize = Prize.objects.filter(free=True).first()
+            if prize:
+                message['prize'] = {
                     'name': prize.label,
                     'src': prize.picture.url
-                  }
+                }
             message['state'] = 'SCANNED_PEN'
             player.state = Player.WON
         else:
