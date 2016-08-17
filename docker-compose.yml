@@ -10,7 +10,9 @@ redis:
 rabbitmq:
   build: docker/rabbitmq/
   ports:
+    - "5672:5672"
     - "15672:15672" # here, we can access rabbitmq management plugin
+    - "15674:15674" # stomp
 web:
   build: .
   env_file: .env
