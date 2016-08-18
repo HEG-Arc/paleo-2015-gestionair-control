@@ -53,7 +53,9 @@ CAPSCODES = {
 
 READER_DEVICE = "Datalogic Scanning, Inc. Handheld Barcode Scanner"
 
-API_URL = 'http://192.168.1.1/game/api/scan-code/'
+HOST = '192.168.1.1'
+API_URL = 'http://%s/game/api/scan-code/' % HOST
+EVENT_ID = requests.get('http://%s/game/api/load-config' % HOST).json()['event_id']
 
 
 def get_device():
@@ -99,9 +101,10 @@ while True:
                                 # Enter event
                                 logging.info("Scan: %s" % barcode)
                                 print "Scan: %s" % barcode
-                                # We have a Barcode (http://gestion.he-arc.ch/quiz/128374A4/)
+                                # We have a Barcode from player.url (http://gestionair.ch/a128)
                                 try:
                                     code = barcode.split('/')[-1]
+                                    player_id = code[len(EVENT_ID):]
                                 except IndexError:
                                     code = "0"
                                 logging.info("Scanned code: %s" % code)
