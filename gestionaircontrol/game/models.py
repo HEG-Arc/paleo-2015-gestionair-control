@@ -40,6 +40,7 @@ class Config(models.Model):
     # label_printer = 'label'
     # min_phone_ringing = 1
     # agi_over_file
+    # event_id = 'a'
 
 
 @receiver(post_save, sender=Config)

@@ -103,7 +103,7 @@ def print_player(request, player_id):
             printer = None
 
     if printer:
-        printer.print_file(ticket(player.name, player.code, "%s%s" % (get_config_value('ticket_url'), player.id)))
+        printer.print_file(ticket(player.name, player.code, player.url))
         message = {'type': 'PLAYER_PRINTED',
                    'playerId': player.id,
                    'timestamp': player.print_time.isoformat()}

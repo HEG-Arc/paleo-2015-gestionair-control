@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import tempfile
+from gestionaircontrol.game.models import get_config_value
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.graphics.shapes import Drawing, Rect
@@ -33,7 +34,7 @@ def label(player):
     lang = '   '.join(languages)
     c.drawCentredString(38*mm, 17*mm, lang.upper())
 
-    qr_code = QrCodeWidget("https://gestionair.ch/#/s/%s" % player.id)
+    qr_code = QrCodeWidget(player.url)
     qr_code.barHeight = 13*mm
     qr_code.barWidth = 13*mm
     qr_code.barBorder = 0

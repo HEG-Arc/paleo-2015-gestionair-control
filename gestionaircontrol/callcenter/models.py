@@ -27,7 +27,7 @@ import collections
 # Core Django imports
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
+from gestionaircontrol.game.models import get_config_value
 from jsonfield import JSONField
 
 
@@ -76,13 +76,17 @@ class Player(models.Model):
     wheel_time = models.DateTimeField(blank=True, null=True)
     languages = JSONField(load_kwargs={'object_pairs_hook': collections.OrderedDict}, null=True)
 
-    def _code(self):
+    @property
+    def code(self):
         if len(str(self.id)) > 3:
             code = int(str(self.id)[-3:])
         else:
             code = self.id
         return code
-    code = property(_code)
+
+    @property
+    def url(self):
+        return "%s%s%s" % (get_config_value('ticket_url'), get_config_value('event_id'), self.id)
 
     # TODO: saves languages information? or recompute?
     class Meta:
