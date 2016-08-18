@@ -38,9 +38,9 @@ class Config(models.Model):
     # max_answers = 5
     # default_ticket_printer = 'print-ticket'
     # label_printer = 'label'
-    # min_phone_ringing = 1
+    # min_phone_ringing = 1 # used in loop to determine if need to call a phone
     # agi_over_file
-    # event_id = 'a'
+    # event_id = 'a' # identifier used in code exchange with web
 
 
 @receiver(post_save, sender=Config)
