@@ -1,13 +1,17 @@
 from django.db import models
 from django.core.cache import cache
 from django.utils.translation import ugettext_lazy as _
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
+CACHE_CONFIG_KEY = 'current_config'
 
 
 def get_config():
-    cached = cache.get('current_config')
+    cached = cache.get(CACHE_CONFIG_KEY)
     if not cached:
         cached = dict(Config.objects.values_list('key', 'value'))
-        cache.set('current_config', cached, 300)
+        cache.set(CACHE_CONFIG_KEY, cached, 300)
     return cached
 
 
@@ -27,10 +31,17 @@ class Config(models.Model):
     def __unicode__(self):
         return str(self.key)
 
-    # default_printer_ticket
-    # ticket_url
-    # minimum_score
+    # ticket_url = https://gestionair.ch/
+    # minimum_score = 50
     # number_wheel_prizes
-    # wheel_duration
-    # max_answers
+    # wheel_duration = 11000
+    # max_answers = 5
+    # default_ticket_printer = 'print-ticket'
+    # label_printer = 'label'
+    # min_phone_ringing = 1
+    # agi_over_file
 
+
+@receiver(post_save, sender=Config)
+def delete_cache(sender, instance, **kwargs):
+    cache.delete(CACHE_CONFIG_KEY)
