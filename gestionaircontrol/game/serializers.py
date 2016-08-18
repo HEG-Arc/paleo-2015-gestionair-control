@@ -22,6 +22,6 @@ class PlayerAnswerSerializer(serializers.ModelSerializer):
 class GamePlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
-        fields = ('number', 'name', 'score', 'answers')
+        fields = ('name', 'score', 'answers')
 
     answers = PlayerAnswerSerializer(many=True, read_only=True)

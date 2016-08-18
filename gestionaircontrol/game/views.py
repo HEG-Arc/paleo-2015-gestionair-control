@@ -231,3 +231,11 @@ def agi_submit(request):
         msg = "GET calls are not allowed for this view!"
     return HttpResponse(msg)
 
+from gestionaircontrol.game.serializers import GamePlayerSerializer
+def test_score_sync(request, id):
+    player = Player.objects.get(pk=id)
+    send_amqp_message({
+        'code': '%s%s' % (get_config_value('event_id'), player.id),
+        'json': GamePlayerSerializer(player).data
+    }, 'sync')
+    return HttpResponse('created')

@@ -40,9 +40,8 @@ def compute_player_score(player):
         score_correct = 0
     score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
-    #player.languages = json.dump(languages)
+    player.languages = json.dump(languages)
     player.save()
-    # TODO maybe save languages string in player for easy retrieval?
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
 
 
@@ -134,7 +133,10 @@ def agi_save(answer_id, answer_key, correct):
             # TODO: move in a celery task
             player_score = compute_player_score(player)
             # send score and player data to sync queue
-            send_amqp_message(GamePlayerSerializer(player).data, 'sync')
+            send_amqp_message({
+                'code': '%s%s' % (get_config_value('event_id'), player.id),
+                'json': GamePlayerSerializer(player).data
+            }, 'sync')
             response = {'playerId': player.id, 'languages': player_score['languages'], 'score': player_score['score'],
                         'type': 'PLAYER_LIMIT_REACHED', 'timestamp': player.limit_time.isoformat()}
             send_amqp_message(response, "simulation")
