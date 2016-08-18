@@ -9,6 +9,7 @@ import time
 from gestionaircontrol.callcenter.models import Phone
 from messaging import send_amqp_message
 from threading import Thread
+from gestionaircontrol.game.models import get_config_value
 
 from config.celery import app
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
@@ -129,7 +130,6 @@ class Endpoint(object):
 def game_loop(callcenter):
     logger.debug('game loop started')
     print 'game loop start'
-    min_phone_ringing = 1 # TODO move config
     phones = {}
     while True:
         # check active endpoints and create or update our local phones
@@ -158,7 +158,7 @@ def game_loop(callcenter):
             # check if we need to call phones
             ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
             logger.debug("ringing_phones length %s " % len(ringing_phones))
-            if len(ringing_phones) < min_phone_ringing:
+            if len(ringing_phones) < get_config_value('min_phone_ringing'):
                 available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
                 logger.debug("available phones count %s " % len(available_phones))
                 if len(available_phones) > 0:
