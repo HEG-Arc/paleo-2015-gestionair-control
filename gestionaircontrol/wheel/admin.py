@@ -4,4 +4,4 @@ from models import Prize
 
 @admin.register(Prize)
 class PrizeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'stock', 'percentage', 'big', 'free')
