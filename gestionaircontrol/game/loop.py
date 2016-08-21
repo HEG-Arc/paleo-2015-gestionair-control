@@ -10,15 +10,14 @@ from gestionaircontrol.callcenter.models import Phone
 from messaging import send_amqp_message
 from threading import Thread
 from gestionaircontrol.game.models import get_config_value
+from config.settings import ASTERISK_URL, ASTERISK_USERNAME, ASTERISK_PASSWORD
 
 from config.celery import app
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
 
 logger = logging.getLogger(__name__)
 
-# TODO: move to env
-URL = 'http://192.168.1.1:8088'
-AUTH = ('paleo', 'paleo7top')
+AUTH = (ASTERISK_USERNAME, ASTERISK_PASSWORD)
 
 DEMO_PHONE_NUMBER = 1201
 
@@ -58,10 +57,10 @@ class CallCenter:
         logger.debug("DELETING CALL FILES...")
         subprocess.call('/usr/bin/sudo rm /var/spool/asterisk/outgoing/*.call', shell=True)
         logger.debug("CLOSING CHANNELS...")
-        open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
+        open_channels = requests.get(ASTERISK_URL + '/ari/channels', auth=AUTH).json()
         for channel in open_channels:
             if int(channel['caller']['number']) < 1100:
-                requests.delete(URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
+                requests.delete(ASTERISK_URL + '/ari/channels/%s' % channel['id'], auth=AUTH)
         #TODO: dynamic all phones
         for number in range(1001, 1011):
             send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': number}, "simulation")
@@ -138,7 +137,7 @@ def game_loop(callcenter):
         # check active endpoints and create or update our local phones
         try:
             if callcenter.is_running:
-                endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
+                endpoints = requests.get(ASTERISK_URL + '/ari/endpoints', auth=AUTH).json()
                 for endpoint in endpoints:
                     endpoint_number = int(endpoint['resource'])
                     # only callcenter numbers
@@ -150,7 +149,7 @@ def game_loop(callcenter):
                         phones[endpoint_number].set_online(endpoint['state'] == 'online')
 
                 # update phone states
-                open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
+                open_channels = requests.get(ASTERISK_URL + '/ari/channels', auth=AUTH).json()
                 # export channel for callcenter status api
                 callcenter.open_channels = open_channels
                 ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']

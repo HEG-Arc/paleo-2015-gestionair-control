@@ -73,3 +73,14 @@ cupsenable winprinter
 lpstat -p
 
 lp -d winprinter test.pdf
+
+
+
+# .env file
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+DATABASE_URL=
+DJANGO_SECRET_KEY=
+ASTERISK_URL=
+ASTERISK_USERNAME=
+ASTERISK_PASSWORD=
