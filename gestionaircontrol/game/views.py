@@ -70,6 +70,13 @@ def status(requests):
     }
     return JsonResponse(status)
 
+
+# sound can be call or ambiance
+def play_sound(requests, sound):
+    send_amqp_message({'type': 'PLAY_SOUND', 'sound': sound, 'area': 'front'}, "simulation")
+    return HttpResponse("OK")
+
+
 @csrf_exempt
 def register_player(request):
     try:
