@@ -57,10 +57,18 @@ def stop_game(request):
     CALL_CENTER.stop_game()
     return HttpResponse("OK")
 
+# call 1201 for demo
 def call_phone(request, number):
     CALL_CENTER.call_number(number)
     return HttpResponse("OK")
 
+def status(requests):
+    status = {
+        'isRunning': CALL_CENTER.is_running,
+        'startTime': CALL_CENTER.start_time,
+        'demoState': CALL_CENTER.demo_state()
+    }
+    return JsonResponse(status)
 
 @csrf_exempt
 def register_player(request):

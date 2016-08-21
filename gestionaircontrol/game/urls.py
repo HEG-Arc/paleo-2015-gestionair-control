@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^agi/$', views.agi_submit, name='ami-submit'),
     url(r'^start', views.start_game, name='game-start'),
     url(r'^stop', views.stop_game, name='game-stop'),
-
+    url(r'^api/status', views.status, name='game-status'),
     url(r'^api/register-player', views.register_player, name='register-player'),
     url(r'^api/print-player/(?P<player_id>\d+)', views.print_player, name='print-player'),
     url(r'^api/scan-code/(?P<player_id>\d+)', views.scan_player, name='scan-code'),

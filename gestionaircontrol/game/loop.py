@@ -20,10 +20,7 @@ logger = logging.getLogger(__name__)
 URL = 'http://192.168.1.1:8088'
 AUTH = ('paleo', 'paleo7top')
 
-
-# game loop ok
-# demo loop ?
-# public ?
+DEMO_PHONE_NUMBER = 1201
 
 class CallCenter:
 
@@ -33,6 +30,7 @@ class CallCenter:
         self.loop = Thread(target=game_loop, args=(self,))
         self.loop.start()
         self.start_game()
+        self.open_channels = []
 
     def start_game(self):
         if self.is_running:
@@ -48,6 +46,12 @@ class CallCenter:
             task.abort()
         except Exception as e:
             print e
+
+    def demo_state(self):
+        state = [channel['state'] for channel in self.open_channels if int(channel['caller']['number']) == DEMO_PHONE_NUMBER]
+        if len(state) > 0:
+            return state[0]
+        return 'FREE'
 
 
     def clean(self):
@@ -129,41 +133,42 @@ class Endpoint(object):
 
 def game_loop(callcenter):
     logger.debug('game loop started')
-    print 'game loop start'
     phones = {}
     while True:
         # check active endpoints and create or update our local phones
         try:
-          if callcenter.is_running:
-            endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
-            for endpoint in endpoints:
-                endpoint_number = int(endpoint['resource'])
-                # only callcenter numbers
-                # TODO: Do it from the database
-                if 1000 < endpoint_number < 1100:
-                    if endpoint_number not in phones.keys():
-                        logger.debug("create phone %s" % endpoint_number)
-                        phones[endpoint_number] = Endpoint(endpoint_number, callcenter)
-                    phones[endpoint_number].set_online(endpoint['state'] == 'online')
+            if callcenter.is_running:
+                endpoints = requests.get(URL + '/ari/endpoints', auth=AUTH).json()
+                for endpoint in endpoints:
+                    endpoint_number = int(endpoint['resource'])
+                    # only callcenter numbers
+                    # TODO: Do it from the database
+                    if 1000 < endpoint_number < 1100:
+                        if endpoint_number not in phones.keys():
+                            logger.debug("create phone %s" % endpoint_number)
+                            phones[endpoint_number] = Endpoint(endpoint_number, callcenter)
+                        phones[endpoint_number].set_online(endpoint['state'] == 'online')
 
-            # update phone states
-            open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
-            ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
-            logger.debug("ringing channels %s " % ringing_channels)
-            for number, phone in phones.iteritems():
-                #trigger cooldown handling of phones
-                phone.update_cooldown()
-                phone.update_ringing(number in ringing_channels)
+                # update phone states
+                open_channels = requests.get(URL + '/ari/channels', auth=AUTH).json()
+                # export channel for callcenter status api
+                callcenter.open_channels = open_channels
+                ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
+                logger.debug("ringing channels %s " % ringing_channels)
+                for number, phone in phones.iteritems():
+                    # trigger cooldown handling of phones
+                    phone.update_cooldown()
+                    phone.update_ringing(number in ringing_channels)
 
-            # check if we need to call phones
-            ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
-            logger.debug("ringing_phones length %s " % len(ringing_phones))
-            if len(ringing_phones) < get_config_value('min_phone_ringing'):
-                available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
-                logger.debug("available phones count %s " % len(available_phones))
-                if len(available_phones) > 0:
-                    phone = random.choice(available_phones)
-                    phone.call()
-          time.sleep(1)
+                # check if we need to call phones
+                ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
+                logger.debug("ringing_phones length %s " % len(ringing_phones))
+                if len(ringing_phones) < get_config_value('min_phone_ringing'):
+                    available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
+                    logger.debug("available phones count %s " % len(available_phones))
+                    if len(available_phones) > 0:
+                        phone = random.choice(available_phones)
+                        phone.call()
+            time.sleep(1)
         except Exception as e:
             logger.error(e)
