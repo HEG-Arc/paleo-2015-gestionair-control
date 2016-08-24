@@ -33,6 +33,7 @@ from loop import CallCenter
 CALL_CENTER = CallCenter()
 
 # Core Django imports
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -245,6 +246,18 @@ def agi_submit(request):
     else:
         msg = "GET calls are not allowed for this view!"
     return HttpResponse(msg)
+
+
+def frontend_redirect(request):
+    ip = request.META.get('HTTP_X_REAL_IP')
+    if not ip:
+        ip = request.META.get('REMOTE_ADDR')
+    url = get_config_value(ip)
+    if not url:
+        url = get_config_value('default_frontend_url')
+    return redirect(url)
+
+
 
 from gestionaircontrol.game.serializers import GamePlayerSerializer
 def test_score_sync(request, id):

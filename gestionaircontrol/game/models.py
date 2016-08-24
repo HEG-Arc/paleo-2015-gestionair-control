@@ -41,6 +41,8 @@ class Config(models.Model):
     # min_phone_ringing = 1 # used in loop to determine if need to call a phone
     # agi_over_file
     # event_id = 'a' # identifier used in code exchange with web
+    # default_frontend_url
+    # %ip%
 
 
 @receiver(post_save, sender=Config)
