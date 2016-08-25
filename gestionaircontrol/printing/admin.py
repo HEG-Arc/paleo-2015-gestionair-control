@@ -23,5 +23,5 @@ class PrinterAdmin(admin.ModelAdmin):
     def test_printer(self, request, queryset):
         for p in queryset:
             # TODO remove dependency on game
-            self.message_user(request, "%s" % p.print_file(ticket(self.name, '000', 'http://test')))
+            self.message_user(request, "%s" % p.print_file(ticket(p.name, '000', 'http://test')))
     test_printer.short_description = "Test printer"
