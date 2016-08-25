@@ -215,6 +215,7 @@ def bumper(request):
                'wheel_duration': int(get_config_value('wheel_duration')),
                'timestamp': player.wheel_time.isoformat()}
     send_amqp_message(message, "simulation")
+    return HttpResponse("")
 
 
 def load_config(request):
