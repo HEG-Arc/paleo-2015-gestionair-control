@@ -31,16 +31,36 @@ from django.contrib import admin
 from .models import Question, Translation, Language, Department, Phone, Player, Answer
 
 
+class TranslationInline(admin.TabularInline):
+    model = Translation
+
+
 class QuestionAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ('department', 'translations__language__code')
+    list_display = ('number', 'department', 'text_fr')
+    search_fields = ['translations__text']
+    inlines = [TranslationInline]
+
+    def lookup_allowed(self, key, value):
+        return True
+
+    def text_fr(self, obj):
+        fr = Translation.objects.filter(question=obj, language__code='fr').first()
+        if fr :
+            return fr.text
+        return ''
 
 
 class TranslationAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ('question__department', 'language__code')
+    list_display = ('id', 'code', 'text')
+
+    def code(self, obj):
+        return obj.language.code
 
 
 class LanguageAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('language', 'code', 'weight')
 
 
 class DepartmentAdmin(admin.ModelAdmin):
@@ -48,11 +68,28 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 
 class PhoneAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('__str__', 'dmx_channel')
+
+
+class AnswerInline(admin.TabularInline):
+    model = Answer
+    fields = ('sequence', 'code', 'correct', 'phone', 'pickup_time')
+    can_delete = False
+    max_num = 0
+    readonly_fields = ('sequence', 'code', 'correct', 'phone', 'pickup_time')
+
+    def code(self, obj):
+        return obj.question.language.code
 
 
 class PlayerAdmin(admin.ModelAdmin):
-    pass
+    inlines = [
+        AnswerInline,
+    ]
+    search_fields = ['id', 'name']
+    ordering = ('-id',)
+    list_display = ('id', 'name', 'state', 'score')
+    list_filter = ('state', 'print_time', 'score')
 
 
 class AnswerAdmin(admin.ModelAdmin):
