@@ -1,5 +1,6 @@
 import random
 import json
+import logging
 from gestionaircontrol.callcenter.models import Player, Answer, Translation, Phone, Department, Language
 from django.core.cache import cache
 from django.utils import timezone
@@ -7,6 +8,9 @@ from django.utils import timezone
 from gestionaircontrol.game.serializers import GamePlayerSerializer
 from messaging import send_amqp_message
 from gestionaircontrol.game.models import get_config_value
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def compute_player_score(player):
@@ -40,7 +44,7 @@ def compute_player_score(player):
         score_correct = 0
     score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
-    player.languages = json.dump(languages)
+    player.languages = json.dumps(languages)
     player.save()
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
 
@@ -62,7 +66,8 @@ def pick_next_question(player=None):
             departments += departments_list
         # We remove departments previously drawn
         for answer in answers:
-            departments.remove(answer.question.question.department.number)
+            if answer.question.question.department.number in departments:
+                departments.remove(answer.question.question.department.number)
             questions.append(answer.question.question.number)
         # We draw a department and a language
         language = random.choice(languages_list)
