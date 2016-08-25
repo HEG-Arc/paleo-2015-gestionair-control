@@ -47,7 +47,7 @@ class CallCenter:
             print e
 
     def demo_state(self):
-        state = [channel['state'] for channel in self.open_channels if int(channel['caller']['number']) == DEMO_PHONE_NUMBER]
+        state = [channel['state'].upper() for channel in self.open_channels if int(channel['caller']['number']) == DEMO_PHONE_NUMBER]
         if len(state) > 0:
             return state[0]
         return 'FREE'
