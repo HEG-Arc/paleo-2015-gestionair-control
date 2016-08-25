@@ -74,7 +74,7 @@ def status(requests):
 
 # sound can be call or ambiance
 def play_sound(requests, sound):
-    send_amqp_message({'type': 'PLAY_SOUND', 'sound': sound, 'area': 'front'}, "simulation")
+    send_amqp_message({'type': 'PLAY_SOUND', 'sound': sound, 'area': 'center'}, "simulation")
     return HttpResponse("OK")
 
 
