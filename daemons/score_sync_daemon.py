@@ -52,5 +52,5 @@ channel = connection.channel()
 channel.basic_consume(on_message, queue='sync')
 try:
     channel.start_consuming()
-except KeyboardInterrupt:
+except KeyboardInterrupt, pika.exceptions.ChannelClosed:
     channel.stop_consuming()

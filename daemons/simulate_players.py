@@ -31,7 +31,7 @@ import math
 import time
 from threading import Thread, Timer
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 HOST = '127.0.0.1'
 MIN_PLAYERS = 4
@@ -270,8 +270,8 @@ channel = connection.channel()
 result = channel.queue_declare(exclusive=True)
 queue_name = result.method.queue
 channel.queue_bind(queue=queue_name, exchange='gestionair', routing_key='simulation')
-channel.basic_consume(on_message, queue=queue_name)
+channel.basic_consume(on_message, queue=queue_name, consumer_tag='player-simulator')
 try:
     channel.start_consuming()
-except KeyboardInterrupt:
+except KeyboardInterrupt, pika.exceptions.ChannelClosed:
     channel.stop_consuming()

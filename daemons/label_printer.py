@@ -113,5 +113,5 @@ channel.queue_bind(queue=queue_name, exchange='gestionair', routing_key='simulat
 channel.basic_consume(on_message, queue=queue_name)
 try:
     channel.start_consuming()
-except KeyboardInterrupt:
+except KeyboardInterrupt, pika.exceptions.ChannelClosed:
     channel.stop_consuming()
