@@ -13,6 +13,7 @@ from __future__ import absolute_import, unicode_literals
 import environ
 import os
 import datetime
+import raven
 
 ROOT_DIR = environ.Path(__file__) - 2  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('gestionaircontrol')
@@ -21,6 +22,12 @@ env = environ.Env()
 
 SECRET_KEY = env("DJANGO_SECRET_KEY", default='CHANGEME!!!')
 
+RAVEN_CONFIG = {
+    'dsn': env("RAVEN_DSN", default=''),
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(str(ROOT_DIR())),
+}
 
 
 # APP CONFIGURATION
@@ -32,7 +39,8 @@ DJANGO_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
+    'django.contrib.staticfiles',
+    'raven.contrib.django.raven_compat',
 )
 THIRD_PARTY_APPS = (
     'corsheaders',
@@ -279,10 +287,30 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
+        },
+        'sentry': {
+            'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
         }
     },
     'root': {
         'handlers': ['console'],
         'level': 'DEBUG'
-    }
+    },
+    'loggers': {
+        'root': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+        },
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
 }
