@@ -40,11 +40,7 @@ class CallCenter:
     def stop_game(self):
         self.is_running = False
         self.clean()
-        try:
-            task = AbortableAsyncResult(self.gameloop_id)
-            task.abort()
-        except Exception as e:
-            print e
+        send_amqp_message({'type': 'STOP'}, 'simulation')
 
     def demo_state(self):
         state = [channel['state'].upper() for channel in self.open_channels if int(channel['caller']['number']) == DEMO_PHONE_NUMBER]
