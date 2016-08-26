@@ -35,7 +35,7 @@ CALL_CENTER = CallCenter()
 # Core Django imports
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.shortcuts import get_object_or_404
@@ -143,9 +143,21 @@ def scan_code(request, code):
     return HttpResponse("")
 
 
+def unlock_previous_player(request):
+    if CALL_CENTER.last_scan:
+        # fix player to go to wheel
+        player = CALL_CENTER.last_scan
+        player.state = player.LIMITREACHED
+        if player.score < int(get_config_value('minimum_score')):
+            player.score = int(get_config_value('minimum_score')) + 1
+        player.save()
+        return scan_player(request, player.id)
+    return HttpResponseNotFound('player not found')
+
+
 def scan_player(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
-
+    CALL_CENTER.last_scan = player
     message = {'type': 'PLAYER_SCANNED',
                'playerId': player.id,
                'state': player.state,
