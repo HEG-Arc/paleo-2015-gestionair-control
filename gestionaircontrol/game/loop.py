@@ -93,6 +93,8 @@ class Endpoint(object):
     COOLDOWN = 3 #phone has been used recently
     COOLDOWN_TIME = 10
     stop_ringing_sent = False
+    count = 0
+    last_ringing = False
 
     def __init__(self, number, callcenter):
         self.state = Endpoint.AVAILABLE
@@ -114,12 +116,21 @@ class Endpoint(object):
                 self.state = Endpoint.AVAILABLE
 
     def update_ringing(self, ringing):
+        # check that we received twice to update
+        if self.count < 2:
+            if self.last_ringing == ringing:
+                self.count += 1
+            else:
+                self.count = 0
+            self.last_ringing = ringing
+            return
+        self.count = 0
         if self.state == Endpoint.RINGING and not ringing:
             self.cooldown()
         if ringing and not self.state == Endpoint.RINGING:
+            logger.debug("Ringing phone with number %s state: %s" % (self.number, self.state))
             self.state = Endpoint.RINGING
             self.stop_ringing_sent = False
-            logger.debug("Ringing phone with number %s state: %s" % self.number, self.state)
 
     def update_up(self, up):
         if up and not self.state == Endpoint.UP:
