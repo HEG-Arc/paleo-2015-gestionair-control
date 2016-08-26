@@ -128,7 +128,7 @@ class Endpoint(object):
         self.count = 0
         if self.state == Endpoint.RINGING and not ringing:
             self.cooldown()
-        if ringing and not self.state == Endpoint.RINGING and not self.state == Endpoint.SENT_ASTERISK:
+        if ringing and not self.state == Endpoint.RINGING:
             logger.debug("Ringing phone with number %s state: %s" % (self.number, self.state))
             self.state = Endpoint.RINGING
             self.stop_ringing_sent = False
