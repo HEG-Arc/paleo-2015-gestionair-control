@@ -36,7 +36,7 @@ abort = {'front': False, 'center': False}
 def aplayer(area, card, soundfile, loop=False, callback=None, volume=50):
     def thread():
         print "Playing: %s on %s" % (soundfile, card)
-        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/var/gestionair/control/gestionaircontrol/static/%s' % soundfile, '-volume', '%s' % volume, '-osdlevel', 0]
+        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/var/gestionair/control/gestionaircontrol/static/%s' % soundfile, '-volume', '%s' % volume, '-osdlevel', '0']
         if loop:
             command.append('-loop')
             command.append('0')
