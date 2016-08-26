@@ -44,7 +44,7 @@ def compute_player_score(player):
         score_correct = 0
     score = int(score_languages + score_duration*5 + score_correct*5)
     player.score = score
-    player.languages = json.dumps(languages)
+    player.languages = languages
     player.save()
     return {'name': player.name, 'score': score, 'languages': languages, 'id': player.number}
 
