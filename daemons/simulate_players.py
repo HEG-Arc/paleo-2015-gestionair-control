@@ -30,6 +30,12 @@ import requests
 import math
 import time
 from threading import Thread, Timer
+from raven.conf import setup_logging
+from raven.handlers.logging import SentryHandler
+import os
+logger = logging.getLogger(__name__)
+handler = SentryHandler(os.environ.get('RAVEN_DSN'))
+setup_logging(handler)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -251,7 +257,8 @@ def on_message(channel, method_frame, header_frame, body):
         if message['type'] == 'PLAYER_LIMIT_REACHED':
             continue_playing = random.random() < 0.05
             if not continue_playing:
-                active_players.remove(message['playerId'])
+                if message['playerId'] in active_players:
+                    active_players.remove(message['playerId'])
                 # TODO: queue?
                 scan_code(message['playerId'])
 
