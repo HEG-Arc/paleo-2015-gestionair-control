@@ -89,6 +89,7 @@ class Endpoint(object):
     DISABLED = 0 #not online
     AVAILABLE = 1 #onluine available to be called
     UP = 4 # phone channel up
+    SENT_ASTERISK = 5
     RINGING = 2 # means ringing or play answering
     COOLDOWN = 3 #phone has been used recently
     COOLDOWN_TIME = 10
@@ -150,6 +151,7 @@ class Endpoint(object):
 
     def call(self):
         logger.debug("New phone call %s" % self.number)
+        self.state = Endpoint.SENT_ASTERISK
         self.callcenter.call_number(self.number)
 
 
@@ -180,7 +182,7 @@ def game_loop(callcenter):
                 for number, phone in phones.iteritems():
                     # trigger cooldown handling of phones
                     phone.update_cooldown()
-                    phone.update_up( number in [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Up'])
+                    phone.update_up(number in [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Up'])
                     phone.update_ringing(number in ringing_channels)
 
                 # check if we need to call phones
