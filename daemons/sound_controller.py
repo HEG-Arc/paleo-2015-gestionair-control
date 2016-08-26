@@ -36,7 +36,7 @@ abort = {'front': False, 'center': False}
 def aplayer(area, card, soundfile, loop=False, callback=None, volume=50):
     def thread():
         print "Playing: %s on %s" % (soundfile, card)
-        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/var/gestionair/control/gestionaircontrol/static/%s' % soundfile, '-volume', '%s' % volume]
+        command = ['mplayer', '-ao', 'alsa:device=hw=%s.0' % card,  '/var/gestionair/control/gestionaircontrol/static/%s' % soundfile, '-volume', '%s' % volume, '-osdlevel', 0]
         if loop:
             command.append('-loop')
             command.append('0')
@@ -136,7 +136,7 @@ def play_sound_from_event(event):
         else:
             play_sound('wheel-small', 'center')
     elif event['type'] == 'STOP':
-        abort[event['area'] or 'center'] = True
+        abort['center'] = True
     if event['type'] == 'PLAY_SOUND':
         abort[event['area']] = False
         play_sound(event['sound'], event['area'], volume=volume)
@@ -150,7 +150,7 @@ def on_message(channel, method_frame, header_frame, body):
             print message
             play_sound_from_event(message)
     except Exception as e:
-        print e
+        print 'Exception', e
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 
