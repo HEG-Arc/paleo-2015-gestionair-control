@@ -118,7 +118,7 @@ class Endpoint(object):
 
     def update_ringing(self, ringing):
         # check that we received twice to update
-        if self.count < 2:
+        if self.count < 3:
             if self.last_ringing == ringing:
                 self.count += 1
             else:
@@ -128,7 +128,7 @@ class Endpoint(object):
         self.count = 0
         if self.state == Endpoint.RINGING and not ringing:
             self.cooldown()
-        if ringing and not self.state == Endpoint.RINGING:
+        if ringing and not self.state == Endpoint.RINGING and not self.state == Endpoint.SENT_ASTERISK:
             logger.debug("Ringing phone with number %s state: %s" % (self.number, self.state))
             self.state = Endpoint.RINGING
             self.stop_ringing_sent = False
