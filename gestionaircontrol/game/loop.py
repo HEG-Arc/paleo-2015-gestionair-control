@@ -119,7 +119,7 @@ class Endpoint(object):
         if ringing and not self.state == Endpoint.RINGING:
             self.state = Endpoint.RINGING
             self.stop_ringing_sent = False
-            logger.debug("Ringing phone with number %s " % self.number)
+            logger.debug("Ringing phone with number %s state: %s" % self.number, self.state)
 
     def update_up(self, up):
         if up and not self.state == Endpoint.UP:
