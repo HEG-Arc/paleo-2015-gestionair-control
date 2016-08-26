@@ -179,9 +179,9 @@ def game_loop(callcenter):
                 logger.debug("ringing channels %s " % ringing_channels)
                 for number, phone in phones.iteritems():
                     # trigger cooldown handling of phones
+                    phone.update_cooldown()
                     phone.update_up( number in [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Up'])
                     phone.update_ringing(number in ringing_channels)
-                    phone.update_cooldown()
 
                 # check if we need to call phones
                 ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
