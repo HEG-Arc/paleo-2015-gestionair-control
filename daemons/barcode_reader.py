@@ -106,9 +106,9 @@ while True:
                                     code = barcode.split('/')[-1]
                                     player_id = code[len(EVENT_ID):]
                                 except IndexError:
-                                    code = "0"
-                                logging.info("Scanned code: %s" % code)
-                                url = "%s%s" % (API_URL, code)
+                                    player_id = "0"
+                                logging.info("Scanned player_id: %s" % player_id)
+                                url = "%s%s" % (API_URL, player_id)
                                 print url
                                 r = requests.get(url)
                                 # TODO: Do something with the response code
