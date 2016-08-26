@@ -132,6 +132,9 @@ def game_loop(callcenter):
     while True:
         # check active endpoints and create or update our local phones
         try:
+            open_channels = requests.get(ASTERISK_URL + '/ari/channels', auth=AUTH).json()
+            # export channel for callcenter status api
+            callcenter.open_channels = open_channels
             if callcenter.is_running:
                 endpoints = requests.get(ASTERISK_URL + '/ari/endpoints', auth=AUTH).json()
                 for endpoint in endpoints:
@@ -145,9 +148,6 @@ def game_loop(callcenter):
                         phones[endpoint_number].set_online(endpoint['state'] == 'online')
 
                 # update phone states
-                open_channels = requests.get(ASTERISK_URL + '/ari/channels', auth=AUTH).json()
-                # export channel for callcenter status api
-                callcenter.open_channels = open_channels
                 ringing_channels = [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Ringing']
                 logger.debug("ringing channels %s " % ringing_channels)
                 for number, phone in phones.iteritems():
