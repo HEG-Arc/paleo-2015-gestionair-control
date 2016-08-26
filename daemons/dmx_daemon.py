@@ -25,6 +25,7 @@ import pika
 import pysimpledmx
 import logging
 import time
+import threading
 
 logging.basicConfig()
 
@@ -61,6 +62,15 @@ def set_phone_color(scene, channel, r, g, b, w):
 def default_scene():
     scene = []
     set_effect_color(scene, EFFECTS['wheel'], 0, 138, 201, 0, 0, 0, 100)
+    set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
+    send_dmx_scene(scene)
+
+def red_bumper():
+    scene = []
+    set_effect_color(scene, EFFECTS['bumper'], 255, 0, 0, 0, 0, 0, 255)
+    send_dmx_scene(scene)
+    time.sleep(5)
+    scene = []
     set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
     send_dmx_scene(scene)
 
@@ -111,6 +121,7 @@ def start_wheel(size):
        wheel_big(scene)
     elif size == 'small':
        wheel_small(scene)
+    return
 
 def stop_scene(scene):
     for number, channel in PHONES.iteritems():
@@ -152,14 +163,16 @@ def play_dmx_from_event(event):
         # TODO: Détacher le proc
         powerdown_scene()
     elif event['type'] == 'WHEEL_START':
-        start_wheel(event['size'])
+        t = threading.Thread(target=start_wheel, args=(event['size'],))
+        t.start()
     elif event['type'] == 'PLAYER_SCANNED':
         if event['state'] == 'SCANNED_WHEEL':
             set_effect_color(scene, EFFECTS['bumper'], 0, 255, 0, 0, 0, 0, 255)
         elif event['state'] == 'SCANNED_PEN':
             set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
         else:
-            set_effect_color(scene, EFFECTS['bumper'], 255, 0, 0, 0, 0, 0, 255)
+            t = threading.Thread(target=red_bumper)
+            t.start()
     elif event['type'] == 'STOP':
         stop_scene(scene)
 
