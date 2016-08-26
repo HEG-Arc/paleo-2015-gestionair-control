@@ -220,7 +220,8 @@ def answer_phone(phone_number):
         'correct': int(pressed_key == question['response'])
 
     }
-    Timer(2.0, answer_question, [payload]).start()
+    if question['answer_id']:
+        Timer(2.0, answer_question, [payload]).start()
 
 
 def scan_code(player_id):
