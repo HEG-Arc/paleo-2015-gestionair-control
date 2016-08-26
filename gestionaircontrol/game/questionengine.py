@@ -90,7 +90,7 @@ def agi_question(player_number, phone_number):
         player = Player.objects.filter(id__endswith=str(player_number)).order_by('-id').first()
         over = "not"
         last = "not"
-        if player.state == Player.LIMITREACHED:
+        if player.state in (Player.LIMITREACHED, Player.SCANNED, Player.WON):
             response_code = None
             response_file = get_config_value('agi_over_file')
             answer_id = None
