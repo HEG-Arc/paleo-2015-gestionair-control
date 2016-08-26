@@ -88,9 +88,11 @@ class CallCenter:
 class Endpoint(object):
     DISABLED = 0 #not online
     AVAILABLE = 1 #onluine available to be called
+    UP = 4 # phone channel up
     RINGING = 2 # means ringing or play answering
     COOLDOWN = 3 #phone has been used recently
     COOLDOWN_TIME = 10
+    stop_ringing_sent = False
 
     def __init__(self, number, callcenter):
         self.state = Endpoint.AVAILABLE
@@ -113,13 +115,27 @@ class Endpoint(object):
 
     def update_ringing(self, ringing):
         if self.state == Endpoint.RINGING and not ringing:
-            logger.debug("Start cooldown %s " % self.number)
-            self.state = Endpoint.COOLDOWN
-            self.cooldown_start = timezone.now()
-            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation")
-        if ringing:
+            self.cooldown()
+        if ringing and not self.state == Endpoint.RINGING:
             self.state = Endpoint.RINGING
+            self.stop_ringing_sent = False
             logger.debug("Ringing phone with number %s " % self.number)
+
+    def update_up(self, up):
+        if up and not self.state == Endpoint.UP:
+            logger.debug("Start up %s " % self.number)
+            self.state = Endpoint.UP
+        if self.state == Endpoint.UP and not up:
+            self.cooldown()
+
+    def cooldown(self):
+        logger.debug("Start cooldown %s " % self.number)
+        self.state = Endpoint.COOLDOWN
+        self.cooldown_start = timezone.now()
+        if not self.stop_ringing_sent:
+            send_amqp_message({'type': 'PHONE_STOPRINGING', 'number': self.number}, "simulation")
+        self.stop_ringing_sent = True
+
 
     def call(self):
         logger.debug("New phone call %s" % self.number)
@@ -152,8 +168,9 @@ def game_loop(callcenter):
                 logger.debug("ringing channels %s " % ringing_channels)
                 for number, phone in phones.iteritems():
                     # trigger cooldown handling of phones
-                    phone.update_cooldown()
+                    phone.update_up( number in [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Up'])
                     phone.update_ringing(number in ringing_channels)
+                    phone.update_cooldown()
 
                 # check if we need to call phones
                 ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
