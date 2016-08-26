@@ -199,8 +199,9 @@ def create_player():
 
 
 def answer_question(payload):
-    logging.debug('answered question %s' % json.dumps(payload))
-    requests.post('http://%s/game/agi/' % HOST, json=payload)
+    if payload['answer_id']:
+        logging.debug('answered question %s' % json.dumps(payload))
+        requests.post('http://%s/game/agi/' % HOST, json=payload)
 
 
 def answer_phone(phone_number):
@@ -220,8 +221,7 @@ def answer_phone(phone_number):
         'correct': int(pressed_key == question['response'])
 
     }
-    if question['answer_id']:
-        Timer(2.0, answer_question, [payload]).start()
+    Timer(2.0, answer_question, [payload]).start()
 
 
 def scan_code(player_id):
@@ -261,7 +261,7 @@ def on_message(channel, method_frame, header_frame, body):
                 if message['playerId'] in active_players:
                     active_players.remove(message['playerId'])
                 # TODO: queue?
-                scan_code(message['playerId'])
+                Timer(4.0, scan_code, [message['playerId']]).start()
 
         if message['type'] == 'PLAYER_SCANNED':
             if message['state'] == 'SCANNED_WHEEL':
