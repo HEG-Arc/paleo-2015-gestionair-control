@@ -72,11 +72,12 @@ def set_phone_color(scene, channel, r, g, b, w):
     scene.append((channel + 3, w))
 
 def lateuf():
-    duration = 87
-    while not TEUF_STOP.is_set() or duration > 0:
+    duration = 82
+    while not TEUF_STOP.is_set() and duration > 0:
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 255, 0, 0, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 255, 0, 0, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 255, 0, 0, 0)
         send_dmx_scene(scene)
 	time.sleep(0.4)
         if TEUF_STOP.is_set():
@@ -84,6 +85,7 @@ def lateuf():
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 255, 255, 0, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 255, 255, 0, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 255, 255, 0, 0)
         send_dmx_scene(scene)
         time.sleep(0.4)
         if TEUF_STOP.is_set():
@@ -91,6 +93,7 @@ def lateuf():
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 0, 255, 0, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 0, 255, 0, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 0, 255, 0, 0)
         send_dmx_scene(scene)
         time.sleep(0.4)
         if TEUF_STOP.is_set():
@@ -98,6 +101,7 @@ def lateuf():
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 0, 255, 255, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 0, 255, 255, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 0, 255, 255, 0)
         send_dmx_scene(scene)
         time.sleep(0.4)
         if TEUF_STOP.is_set():
@@ -105,6 +109,7 @@ def lateuf():
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 0, 0, 255, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 0, 0, 255, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 0, 0, 255, 0)
         send_dmx_scene(scene)
         time.sleep(0.4)
         if TEUF_STOP.is_set():
@@ -112,16 +117,27 @@ def lateuf():
         scene = []
         set_effect_color(scene, EFFECTS['borne'], 255, 0, 255, 255, 0, 0, 0)
         set_effect_color(scene, EFFECTS['wheel'], 255, 0, 255, 0, 0, 0, 100)
+        set_phone_color(scene, EFFECTS['bumper'], 255, 0, 255, 0)
         send_dmx_scene(scene)
         time.sleep(0.4)
         if TEUF_STOP.is_set():
             return
-        duration = duration - 2.4
+        duration -= 2.4
+    default_scene()
 
 def default_scene():
     scene = []
     set_effect_color(scene, EFFECTS['wheel'], 0, 138, 201, 0, 0, 0, 100)
     set_effect_color(scene, EFFECTS['borne'], 0, 138, 201, 255, 0, 0, 0)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
+    send_dmx_scene(scene)
+
+def purple_bumper():
+    scene = []
+    set_phone_color(scene, EFFECTS['bumper'], 202, 10, 244, 0)
+    send_dmx_scene(scene)
+    time.sleep(5)
+    scene = []
     set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
     send_dmx_scene(scene)
 
@@ -249,9 +265,10 @@ def play_dmx_from_event(event):
         TEUF_STOP.set()
         default_scene()
         if event['state'] == 'SCANNED_WHEEL':
-            set_phone_color(scene, EFFECTS['bumper'], 0, 255, 0, 0)
+            set_phone_color(scene, EFFECTS['bumper'], 15, 255, 0, 0)
         elif event['state'] == 'SCANNED_PEN':
-            set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
+            t = threading.Thread(target=purple_bumper)
+            t.start()
         else:
             t = threading.Thread(target=red_bumper)
             t.start()
