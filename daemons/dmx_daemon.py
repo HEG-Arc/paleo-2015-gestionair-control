@@ -32,6 +32,8 @@ logging.basicConfig()
 
 COM_PORT = '/dev/ttyUSB0'
 
+TEUF_STOP = threading.Event()
+
 ports = serial.tools.list_ports.comports()
 
 for (i, (path, name, _)) in enumerate(ports):
@@ -69,9 +71,57 @@ def set_phone_color(scene, channel, r, g, b, w):
     scene.append((channel + 2, b))
     scene.append((channel + 3, w))
 
+def lateuf():
+    duration = 87
+    while not TEUF_STOP.is_set() or duration > 0:
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 255, 0, 0, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 255, 0, 0, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+	time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 255, 255, 0, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 255, 255, 0, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+        time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 0, 255, 0, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 0, 255, 0, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+        time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 0, 255, 255, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 0, 255, 255, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+        time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 0, 0, 255, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 0, 0, 255, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+        time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        scene = []
+        set_effect_color(scene, EFFECTS['borne'], 255, 0, 255, 255, 0, 0, 0)
+        set_effect_color(scene, EFFECTS['wheel'], 255, 0, 255, 0, 0, 0, 100)
+        send_dmx_scene(scene)
+        time.sleep(0.4)
+        if TEUF_STOP.is_set():
+            return
+        duration = duration - 2.4
+
 def default_scene():
     scene = []
     set_effect_color(scene, EFFECTS['wheel'], 0, 138, 201, 0, 0, 0, 100)
+    set_effect_color(scene, EFFECTS['borne'], 0, 138, 201, 255, 0, 0, 0)
     set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
     send_dmx_scene(scene)
 
@@ -87,13 +137,13 @@ def red_bumper():
 def wheel_small(scene):
     set_effect_color(scene, EFFECTS['wheel'], 0, 0, 0, 0, 240, 180, 255)
     send_dmx_scene(scene)
-    time.sleep(3)
+    time.sleep(1)
     default_scene()
 
 def wheel_big(scene):
     set_effect_color(scene, EFFECTS['wheel'], 0, 0, 0, 0, 240, 180, 255)
     send_dmx_scene(scene)
-    time.sleep(5)
+    time.sleep(9)
     default_scene()
 
 def start_wheel(size):
@@ -106,27 +156,30 @@ def start_wheel(size):
     scene.append((EFFECTS['wheel'] + 5,   0))  # CH6
     scene.append((EFFECTS['wheel'] + 6, 255))  # CH7
     send_dmx_scene(scene)
-    time.sleep(4)
-    scene = []
-    scene.append((EFFECTS['wheel'] + 0,   0))  # CH1
-    scene.append((EFFECTS['wheel'] + 1, 138))  # CH2
-    scene.append((EFFECTS['wheel'] + 2, 201))  # CH3
-    scene.append((EFFECTS['wheel'] + 3,   0))  # CH4
-    scene.append((EFFECTS['wheel'] + 4, 100))  # CH5
-    scene.append((EFFECTS['wheel'] + 5,   0))  # CH6
-    scene.append((EFFECTS['wheel'] + 6, 255))  # CH7
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 210)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 200)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 190)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 180)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 170)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 160)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 140)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 120)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 100)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 70)])
+    time.sleep(1)
+    send_dmx_scene([(EFFECTS['wheel'] + 4, 30)])
+    time.sleep(0.5)
     send_dmx_scene(scene)
-    time.sleep(4)
-    scene = []
-    scene.append((EFFECTS['wheel'] + 0,   0))  # CH1
-    scene.append((EFFECTS['wheel'] + 1, 138))  # CH2
-    scene.append((EFFECTS['wheel'] + 2, 201))  # CH3
-    scene.append((EFFECTS['wheel'] + 3,   0))  # CH4
-    scene.append((EFFECTS['wheel'] + 4,  16))  # CH5
-    scene.append((EFFECTS['wheel'] + 5,   0))  # CH6
-    scene.append((EFFECTS['wheel'] + 6, 255))  # CH7
-    send_dmx_scene(scene)
-    time.sleep(3)
     if size == 'big':
        wheel_big(scene)
     elif size == 'small':
@@ -158,7 +211,10 @@ def play_dmx_from_event(event):
         t = threading.Thread(target=play_remote_anim, args=(event['anim'],))
         t.start()
 
+    if event['type'] == 'START':
+        default_scene()
     if event['type'] == 'GAME_START':
+        default_scene()
         for number, channel in PHONES.iteritems():
             set_phone_color(scene, channel, 0, 138, 201, 0)
     if event['type'] == 'GAME_START_PLAYING':
@@ -185,12 +241,13 @@ def play_dmx_from_event(event):
         else:
             set_phone_color(scene, channel, 255, 0, 0, 0)
     elif event['type'] == 'GAME_END':
-        # TODO: Détacher le proc
         powerdown_scene()
     elif event['type'] == 'WHEEL_START':
         t = threading.Thread(target=start_wheel, args=(event['size'],))
         t.start()
     elif event['type'] == 'PLAYER_SCANNED':
+        TEUF_STOP.set()
+        default_scene()
         if event['state'] == 'SCANNED_WHEEL':
             set_phone_color(scene, EFFECTS['bumper'], 0, 255, 0, 0)
         elif event['state'] == 'SCANNED_PEN':
@@ -198,8 +255,12 @@ def play_dmx_from_event(event):
         else:
             t = threading.Thread(target=red_bumper)
             t.start()
+    elif event['type'] == 'PLAY_SOUND' and event['sound'] == 'call':
+        TEUF_STOP.clear()
+        threading.Thread(target=lateuf).start()
     elif event['type'] == 'STOP':
         stop_scene(scene)
+        TEUF_STOP.set()
 
     send_dmx_scene(scene)
 
