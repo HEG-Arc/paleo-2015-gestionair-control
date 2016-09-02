@@ -36,6 +36,7 @@ class CallCenter:
             return
         self.start_time = timezone.now()
         self.is_running = True
+        send_amqp_message({'type': 'START'}, 'simulation')
 
     def stop_game(self):
         self.is_running = False
