@@ -139,9 +139,24 @@ def stop_scene(scene):
     for number, channel in EFFECTS.iteritems():
         set_effect_color(scene, channel, 0, 0, 0, 0, 0, 0, 0)
 
+#anim = [
+#[(channel, color), (channel, color)],
+#3 //sleep
+#]
+
+def play_remote_anim(anim):
+   for instruction in anim:
+       if type(instruction) is list:
+           send_dmx_scene(instruction)
+       elif type(instruction) is int or type(instruction) is float:
+           time.sleep(instruction)
+
 
 def play_dmx_from_event(event):
     scene = []
+    if event['type'] == 'DMX_ANIM':
+        t = threading.Thread(target=play_remote_anim, args=(event['anim'],))
+        t.start()
 
     if event['type'] == 'GAME_START':
         for number, channel in PHONES.iteritems():
