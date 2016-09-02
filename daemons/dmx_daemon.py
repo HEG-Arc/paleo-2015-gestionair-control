@@ -26,10 +26,20 @@ import pysimpledmx
 import logging
 import time
 import threading
+import serial.tools.list_ports
 
 logging.basicConfig()
 
 COM_PORT = '/dev/ttyUSB0'
+
+ports = serial.tools.list_ports.comports()
+
+for (i, (path, name, _)) in enumerate(ports):
+        if "ENR2OIBB" in _:
+            print "Current port: %s" % path
+            COM_PORT = path
+        else:
+            print "ENTTEC not found, using default port: %s" % COM_PORT
 
 mydmx = pysimpledmx.DMXConnection(COM_PORT)
 
@@ -62,16 +72,16 @@ def set_phone_color(scene, channel, r, g, b, w):
 def default_scene():
     scene = []
     set_effect_color(scene, EFFECTS['wheel'], 0, 138, 201, 0, 0, 0, 100)
-    set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
     send_dmx_scene(scene)
 
 def red_bumper():
     scene = []
-    set_effect_color(scene, EFFECTS['bumper'], 255, 0, 0, 0, 0, 0, 255)
+    set_phone_color(scene, EFFECTS['bumper'], 255, 0, 0, 0)
     send_dmx_scene(scene)
     time.sleep(5)
     scene = []
-    set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
     send_dmx_scene(scene)
 
 def wheel_small(scene):
@@ -167,9 +177,9 @@ def play_dmx_from_event(event):
         t.start()
     elif event['type'] == 'PLAYER_SCANNED':
         if event['state'] == 'SCANNED_WHEEL':
-            set_effect_color(scene, EFFECTS['bumper'], 0, 255, 0, 0, 0, 0, 255)
+            set_phone_color(scene, EFFECTS['bumper'], 0, 255, 0, 0)
         elif event['state'] == 'SCANNED_PEN':
-            set_effect_color(scene, EFFECTS['bumper'], 0, 138, 201, 0, 0, 0, 255)
+            set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
         else:
             t = threading.Thread(target=red_bumper)
             t.start()
