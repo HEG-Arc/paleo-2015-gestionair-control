@@ -187,7 +187,7 @@ def scan_player(request, player_id):
             printer.print_file(label(player))
 
         if player.score < int(get_config_value('minimum_score')):
-            prize = Prize.objects.filter(free=True).first()
+            prize = Prize.objects.filter(free=True, stock__gt=0).first()
             if prize:
                 message['prize'] = {
                     'name': prize.label,
