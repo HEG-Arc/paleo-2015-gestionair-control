@@ -137,6 +137,8 @@ def play_sound_from_event(event):
             play_sound('wheel-small', 'center')
     elif event['type'] == 'STOP':
         abort['center'] = True
+    elif event['type'] == 'START':
+        play_sound('ambiance', 'center')
     if event['type'] == 'PLAY_SOUND':
         abort[event['area']] = False
         play_sound(event['sound'], event['area'], volume=volume)
