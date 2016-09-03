@@ -84,3 +84,17 @@ DJANGO_SECRET_KEY=
 ASTERISK_URL=
 ASTERISK_USERNAME=
 ASTERISK_PASSWORD=
+
+
+JSON stats
+==========
+  {
+	"event": {"name": "Capa'cité 2016", "start_date": "2016-09-05", "end_date": "2016-09-12"}
+	"attendance": {"09:00": 23, "10:00": 100, "11:00": 121, "12:00": 32, "13:00": 49, "14:00": 118, "15:00": 152, "16:00": 129, "17:00": 92, "18:00": 21},
+	"stats": {
+		"win": {"wheel": 380, "free": 320},
+		"scores": {"min": 5, "mean": 45, "max": 125},
+		"retention": {"register": 760, "start": 740, "limit": 710, "scan": 700},
+	},
+	inventory: {"bonbons": 839, "parapluie": 45, "sac": 12, "linge": 45, "stylo": 2900, "porte-cle": 1800, "lunettes": 434, "tasses": 219}
+  }
