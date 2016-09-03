@@ -41,7 +41,7 @@ from django.core import serializers
 from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.db.models import Min, Max, Avg
 
 from questionengine import agi_question, agi_save
 from gestionaircontrol.callcenter.models import Player
@@ -49,6 +49,7 @@ from gestionaircontrol.game.pdf import label, ticket
 from gestionaircontrol.printing.models import Printer
 from gestionaircontrol.game.models import get_config_value, get_config
 from gestionaircontrol.wheel.models import Prize, get_current_wheel, get_random_prize
+from gestionaircontrol.game.serializers import PrizeSerializer
 
 def start_game(request):
     CALL_CENTER.start_game()
@@ -248,6 +249,35 @@ def agi_request(request, player, phone):
 def agi_public_request(request):
     agi = agi_question(None, None)
     return JsonResponse(agi)
+
+def stats(request):
+    stats = {'stats': {}}
+    current_time = timezone.now()
+    now = '2015-11-21'
+    stats['current_time'] = current_time
+    stats['day'] = now
+    prizes = Prize.objects.all()
+    stats['inventory'] = PrizeSerializer(prizes, many=True).data
+    from django.db import connection
+    cursor = connection.cursor()
+    cursor.execute("select count(id) as registrations, date_trunc('hour', register_time) as hour from callcenter_player where register_time::date = %s group by hour order by hour", [now,])
+    players = cursor.fetchall()
+    attendance = {}
+    for nb, hour in players:
+        attendance[hour.strftime('%H:%M')] =  int(nb)
+    stats['attendance'] = attendance
+    scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
+    stats['stats']['scores'] = scores
+    register = Player.objects.filter(register_time__gte=now).count()
+    start = Player.objects.filter(start_time__gte=now).count()
+    last_answer = Player.objects.filter(last_answer_time__gte=now).count()
+    limit = Player.objects.filter(limit_time__gte=now).count()
+    scan = Player.objects.filter(scan_time__gte=now).count()
+    wheel = Player.objects.filter(wheel_time__gte=now).count()
+    stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan}
+    stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
+    stats['event'] = get_config_value('event_id')
+    return JsonResponse(stats)
 
 @csrf_exempt
 def agi_submit(request):

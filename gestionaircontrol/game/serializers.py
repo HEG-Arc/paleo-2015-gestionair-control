@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from gestionaircontrol.callcenter.models import Player, Answer
+from gestionaircontrol.wheel.models import Prize
 
 
 class PlayerAnswerSerializer(serializers.ModelSerializer):
@@ -25,3 +26,9 @@ class GamePlayerSerializer(serializers.ModelSerializer):
         fields = ('name', 'score', 'answers')
 
     answers = PlayerAnswerSerializer(many=True, read_only=True)
+
+
+class PrizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prize
+        fields = ('name', 'percentage', 'stock', 'big', 'free')
