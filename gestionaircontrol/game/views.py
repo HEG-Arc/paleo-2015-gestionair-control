@@ -264,9 +264,14 @@ def stats(request):
     players = cursor.fetchall()
     attendance = {}
     for nb, hour in players:
-        attendance[hour.strftime('%H:%M')] =  int(nb)
+        attendance[hour.strftime('%Y-%m-%d %H:%M')] =  int(nb)
     stats['attendance'] = attendance
-    scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
+    cursor.execute("select count(id) as players, ROUND(score/10)*10 as scorec from callcenter_player where register_time::date = %s group by scorec order by scorec", [now,])
+    scores_query = cursor.fetchall()
+    scores = {}
+    for players, scorec in scores_query:
+        scores[scorec] =  players
+    #scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
     stats['stats']['scores'] = scores
     register = Player.objects.filter(register_time__gte=now).count()
     start = Player.objects.filter(start_time__gte=now).count()
@@ -276,7 +281,7 @@ def stats(request):
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = get_config_value('event_id')
+    stats['event'] = {'id': get_config_value('event_id'), 'name': get_config_value('event_name')}
     return JsonResponse(stats)
 
 @csrf_exempt
