@@ -43,6 +43,7 @@ from django.forms.models import model_to_dict
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Min, Max, Avg
 
+from messaging import send_amqp_message
 from questionengine import agi_question, agi_save
 from gestionaircontrol.callcenter.models import Player
 from gestionaircontrol.game.pdf import label, ticket
@@ -291,6 +292,8 @@ def stats_save(request):
     stats = {'stats': {}}
     current_time = timezone.now()
     now = '2015-11-21'
+    event_id = get_config_value('event_id')
+    event_name = event_name=get_config_value('event_name')
     stats['current_time'] = current_time
     stats['day'] = now
     prizes = Prize.objects.all()
@@ -321,9 +324,15 @@ def stats_save(request):
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = {'id': get_config_value('event_id'), 'name': get_config_value('event_name')}
-    statistics = Statistics(event_code=get_config_value('event_id'), event_name=get_config_value('event_name'), stats_date=now, stats=stats)
+    stats['event'] = {'id': event_id, 'name': event_name}
+    statistics = Statistics(event_code=event_id, event_name=event_name, stats_date=now, stats=stats)
     statistics.save()
+    send_amqp_message({
+                'event_code': event_id,
+                'event_name': event_name,
+                'stats_date': now,
+                'stats': stats
+            }, 'stats')
     return HttpResponse('OK')
 
 @csrf_exempt
