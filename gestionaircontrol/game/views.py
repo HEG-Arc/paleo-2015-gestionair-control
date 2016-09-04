@@ -42,6 +42,7 @@ from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Min, Max, Avg
+from django.core import serializers
 
 from messaging import send_amqp_message
 from questionengine import agi_question, agi_save
@@ -294,10 +295,10 @@ def stats_save(request):
     now = '2015-11-21'
     event_id = get_config_value('event_id')
     event_name = event_name=get_config_value('event_name')
-    stats['current_time'] = current_time
+    stats['current_time'] = current_time.isoformat()
     stats['day'] = now
     prizes = Prize.objects.all()
-    stats['inventory'] = PrizeSerializer(prizes, many=True).data
+    #stats['inventory'] = PrizeSerializer(prizes, many=True).data
     from django.db import connection
     cursor = connection.cursor()
     cursor.execute("select count(id) as registrations, date_trunc('hour', register_time) as hour from callcenter_player where register_time::date = %s group by hour order by hour", [now,])
@@ -319,12 +320,12 @@ def stats_save(request):
     last_answer = Player.objects.filter(last_answer_time__gte=now).count()
     limit = Player.objects.filter(limit_time__gte=now).count()
     scan = Player.objects.filter(scan_time__gte=now).count()
-    #unlocked = Player.objects.filter(unlock_time__gte=now).count()
+    unlocked = Player.objects.filter(unlock_time__gte=now).count()
     unlocked = 0
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = {'id': event_id, 'name': event_name}
+    stats['event'] = {'id': event_id, 'name': "CAPACITE"}
     statistics = Statistics(event_code=event_id, event_name=event_name, stats_date=now, stats=stats)
     statistics.save()
     send_amqp_message({
