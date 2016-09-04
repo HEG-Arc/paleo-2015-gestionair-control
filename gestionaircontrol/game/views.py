@@ -252,44 +252,7 @@ def agi_public_request(request):
     agi = agi_question(None, None)
     return JsonResponse(agi)
 
-def stats(request):
-    stats = {'stats': {}}
-    current_time = timezone.now()
-    now = '2015-11-21'
-    stats['current_time'] = current_time
-    stats['day'] = now
-    prizes = Prize.objects.all()
-    stats['inventory'] = PrizeSerializer(prizes, many=True).data
-    from django.db import connection
-    cursor = connection.cursor()
-    cursor.execute("select count(id) as registrations, date_trunc('hour', register_time) as hour from callcenter_player where register_time::date = %s group by hour order by hour", [now,])
-    players = cursor.fetchall()
-    attendance = {}
-    for nb, hour in players:
-        attendance[hour.strftime('%Y-%m-%d %H:%M')] =  int(nb)
-    stats['attendance'] = attendance
-    cursor.execute("select count(id) as players, ROUND(score/10)*10 as scorec from callcenter_player where register_time::date = %s group by scorec order by scorec", [now,])
-    scores_query = cursor.fetchall()
-    scores = {}
-    for players, scorec in scores_query:
-        if scorec:
-            scores[int(scorec)] =  players
-    #scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
-    stats['stats']['scores'] = scores
-    register = Player.objects.filter(register_time__gte=now).count()
-    start = Player.objects.filter(start_time__gte=now).count()
-    last_answer = Player.objects.filter(last_answer_time__gte=now).count()
-    limit = Player.objects.filter(limit_time__gte=now).count()
-    scan = Player.objects.filter(scan_time__gte=now).count()
-    #unlocked = Player.objects.filter(unlock_time__gte=now).count()
-    unlocked = 0
-    wheel = Player.objects.filter(wheel_time__gte=now).count()
-    stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
-    stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = {'id': get_config_value('event_id'), 'name': get_config_value('event_name')}
-    return JsonResponse(stats)
-
-def stats_save(request):
+def create_stats():
     stats = {'stats': {}}
     current_time = timezone.now()
     now = '2015-11-21'
@@ -313,7 +276,6 @@ def stats_save(request):
     for players, scorec in scores_query:
         if scorec:
             scores[int(scorec)] =  players
-    #scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
     stats['stats']['scores'] = scores
     register = Player.objects.filter(register_time__gte=now).count()
     start = Player.objects.filter(start_time__gte=now).count()
@@ -321,17 +283,24 @@ def stats_save(request):
     limit = Player.objects.filter(limit_time__gte=now).count()
     scan = Player.objects.filter(scan_time__gte=now).count()
     unlocked = Player.objects.filter(unlock_time__gte=now).count()
-    unlocked = 0
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
     stats['event'] = {'id': event_id, 'name': event_name}
-    statistics = Statistics(event_code=event_id, event_name=event_name, stats_date=now, stats=stats)
+    return stats
+
+def stats(request):
+    stats = create_stats()
+    return JsonResponse(stats)
+
+def stats_save(request):
+    stats = create_stats()
+    statistics = Statistics(event_code=stats['event']['id'], event_name=stats['event']['name'], stats_date=stats['day'], stats=stats)
     statistics.save()
     send_amqp_message({
-                'event_code': event_id,
-                'event_name': event_name,
-                'stats_date': now,
+                'event_code': stats['event']['id'],
+                'event_name': stats['event']['name'],
+                'stats_date': stats['day'],
                 'stats': stats
             }, 'stats')
     return HttpResponse('OK')
