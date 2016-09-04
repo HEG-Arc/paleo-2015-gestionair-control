@@ -270,7 +270,8 @@ def stats(request):
     scores_query = cursor.fetchall()
     scores = {}
     for players, scorec in scores_query:
-        scores[scorec] =  players
+        if scorec:
+            scores[int(scorec)] =  players
     #scores = Player.objects.filter(register_time__gte=now).aggregate(min=Min('score'), avg=Avg('score'), max=Max('score'))
     stats['stats']['scores'] = scores
     register = Player.objects.filter(register_time__gte=now).count()
@@ -278,8 +279,10 @@ def stats(request):
     last_answer = Player.objects.filter(last_answer_time__gte=now).count()
     limit = Player.objects.filter(limit_time__gte=now).count()
     scan = Player.objects.filter(scan_time__gte=now).count()
+    #unlocked = Player.objects.filter(unlock_time__gte=now).count()
+    unlocked = 0
     wheel = Player.objects.filter(wheel_time__gte=now).count()
-    stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan}
+    stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
     stats['event'] = {'id': get_config_value('event_id'), 'name': get_config_value('event_name')}
     return JsonResponse(stats)
