@@ -28,6 +28,7 @@ import collections
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from gestionaircontrol.game.models import get_config_value
+from gestionaircontrol.wheel.models import Prize
 from jsonfield import JSONField
 
 
@@ -73,7 +74,10 @@ class Player(models.Model):
     last_answer_time = models.DateTimeField(blank=True, null=True)
     limit_time = models.DateTimeField(blank=True, null=True)
     scan_time = models.DateTimeField(blank=True, null=True)
+    unlock_time = models.DateTimeField(blank=True, null=True)
     wheel_time = models.DateTimeField(blank=True, null=True)
+    prize = models.ForeignKey(Prize, verbose_name=_('prize'), related_name=_('players'), blank=True, null=True,
+                               help_text=_("The prize won by the player"))
     languages = JSONField(load_kwargs={'object_pairs_hook': collections.OrderedDict}, null=True)
 
     @property
