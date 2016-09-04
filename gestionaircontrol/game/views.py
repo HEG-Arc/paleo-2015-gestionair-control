@@ -298,7 +298,7 @@ def stats_save(request):
     stats['current_time'] = current_time.isoformat()
     stats['day'] = now
     prizes = Prize.objects.all()
-    #stats['inventory'] = PrizeSerializer(prizes, many=True).data
+    stats['inventory'] = PrizeSerializer(prizes, many=True).data
     from django.db import connection
     cursor = connection.cursor()
     cursor.execute("select count(id) as registrations, date_trunc('hour', register_time) as hour from callcenter_player where register_time::date = %s group by hour order by hour", [now,])
@@ -325,7 +325,7 @@ def stats_save(request):
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = {'id': event_id, 'name': "CAPACITE"}
+    stats['event'] = {'id': event_id, 'name': event_name}
     statistics = Statistics(event_code=event_id, event_name=event_name, stats_date=now, stats=stats)
     statistics.save()
     send_amqp_message({
