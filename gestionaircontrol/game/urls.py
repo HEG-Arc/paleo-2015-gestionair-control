@@ -45,6 +45,7 @@ urlpatterns = [
     url(r'^api/load-config', views.load_config, name='load-config'),
     url(r'^api/players-list', views.players_list, name='players-list'),
     url(r'^api/call/(?P<number>\d+)', views.call_phone, name='call-phone'),
+    url(r'^api/stats/save', views.stats_save, name='stats-save'),
     url(r'^api/stats', views.stats, name='stats'),
     url(r'^test_score_sync/(?P<id>\d+)', views.test_score_sync),
     url(r'^frontend', views.frontend_redirect),
