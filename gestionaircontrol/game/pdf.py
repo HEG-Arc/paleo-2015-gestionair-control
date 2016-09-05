@@ -115,7 +115,7 @@ def ticket(name, number, qrcode_value):
     d.hAlign = "CENTER"
     d.vAlign = "TOP"
     parts.append(d)
-    parts.append(Paragraph(str(number), h1))
+    parts.append(Paragraph("%03d" % (number,), h1))
     parts.append(Paragraph("Mon avenir? Je le gère", normal))
     parts.append(Paragraph("www.heg-arc.ch", normal))
     doc.build(parts)
