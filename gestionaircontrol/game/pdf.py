@@ -2,7 +2,7 @@
 import tempfile
 from gestionaircontrol.game.models import get_config_value
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Flowable
 from reportlab.graphics.shapes import Drawing, Rect
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.graphics import barcode
@@ -14,9 +14,50 @@ from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics import renderPDF
 
+from pdfrw import PdfReader, PdfDict
+from pdfrw.buildxobj import pagexobj
+from pdfrw.toreportlab import makerl
+
 from config.settings import APPS_DIR
 from gestionaircontrol.callcenter.models import get_player_languages
 import os
+
+
+def form_xo_reader(imgdata):
+    page, = PdfReader(imgdata).pages
+    return pagexobj(page)
+
+
+class PdfImage(Flowable):
+    def __init__(self, img_data, width=76*mm, height=51*mm):
+        self.img_width = width
+        self.img_height = height
+        self.img_data = img_data
+
+    def wrap(self, width, height):
+        return self.img_width, self.img_height
+
+    def drawOn(self, canv, x, y, _sW=0):
+        if _sW > 0 and hasattr(self, 'hAlign'):
+            a = self.hAlign
+            if a in ('CENTER', 'CENTRE', TA_CENTER):
+                x += 0.5*_sW
+            elif a in ('RIGHT', TA_RIGHT):
+                x += _sW
+            elif a not in ('LEFT', TA_LEFT):
+                raise ValueError("Bad hAlign value " + str(a))
+        canv.saveState()
+        img = self.img_data
+        if isinstance(img, PdfDict):
+            xscale = self.img_width / img.BBox[2]
+            yscale = self.img_height / img.BBox[3]
+            canv.translate(x, y)
+            canv.scale(xscale, yscale)
+            canv.doForm(makerl(canv, img))
+        else:
+            canv.drawImage(img, x, y, self.img_width, self.img_height)
+        canv.restoreState()
+
 
 # TODO: get string from db config?
 def label(player):
@@ -24,9 +65,14 @@ def label(player):
     if not languages:
         languages = ['FR']
 
+    imgdata = open(APPS_DIR.path('static/capacite.pdf').__str__(), 'r')
+    imgdata.seek(0)
+    reader = form_xo_reader
+    image = reader(imgdata)
     pdf_file_name = tempfile.mktemp(".pdf")
     c = canvas.Canvas(pdf_file_name, pagesize=(76*mm, 51*mm))
-    c.drawImage(APPS_DIR.path('static/hello.jpg').__str__(), 0, 0, width=76*mm, height=51*mm)
+    img = PdfImage(image, width=76*mm, height=51*mm)
+    img.drawOn(c, 0*mm, 0*mm)
     c.setFont('Helvetica-Bold', 36)
     c.drawCentredString(38*mm, 27*mm, player.name)
 

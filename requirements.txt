@@ -26,6 +26,7 @@ Pillow==3.0.0
 
 # Printing
 pycups==1.9.73
+pdfrw
 
 # Lightshow
 pyusb==1.0.0b2
