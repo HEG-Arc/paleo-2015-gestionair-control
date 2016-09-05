@@ -37,8 +37,6 @@ def on_message(channel, method_frame, header_frame, body):
     try:
         logging.debug('received: %s' % body)
         res = requests.post(WEB_API, headers=headers, data=body, auth=auth) #(os.getenv('WEB_API_USERNAME'), os.getenv('WEB_API_PASSWORD')))
-        print res
-        print res.text
         if res.status_code == 400 and 'code' in res.json():
             channel.basic_nack(delivery_tag=method_frame.delivery_tag, requeue=False)
         else:
