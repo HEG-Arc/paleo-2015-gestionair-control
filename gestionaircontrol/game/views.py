@@ -113,7 +113,7 @@ def print_player(request, player_id):
     ip = request.META.get('HTTP_X_REAL_IP')
 
     try:
-        printer = Printer.objects.get(uri__contains=str(ip))
+        printer = Printer.objects.get(uri__contains=str(ip), name__contains='print-ticket')
     except ObjectDoesNotExist:
         default_printer = get_config_value('default_ticket_printer')
         if default_printer:
