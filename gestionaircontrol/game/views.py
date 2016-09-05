@@ -193,6 +193,7 @@ def scan_player(request, player_id):
                     'name': prize.label,
                     'src': prize.picture.url
                 }
+                player.prize = prize
             message['state'] = 'SCANNED_PEN'
             player.state = Player.WON
         else:
@@ -215,7 +216,6 @@ def bumper(request):
     # TODO Handle error? or other states
     player.state = Player.WON
     player.wheel_time = timezone.now()
-    player.save()
 
     CALL_CENTER.wheel_player = None
     prize_id, prize_big = get_random_prize()
@@ -223,6 +223,9 @@ def bumper(request):
         prize_size = 'big'
     else:
         prize_size = 'small'
+    player.prize_id = prize_id
+    player.save()
+
     message = {'type': 'WHEEL_START',
                'playerId': player.id,
                'prize': prize_id,
