@@ -65,15 +65,12 @@ def ticket(name, number, qrcode_value):
     doc.rightMargin = 0
     parts = []
     normal.spaceAfter = 18
-    parts.append(Paragraph("Gestion'air", normal))
-    parts.append(Paragraph("Votre code", normal))
     d = barcode.createBarcodeDrawing("QR", width=4*cm, height=4*cm, barBorder=0, value=qrcode_value)
     d.hAlign = "CENTER"
     d.vAlign = "TOP"
     parts.append(d)
     parts.append(Paragraph(str(number), h1))
-    parts.append(Paragraph("Retrouvez la HEG Arc sur", normal))
-    parts.append(Paragraph("son stand au 1er étage de", normal))
-    parts.append(Paragraph("Campus Arc 2", normal))
+    parts.append(Paragraph("Mon avenir? Je le gère", normal))
+    parts.append(Paragraph("www.heg-arc.ch", normal))
     doc.build(parts)
     return pdf_file_name
