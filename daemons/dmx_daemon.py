@@ -129,7 +129,7 @@ def default_scene():
     scene = []
     set_effect_color(scene, EFFECTS['wheel'], 0, 138, 201, 0, 0, 0, 100)
     set_effect_color(scene, EFFECTS['borne'], 0, 138, 201, 255, 0, 0, 0)
-    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 221, 0)
     send_dmx_scene(scene)
 
 def purple_bumper():
@@ -138,7 +138,7 @@ def purple_bumper():
     send_dmx_scene(scene)
     time.sleep(5)
     scene = []
-    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 221, 0)
     send_dmx_scene(scene)
 
 def red_bumper():
@@ -147,7 +147,7 @@ def red_bumper():
     send_dmx_scene(scene)
     time.sleep(5)
     scene = []
-    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 201, 0)
+    set_phone_color(scene, EFFECTS['bumper'], 0, 138, 221, 0)
     send_dmx_scene(scene)
 
 def wheel_small(scene):
@@ -232,14 +232,14 @@ def play_dmx_from_event(event):
     if event['type'] == 'GAME_START':
         default_scene()
         for number, channel in PHONES.iteritems():
-            set_phone_color(scene, channel, 0, 138, 201, 0)
+            set_phone_color(scene, channel, 0, 138, 221, 0)
     if event['type'] == 'GAME_START_PLAYING':
         for number, channel in PHONES.iteritems():
             set_phone_color(scene, channel, 0, 0, 0, 0)
     elif event['type'] == 'PHONE_RINGING':
         number = event['number']
         channel = PHONES['%s' % number]
-        set_phone_color(scene, channel, 0, 138, 201, 0)
+        set_phone_color(scene, channel, 0, 138, 221, 0)
     elif event['type'] == 'PHONE_STOPRINGING':
         number = event['number']
         channel = PHONES['%s' % number]
