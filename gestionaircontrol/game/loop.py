@@ -189,7 +189,7 @@ def game_loop(callcenter):
                 # check if we need to call phones
                 ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
                 logger.debug("ringing_phones length %s " % len(ringing_phones))
-                if len(ringing_phones) < get_config_value('min_phone_ringing'):
+                if len(ringing_phones) < int(get_config_value('min_phone_ringing')):
                     available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
                     logger.debug("available phones count %s " % len(available_phones))
                     if len(available_phones) > 0:
