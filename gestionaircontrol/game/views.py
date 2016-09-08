@@ -23,6 +23,7 @@
 
 # Stdlib imports
 import json
+import datetime
 
 from django.core.files import File
 
@@ -278,7 +279,7 @@ def create_stats():
     players = cursor.fetchall()
     attendance = {}
     for nb, hour in players:
-        attendance[hour.strftime('%Y-%m-%d %H:%M')] =  int(nb)
+        attendance[(hour + datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M')] =  int(nb)
     stats['attendance'] = attendance
     cursor.execute("select count(id) as players, ROUND(score/10)*10 as scorec from callcenter_player where register_time::date = %s group by scorec order by scorec", [now,])
     scores_query = cursor.fetchall()
