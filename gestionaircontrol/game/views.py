@@ -258,7 +258,8 @@ def agi_public_request(request):
 def create_stats():
     stats = {'stats': {}}
     current_time = timezone.now()
-    now = '2015-11-21'
+    #now = '2015-11-21'
+    now = current_time.strftime('%Y-%m-%d')
     event_id = get_config_value('event_id')
     event_name = event_name=get_config_value('event_name')
     stats['current_time'] = current_time.isoformat()
