@@ -84,12 +84,30 @@ def pick_next_question(player=None):
     return question, last
 
 
+def check_player_limit(player):
+    answers = Answer.objects.filter(player_id=player.id)
+    if len(answers) >= int(get_config_value('max_answers')):
+        player.state = Player.LIMITREACHED
+        player.limit_time = timezone.now()
+        player.save()
+        player_score = compute_player_score(player)
+        # send score and player data to sync queue
+        send_amqp_message({
+            'code': '%s%s' % (get_config_value('event_id'), player.id),
+            'json': GamePlayerSerializer(player).data
+        }, 'sync')
+        response = {'playerId': player.id, 'languages': player_score['languages'], 'score': player_score['score'],
+                    'type': 'PLAYER_LIMIT_REACHED', 'timestamp': player.limit_time.isoformat()}
+        send_amqp_message(response, "simulation")
+
+
 def agi_question(player_number, phone_number):
     phone = Phone.objects.get(number=phone_number)
     if phone.usage == Phone.CENTER and len(player_number) == 3:
         player = Player.objects.filter(id__endswith=str(player_number)).order_by('-id').first()
         over = "not"
         last = "not"
+        check_player_limit(player)
         if player.state in (Player.LIMITREACHED, Player.SCANNED, Player.WON):
             response_code = None
             response_file = get_config_value('agi_over_file')
@@ -129,22 +147,7 @@ def agi_save(answer_id, answer_key, correct):
                     'number': answer.phone.number}
         send_amqp_message(response, "simulation")
 
-        answers = Answer.objects.filter(player_id=player.id)
-        if len(answers) >= int(get_config_value('max_answers')):
-            player.state = Player.LIMITREACHED
-            player.limit_time = timezone.now()
-            player.save()
-
-            # TODO: move in a celery task
-            player_score = compute_player_score(player)
-            # send score and player data to sync queue
-            send_amqp_message({
-                'code': '%s%s' % (get_config_value('event_id'), player.id),
-                'json': GamePlayerSerializer(player).data
-            }, 'sync')
-            response = {'playerId': player.id, 'languages': player_score['languages'], 'score': player_score['score'],
-                        'type': 'PLAYER_LIMIT_REACHED', 'timestamp': player.limit_time.isoformat()}
-            send_amqp_message(response, "simulation")
+        check_player_limit(player)
 
 
 def get_departments_numbers():
