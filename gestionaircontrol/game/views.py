@@ -268,6 +268,12 @@ def create_stats():
     stats['inventory'] = PrizeSerializer(prizes, many=True).data
     from django.db import connection
     cursor = connection.cursor()
+    cursor.execute("select count(cp.id)as nb, (select count(*) from callcenter_answer ca where ca.player_id=cp.id) answers from callcenter_player cp where register_time::date = %s group by answers order by answers;", [now,])
+    answers_list = cursor.fetchall()
+    answers = {}
+    for nb, ans in answers_list:
+        answers[int(ans)] = nb
+    stats['stats']['answers'] = answers
     cursor.execute("select count(id) as registrations, date_trunc('hour', register_time) as hour from callcenter_player where register_time::date = %s group by hour order by hour", [now,])
     players = cursor.fetchall()
     attendance = {}
