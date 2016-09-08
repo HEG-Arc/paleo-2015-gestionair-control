@@ -93,7 +93,7 @@ class Endpoint(object):
     SENT_ASTERISK = 5
     RINGING = 2 # means ringing or play answering
     COOLDOWN = 3 #phone has been used recently
-    COOLDOWN_TIME = 10
+    COOLDOWN_TIME = 4
     stop_ringing_sent = False
     count = 0
     last_ringing = False
@@ -192,6 +192,9 @@ def game_loop(callcenter):
                 if len(ringing_phones) < int(get_config_value('min_phone_ringing')):
                     available_phones = [phone for phone in phones.values() if phone.state == Endpoint.AVAILABLE]
                     logger.debug("available phones count %s " % len(available_phones))
+                    if len(available_phones) == 0:
+                        available_phones = [phone for phone in phones.values() if phone.state == Endpoint.COOLDOWN]
+                        logger.debug("available cooldown phones count %s " % len(available_phones))
                     if len(available_phones) > 0:
                         phone = random.choice(available_phones)
                         phone.call()
