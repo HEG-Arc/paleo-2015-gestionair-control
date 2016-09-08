@@ -93,7 +93,7 @@ class Endpoint(object):
     SENT_ASTERISK = 5
     RINGING = 2 # means ringing or play answering
     COOLDOWN = 3 #phone has been used recently
-    COOLDOWN_TIME = 4
+    COOLDOWN_TIME = 15
     stop_ringing_sent = False
     count = 0
     last_ringing = False
@@ -152,7 +152,8 @@ class Endpoint(object):
 
     def call(self):
         logger.debug("New phone call %s" % self.number)
-        self.state = Endpoint.SENT_ASTERISK
+        self.state = Endpoint.COOLDOWN
+        self.cooldown_start = timezone.now()
         self.callcenter.call_number(self.number)
 
 
@@ -185,6 +186,7 @@ def game_loop(callcenter):
                     phone.update_cooldown()
                     phone.update_up(number in [int(channel['caller']['number']) for channel in open_channels if channel['state'] == 'Up'])
                     phone.update_ringing(number in ringing_channels)
+                    logger.debug("phone %s state %s" % (number, phone.state))
 
                 # check if we need to call phones
                 ringing_phones = [phone for phone in phones.values() if phone.state == Endpoint.RINGING]
