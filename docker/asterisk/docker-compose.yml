@@ -1,0 +1,12 @@
+version: '2'
+services:
+  asterisk:
+    image: dougbtv/asterisk13
+    entrypoint: asterisk -fvvvvv
+    network_mode: host
+    #ports:
+    #  - "8088:8088"
+    #  - "5060:5060/tcp"
+    #  - "5060:5060/udp"
+    volumes:
+      - ./etc/asterisk:/etc/asterisk
