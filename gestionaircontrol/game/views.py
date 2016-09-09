@@ -195,6 +195,8 @@ def scan_player(request, player_id):
                     'src': prize.picture.url
                 }
                 player.prize = prize
+                prize.stock -= 1
+                prize.save()
             message['state'] = 'SCANNED_PEN'
             player.state = Player.WON
         else:
