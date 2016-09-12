@@ -105,6 +105,10 @@ def register_player(request):
         return HttpResponseBadRequest('Unable to decode JSON')
 
 
+def check_player_code(request, player_id):
+    player = get_object_or_404(Player, pk=player_id)
+
+
 def print_player(request, player_id):
     player = get_object_or_404(Player, pk=player_id)
     player.state = Player.CODEPRINTED
@@ -152,6 +156,7 @@ def unlock_previous_player(request):
         # fix player to go to wheel
         player = CALL_CENTER.last_scan
         player.state = player.LIMITREACHED
+        player.unlock_time = timezone.now()
         if player.score < int(get_config_value('minimum_score')):
             player.score = int(get_config_value('minimum_score')) + 1
         player.save()
