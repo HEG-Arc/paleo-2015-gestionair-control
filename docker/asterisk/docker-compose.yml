@@ -14,5 +14,6 @@ services:
     #  - "10000-10100:10000-10100"
     volumes:
       - ./etc/asterisk:/etc/asterisk
+      - ./sounds:/usr/share/asterisk/sounds/gestionair
     # fix until https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=836924
       - ./rest-api:/usr/share/asterisk/rest-api
