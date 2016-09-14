@@ -31,13 +31,6 @@ import random
 import datetime
 import json
 
-# ---- required for same feature levels
-# TODO: ampq send events
-# TODO: on START start calling
-# TODO: on STOP clear all channels, stop new calls
-# TODO: handle manual call events
-# TODO: push other events? like demo phone
-
 # ---- nice to have
 # TODO: getConfig dynamically?
 # TODO: on config event change config
@@ -198,6 +191,14 @@ def call(number, timeout=20):
                                    app=APP_NAME, callerId=APP_NAME, appArgs="gestionair", timeout=timeout)
 
 
+def clear_all_channels():
+    for channel in client.channels.list():
+        try:
+            channel.hangup()
+        except:
+            pass
+
+
 def get_phone(number):
     number = int(number)
     if 1000 < number < 1100:
@@ -319,9 +320,18 @@ def on_message(channel, method_frame, header_frame, body):
         print message
         if 'type' in message:
             print message['type']
-            play_dmx_from_event(message)
+            if message['type'] == 'START':
+                game_is_running = True
+                check_and_start_phones()
+            if message['type'] == 'STOP':
+                game_is_running = False
+                clear_all_channels()
+            if message['type'] == 'CONFIG':
+                pass
+            if message['type'] == 'CALL':
+                call(message['number'], message['timeout'])
     except Exception as e:
-        print e
+        logging.error(e)
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
 parameters = pika.URLParameters('amqp://guest:guest@%s:5672/%2F' % AMQP_HOST)
