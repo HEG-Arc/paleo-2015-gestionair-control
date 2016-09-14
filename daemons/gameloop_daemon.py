@@ -41,7 +41,7 @@ from requests import HTTPError
 
 APP_NAME = "gestionair"
 AMQP_HOST = '127.0.0.1'
-API_HOST = '192.168.1.1'
+API_HOST = '127.0.0.1'
 
 MIN_PHONE_RINGING = 1
 COOLDOWN_TIME = 15
@@ -116,10 +116,10 @@ class Endpoint(object):
             #TODO disable ask_login timeout
             # get player
             try:
-                #TODO test live api
                 self.question = requests.get('http://%s/game/agi/%s/%s/' % (API_HOST, self.player_code, self.number), timeout=0.5).json()
             except:
                 self.question = None
+            self.stop_current_playback()
             if self.question: # ok
                 if self.question['over'] == 'over':
                     self.playback = channel.playWithId(media='sound:gestionair/over',
@@ -138,10 +138,6 @@ class Endpoint(object):
                     # TODO: timeout wrong and hangup
             else:
                 #play wrong code gestionair / wrong - code
-                try:
-                    self.playback.stop()
-                except:
-                    pass
                 self.playback = channel.playWithId(media='sound:gestionair/wrong-code', playbackId='%s-wrongcode' % self.number)
                 self.playback.on_event('PlaybackFinished', lambda obj, ev: self.safe_hangup(channel))
 
@@ -153,6 +149,10 @@ class Endpoint(object):
         payload = {'answer_id': self.question['answer_id'], 'answer_key': int(digit),
                    'correct': response}
         requests.post('http://%s/game/agi/' % API_HOST, data=json.dumps(payload))
+
+        self.stop_current_playback('%s-question' % self.number)
+        self.stop_current_playback('%s-correspondant' % self.number)
+
         if response:
             self.playback = channel.playWithId(media='sound:gestionair/thankyou',
                                                playbackId='%s-wrongcode' % self.number)
@@ -173,6 +173,16 @@ class Endpoint(object):
             # Ignore 404's, since channels can go away before we get to them
             if e.response.status_code != requests.codes.not_found:
                 raise
+
+    def stop_current_playback(self, id=None):
+        try:
+            if self.playback:
+                self.playback.stop()
+                self.playback = None
+            if id:
+                client.playbacks.stop(playbackId=id)
+        except:
+            pass
 
     def cooldown(self):
         self.state = Endpoint.COOLDOWN
@@ -277,7 +287,7 @@ def on_channel_dtmf_received(channel, ev):
     # ev['duration_ms']
     if phone.state == Endpoint.LOGIN:
         phone.login(channel, ev['digit'])
-    if phone.state == Endpoint.ANSWERING:
+    elif phone.state == Endpoint.ANSWERING:
         phone.answer(channel, ev['digit'])
 
 
@@ -335,7 +345,7 @@ def on_message(channel, method_frame, header_frame, body):
         logging.error(e)
     channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
-parameters = pika.URLParameters('amqp://guest:guest@%s:5672/%2F' % AMQP_HOST)
+parameters = pika.URLParameters('amqp://guest:guest@%s:5672/%%2F' % AMQP_HOST)
 connection = pika.BlockingConnection(parameters=parameters)
 channel = connection.channel()
 result = channel.queue_declare(exclusive=True)
@@ -343,8 +353,11 @@ queue_name = result.method.queue
 channel.queue_bind(queue=queue_name, exchange='gestionair', routing_key='simulation')
 channel.basic_consume(on_message, queue=queue_name)
 
+connection_send = pika.BlockingConnection(parameters=parameters)
+channel_send = connection_send.channel()
+
 def send_amqp_message(message, exchange):
-    connection.basic_publish(exchange, 'simulation', message)
+    channel_send.basic_publish(exchange, 'simulation', json.dumps(message))
     logging.debug("SENT %s" % message)
 
 
