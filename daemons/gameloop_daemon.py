@@ -47,6 +47,8 @@ import json
 from requests import HTTPError
 
 APP_NAME = "gestionair"
+AMQP_HOST = '127.0.0.1'
+API_HOST = '192.168.1.1'
 
 MIN_PHONE_RINGING = 1
 COOLDOWN_TIME = 15
@@ -121,7 +123,7 @@ class Endpoint(object):
             # get player
             try:
                 #TODO test live api
-                self.question = requests.get('http://192.168.1.1/game/agi/%s/%s/' % (self.player_code, self.number), timeout=0.5).json()
+                self.question = requests.get('http://%s/game/agi/%s/%s/' % (API_HOST, self.player_code, self.number), timeout=0.5).json()
             except:
                 self.question = None
             if self.question: # ok
@@ -156,7 +158,7 @@ class Endpoint(object):
         response =  int(digit) == self.question['response']
         payload = {'answer_id': self.question['answer_id'], 'answer_key': int(digit),
                    'correct': response}
-        requests.post('http://192.168.1.1/game/agi/', data=json.dumps(payload))
+        requests.post('http://%s/game/agi/' % API_HOST, data=json.dumps(payload))
         if response:
             self.playback = channel.playWithId(media='sound:gestionair/thankyou',
                                                playbackId='%s-wrongcode' % self.number)
@@ -306,9 +308,40 @@ client.on_channel_event('ChannelDestroyed', on_channel_destroyed)
 client.on_channel_event('StasisEnd', on_stasis_end)
 
 
-# AMPQ
+# AMQP
+def on_message(channel, method_frame, header_frame, body):
+    try:
+        message = json.loads(body)
+        print message
+        if 'type' in message:
+            print message['type']
+            play_dmx_from_event(message)
+    except Exception as e:
+        print e
+    channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+parameters = pika.URLParameters('amqp://guest:guest@%s:5672/%2F' % AMQP_HOST)
+connection = pika.BlockingConnection(parameters=parameters)
+channel = connection.channel()
+result = channel.queue_declare(exclusive=True)
+queue_name = result.method.queue
+channel.queue_bind(queue=queue_name, exchange='gestionair', routing_key='simulation')
+channel.basic_consume(on_message, queue=queue_name)
+
 def send_amqp_message(message, exchange):
-    logging.info("TODO: send %s" % message)
+    connection.basic_publish(exchange, 'simulation', message)
+    logging.debug("SENT %s" % message)
+
+
+def amqp_thread():
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt, pika.exceptions.ChannelClosed:
+        channel.stop_consuming()
+
+t = threading.Thread(target=amqp_thread)
+t.start()
+
 
 
 # wait for websocket to conect for app to exist on asterisk api before trying to subscribe
