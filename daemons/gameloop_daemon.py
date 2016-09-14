@@ -60,7 +60,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 client = ari.connect('http://10.0.75.2:8088', 'username', 'test')
 
-phones = {}
+phones = {} # for game
+phones_other = {} # for other numbers if demo calls,..
 
 last_event = {}
 
@@ -205,7 +206,12 @@ def get_phone(number):
             phones[number] = Endpoint(number)
 
         return phones[number]
-    return None
+    else:
+        if number not in phones_other.keys():
+            logging.debug("create other phone %s" % number)
+            phones_other[number] = Endpoint(number)
+
+        return phones_other[number]
 
 
 def check_and_start_phones():
@@ -236,17 +242,15 @@ def check_and_start_phones():
 def on_endpoint_state_change(endpoint, ev):
     logging.debug(ev)
     phone = get_phone(endpoint.json["resource"])
-    if phone:
-        phone.set_online(endpoint.json['state'] == 'online')
-        if phone.endpoint_state == Endpoint.ONLINE and len(endpoint.json['channel_ids']) == 0:
-            phone.cooldown()
+    phone.set_online(endpoint.json['state'] == 'online')
+    if phone.endpoint_state == Endpoint.ONLINE and len(endpoint.json['channel_ids']) == 0:
+        phone.cooldown()
 
 
 def on_stasis_start(channel, ev):
     logging.debug("stasis_start %s" % ev)
     phone = get_phone(ev['channel']['caller']['number'])
-    if phone:
-        phone.ask_login(channel.get('channel'))
+    phone.ask_login(channel.get('channel'))
     check_and_start_phones()
 
 
@@ -257,7 +261,7 @@ def on_channel_state_change(channel, ev):
     logging.debug("on_channel_state_change %s" % ev)
     logging.debug("%s: %s" %( channel.json['caller']['number'], channel.json['state']) )
     phone = get_phone(channel.json['caller']['number'])
-    if phone and channel.json['state'] == 'Ringing':
+    if channel.json['state'] == 'Ringing':
         phone.ringing()
 
 
@@ -270,9 +274,9 @@ def on_channel_dtmf_received(channel, ev):
     phone = get_phone(channel.json['caller']['number'])
     # ev['digit']
     # ev['duration_ms']
-    if phone and phone.state == Endpoint.LOGIN:
+    if phone.state == Endpoint.LOGIN:
         phone.login(channel, ev['digit'])
-    if phone and phone.state == Endpoint.ANSWERING:
+    if phone.state == Endpoint.ANSWERING:
         phone.answer(channel, ev['digit'])
 
 
