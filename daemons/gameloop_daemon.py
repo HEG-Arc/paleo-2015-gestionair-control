@@ -315,6 +315,7 @@ client.on_channel_event('StasisEnd', on_stasis_end)
 
 # AMQP
 def on_message(channel, method_frame, header_frame, body):
+    global game_is_running
     try:
         message = json.loads(body)
         print message
