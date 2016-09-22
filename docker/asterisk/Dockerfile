@@ -16,4 +16,7 @@ RUN set -x; \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/* \
 
+COPY ./rest-api:/usr/share/asterisk/rest-api
+RUN chown asterisk:asterisk -R /usr/share/asterisk/rest-api
+
 CMD asterisk -fvvvvv
