@@ -269,7 +269,9 @@ def create_stats():
     #now = '2015-11-21'
     now = current_time.strftime('%Y-%m-%d')
     event_id = get_config_value('event_id')
-    event_name = event_name=get_config_value('event_name')
+    event_name = get_config_value('event_name')
+    event_start_date = get_config_value('event_start_date')
+    event_end_date = get_config_value('event_end_date')
     stats['current_time'] = current_time.isoformat()
     stats['day'] = now
     prizes = Prize.objects.all()
@@ -304,7 +306,9 @@ def create_stats():
     wheel = Player.objects.filter(wheel_time__gte=now).count()
     stats['stats']['retention'] = {'register': register, 'start': start, 'last_answer': last_answer, 'limit': limit, 'scan': scan, 'unlocked': unlocked}
     stats['stats']['win'] = {'wheel': wheel, 'free': scan-wheel}
-    stats['event'] = {'id': event_id, 'name': event_name}
+    cursor.execute("select count(id) from callcenter_player where register_time::date >= %s", [event_start_date,])
+    a = cursor.fetchone()
+    stats['event'] = {'id': event_id, 'name': event_name, 'attendance': int(a[0]), 'start_date': event_start_date, 'end_date': event_end_date}
     return stats
 
 def stats(request):
