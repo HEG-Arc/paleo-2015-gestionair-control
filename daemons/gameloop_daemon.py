@@ -197,7 +197,7 @@ class Endpoint(object):
 
 # Helpers
 def call(number, timeout=20):
-    client.channels.originate(endpoint="PJSIP/%s" % number,
+    client.channels.originate(endpoint="SIP/%s" % number,
                                    app=APP_NAME, callerId=APP_NAME, appArgs="gestionair", timeout=timeout)
 
 
@@ -374,7 +374,7 @@ t.start()
 
 # wait for websocket to conect for app to exist on asterisk api before trying to subscribe
 def subscribe():
-    client.applications.subscribe(applicationName=APP_NAME, eventSource="endpoint:PJSIP")
+    client.applications.subscribe(applicationName=APP_NAME, eventSource="endpoint:SIP")
     # trigger update of endpoints
     for endpoint in client.endpoints.list():
         on_endpoint_state_change(endpoint, {})
